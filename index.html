@@ -1293,6 +1293,8 @@
     if(error){ console.error('[Clinderm] Error cargando personal:', error); return; }
     const conAcceso = (data||[]).filter(p=>p.auth_user_id);
     const sinAcceso = (data||[]).filter(p=>!p.auth_user_id);
+    // 🔒 Solo un admin con permiso explícito puede eliminar usuarios (super admin).
+    const puedeEliminar = !!(MI_PERFIL && MI_PERFIL.permisos && MI_PERFIL.permisos.puede_eliminar_papelera !== false);
 
     const tablaCon = document.getElementById('cfg-tabla-con-acceso');
     tablaCon.innerHTML = '<tr><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr>' + conAcceso.map(p=>`
@@ -1301,8 +1303,8 @@
         <td><input type="checkbox" ${p.activo?'checked':''} onchange="togglePersonalActivo('${p.id}', this.checked)"></td>
         <td>
           <span style="cursor:pointer;" title="Restablecer contraseña" onclick="abrirResetPassword('${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">🔑</span> ·
-          <span style="cursor:pointer;" title="Cambiar correo" onclick="abrirCambiarCorreo('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">✉️</span> ·
-          <span style="cursor:pointer;" title="Eliminar" onclick="confirmarEliminarPersonal('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>
+          <span style="cursor:pointer;" title="Cambiar correo" onclick="abrirCambiarCorreo('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">✉️</span>${puedeEliminar ? ` ·
+          <span style="cursor:pointer;" title="Eliminar" onclick="confirmarEliminarPersonal('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>` : ''}
         </td>
       </tr>`).join('');
     document.getElementById('cfg-con-acceso-empty').style.display = conAcceso.length ? 'none' : 'block';
@@ -1313,8 +1315,8 @@
         <td>${esc(p.nombre)}</td>
         <td><input type="checkbox" ${p.activo?'checked':''} onchange="togglePersonalActivo('${p.id}', this.checked)"></td>
         <td>
-          <span style="cursor:pointer; color:var(--teal-dark); font-weight:700;" onclick="abrirDarAcceso('${p.id}','${esc(p.nombre).replace(/'/g,"\\'")}')">Dar acceso</span> ·
-          <span style="cursor:pointer;" onclick="confirmarEliminarPersonal('${p.id}', null, '${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>
+          <span style="cursor:pointer; color:var(--teal-dark); font-weight:700;" onclick="abrirDarAcceso('${p.id}','${esc(p.nombre).replace(/'/g,"\\'")}')">Dar acceso</span>${puedeEliminar ? ` ·
+          <span style="cursor:pointer;" onclick="confirmarEliminarPersonal('${p.id}', null, '${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>` : ''}
         </td>
       </tr>`).join('');
     document.getElementById('cfg-sin-acceso-empty').style.display = sinAcceso.length ? 'none' : 'block';
