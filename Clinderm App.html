@@ -1,0 +1,472 @@
+<!-- BOCETO — Clinderm App (no funcional, solo para aprobar diseño/estructura) -->
+<style>
+  :root{
+    --navy-900:#0B1628;
+    --navy-800:#0E1D36;
+    --navy-700:#132648;
+    --navy-600:#1B3A6B;
+    --teal:#2ABFBF;
+    --teal-dark:#1A9898;
+    --ink:#0E1D36;
+    --muted:#5B6B84;
+    --border:#E3E8F0;
+    --bg:#F4F6FA;
+    --good:#1FA971;
+    --warn:#E0A426;
+    --bad:#E0524A;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Instrument Sans', -apple-system, Segoe UI, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  h1,h2,h3,.brand{font-family:'Bricolage Grotesque', 'Instrument Sans', sans-serif;}
+
+  /* ===== LOGIN ===== */
+  #loginScreen{
+    position:fixed; inset:0; z-index:50;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(circle at 20% 10%, #183660, #0B1628 55%, #080f1c 100%);
+    overflow:hidden;
+  }
+  #loginScreen::before{
+    content:''; position:absolute; width:520px; height:520px; border-radius:50%;
+    background:radial-gradient(circle, rgba(42,191,191,.35), transparent 70%);
+    top:-120px; left:-120px; filter:blur(10px);
+  }
+  .login-wrap{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:22px;}
+  .brandmark{color:#fff; text-align:center;}
+  .brandmark .word{font-size:22px; font-weight:700; letter-spacing:.5px;}
+  .brandmark .tag{color:#9db3d6; font-size:12.5px; margin-top:2px;}
+  .login-card{
+    width:360px; background:#fff; border-radius:18px; padding:32px 28px 26px;
+    box-shadow:0 30px 60px rgba(0,0,0,.35);
+    position:relative; overflow:hidden;
+  }
+  .login-card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg, var(--teal), var(--navy-600));
+  }
+  .login-card h2{margin:6px 0 2px; font-size:19px;}
+  .login-card p{margin:0 0 20px; color:var(--muted); font-size:13px;}
+  .field{position:relative; margin-bottom:14px;}
+  .field input{
+    width:100%; padding:12px 14px 12px 40px; border:1.5px solid var(--border);
+    border-radius:10px; font-size:14px; outline:none; transition:.15s;
+  }
+  .field input:focus{border-color:var(--teal);}
+  .field .ic{position:absolute; left:13px; top:50%; transform:translateY(-50%); opacity:.5; font-size:15px;}
+  .field .toggle{position:absolute; right:13px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--muted); cursor:pointer;}
+  .btn-primary{
+    width:100%; padding:12px; border:none; border-radius:10px; color:#fff; font-weight:600; font-size:14px;
+    background:linear-gradient(90deg, var(--teal-dark), var(--navy-600)); cursor:pointer; margin-top:6px;
+  }
+  .login-foot{text-align:center; font-size:12px; color:var(--muted); margin-top:14px;}
+
+  /* ===== SHELL ===== */
+  #app{display:none;}
+  header.topbar{
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+    background:var(--navy-800); color:#fff; padding:12px 22px;
+  }
+  .logo-mc{font-weight:700; font-size:14px; letter-spacing:.4px; opacity:.9;}
+  .logo-mc span{color:var(--teal);}
+  .app-title{text-align:center; font-weight:700; font-size:16px;}
+  .session-chip{justify-self:end; display:flex; align-items:center; gap:10px; font-size:12.5px;}
+  .session-chip select{background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:8px; padding:5px 8px; font-size:12px;}
+  .session-chip button{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); color:#fff; padding:6px 10px; border-radius:8px; font-size:12px; cursor:pointer;}
+
+  nav.mainnav{
+    display:flex; gap:4px; background:#fff; border-bottom:1px solid var(--border);
+    padding:0 18px; overflow-x:auto;
+  }
+  nav.mainnav button{
+    border:none; background:none; padding:14px 16px; font-size:13.5px; font-weight:600;
+    color:var(--muted); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap;
+  }
+  nav.mainnav button.active{color:var(--navy-600); border-bottom-color:var(--teal);}
+
+  main{padding:22px; max-width:1180px; margin:0 auto;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .card{background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:16px;}
+  .card h3{margin:0 0 14px; font-size:15px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:5px; font-weight:600;}
+  input,select,textarea{
+    width:100%; padding:9px 11px; border:1.5px solid var(--border); border-radius:9px; font-size:13.5px; font-family:inherit;
+  }
+  .field-wrap{margin-bottom:12px; position:relative;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;}
+  .chip{background:#EAF7F7; color:var(--teal-dark); border:1px solid #BFE9E9; padding:4px 10px; border-radius:20px; font-size:11.5px; cursor:pointer;}
+  .toggle-link{color:var(--teal-dark); font-size:12.5px; font-weight:600; cursor:pointer; display:inline-block; margin:4px 0 10px;}
+  .summary-box{background:var(--navy-700); color:#fff; border-radius:12px; padding:14px 16px; font-size:13px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .summary-box .lab{opacity:.6; font-size:10.5px; text-transform:uppercase;}
+  .row-check{display:flex; align-items:center; gap:8px; font-size:13px; margin:10px 0;}
+  .btn{padding:9px 16px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:#fff;}
+  .btn-teal{background:linear-gradient(90deg, var(--teal-dark), var(--navy-600)); color:#fff; border:none;}
+  .btn-danger{background:#FDEDEC; color:var(--bad); border:1px solid #F6C9C6;}
+  .btn-ghost{background:#F4F6FA;}
+
+  table{width:100%; border-collapse:collapse; font-size:12.8px;}
+  th{text-align:left; color:var(--muted); font-size:11px; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border);}
+  td{padding:9px 10px; border-bottom:1px solid #EEF1F6;}
+  .badge{padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;}
+  .badge-ghost{background:#EEF1F6; color:var(--muted);}
+  .badge-warn{background:#FDF3E0; color:var(--warn);}
+  .filters{display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-bottom:14px;}
+  .filters .fitem{min-width:150px;}
+  .excl-links{display:flex; gap:14px; font-size:12.5px; margin-left:auto;}
+  .excl-links span{cursor:pointer; color:var(--muted);}
+  .excl-links span.on{color:var(--teal-dark); font-weight:700;}
+
+  .kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px;}
+  .kpi{background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:16px;}
+  .kpi .v{font-size:22px; font-weight:700;}
+  .kpi .l{font-size:11.5px; color:var(--muted); text-transform:uppercase;}
+
+  .subtabs{display:flex; gap:8px; margin-bottom:14px;}
+  .subtabs button{border:1px solid var(--border); background:#fff; padding:8px 14px; border-radius:20px; font-size:12.5px; cursor:pointer; font-weight:600; color:var(--muted);}
+  .subtabs button.active{background:var(--navy-700); color:#fff; border-color:var(--navy-700);}
+  .doc-card{border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px;}
+  .doc-card .hd{display:flex; justify-content:space-between; align-items:center;}
+  .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; margin-right:6px;}
+  .pill-teal{background:#EAF7F7; color:var(--teal-dark);}
+  .pill-navy{background:#EAF0FA; color:var(--navy-600);}
+
+  .datefly{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .datefly button{border:1px solid var(--border); background:#fff; width:32px; height:32px; border-radius:8px; cursor:pointer;}
+
+  .crm-tabs{display:flex; gap:8px; margin-bottom:14px;}
+  .crm-tabs button{border:1px solid var(--border); background:#fff; padding:8px 16px; border-radius:20px; font-size:12.5px; cursor:pointer; font-weight:600;}
+  .crm-tabs button.active{background:var(--teal-dark); color:#fff; border-color:var(--teal-dark);}
+
+  .cfg-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .empty-state{text-align:center; padding:26px; color:var(--muted); font-size:13px; background:#FAFBFD; border:1px dashed var(--border); border-radius:12px;}
+
+  footer.disclaimer{background:#fff; border-top:1px solid var(--border); padding:16px 22px; text-align:center; font-size:11.5px; color:var(--muted);}
+  footer.disclaimer a{color:var(--teal-dark); font-weight:600; cursor:pointer; text-decoration:none;}
+
+  /* generic modal */
+  .modal-bg{display:none; position:fixed; inset:0; background:rgba(11,22,40,.55); z-index:80; align-items:center; justify-content:center;}
+  .modal-bg.show{display:flex;}
+  .modal-box{background:#fff; border-radius:16px; padding:24px; width:420px; max-width:90vw;}
+  .modal-box h3{margin-top:0;}
+  .modal-icon{width:44px; height:44px; border-radius:50%; background:#EAF7F7; color:var(--teal-dark); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:10px;}
+  .modal-actions{display:flex; justify-content:center; gap:10px; margin-top:18px;}
+
+  .banner-note{background:#EAF0FA; border:1px solid #CFE0F5; color:var(--navy-600); font-size:12px; padding:8px 12px; border-radius:9px; margin-bottom:14px;}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ===================== LOGIN ===================== -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="brandmark">
+      <div class="word">MEDICONSULTING</div>
+      <div class="tag">Más valor a su práctica</div>
+    </div>
+    <div class="login-card">
+      <h2>Clinderm App</h2>
+      <p>Inicia sesión para continuar</p>
+      <div class="field">
+        <span class="ic">👤</span>
+        <input type="email" placeholder="correo@clinderm.mx" value="tania@clinderm.mx">
+      </div>
+      <div class="field">
+        <span class="ic">🔒</span>
+        <input type="password" placeholder="Contraseña" value="••••••••">
+        <span class="toggle">Ver</span>
+      </div>
+      <button class="btn-primary" onclick="document.getElementById('loginScreen').style.display='none'; document.getElementById('app').style.display='block';">Iniciar sesión</button>
+      <div class="login-foot">¿Olvidaste tu contraseña? · v1.0 boceto</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP SHELL ===================== -->
+<div id="app">
+  <header class="topbar">
+    <div class="logo-mc">MEDICON<span>SULTING</span></div>
+    <div class="app-title">Clinderm App</div>
+    <div class="session-chip">
+      <span>Vista previa rol:</span>
+      <select id="roleSel" onchange="setRole(this.value)">
+        <option value="recepcion">Recepción</option>
+        <option value="doctor" selected>Doctora</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button onclick="document.getElementById('loginScreen').style.display='flex'; document.getElementById('app').style.display='none';">Salir</button>
+    </div>
+  </header>
+
+  <nav class="mainnav" id="mainNav">
+    <button class="active" onclick="showScreen('registro',this)">📝 Registro</button>
+    <button onclick="showScreen('historial',this)">🗂️ Historial</button>
+    <button onclick="showScreen('cierre',this)">🧾 Cierre</button>
+    <button data-doc onclick="showScreen('dashboard',this)">📊 Dashboard</button>
+    <button onclick="showScreen('crm',this)">💬 PRM/CRM</button>
+    <button data-admin onclick="showScreen('config',this)">⚙️ Configuración</button>
+  </nav>
+
+  <main>
+    <div class="banner-note">Boceto de estructura — sin datos reales ni conexión a Supabase. Solo para validar layout, navegación y campos antes de construir la app final.</div>
+
+    <!-- REGISTRO -->
+    <section class="screen active" id="screen-registro">
+      <div class="card">
+        <h3>Nueva consulta</h3>
+        <div class="grid3">
+          <div class="field-wrap"><label>Fecha</label><input type="date" value="2026-09-21"></div>
+          <div class="field-wrap"><label>Atendido por</label>
+            <select>
+              <option>Dra. Tania de la Vega</option>
+              <option>Dra. Laura Galván</option>
+              <option>Cosmetóloga 1</option>
+              <option>Cosmetóloga 2</option>
+            </select>
+          </div>
+          <div class="field-wrap"><label>Tipo de Consulta</label>
+            <select onchange="document.getElementById('procWrap').style.display = this.value==='Procedimientos' ? 'block':'none';">
+              <option>Consulta de primera vez</option>
+              <option>Consulta subsecuente</option>
+              <option value="Procedimientos">Procedimientos</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field-wrap">
+            <label>Paciente</label>
+            <input type="text" placeholder="Nombre del paciente" value="María Fernanda Luna">
+            <div class="chips"><span class="chip">María Fernanda Luna · 55 1234 5678</span><span class="chip">María Fernanda L. Torres · 55 9988 1122</span></div>
+          </div>
+          <div class="field-wrap">
+            <label>Teléfono</label>
+            <input type="text" value="55 1234 5678">
+          </div>
+        </div>
+        <div class="field-wrap" id="procWrap" style="display:none;">
+          <label>Procedimiento específico</label>
+          <select disabled><option>Catálogo pendiente — el cliente lo entregará después</option></select>
+        </div>
+        <div class="grid3">
+          <div class="field-wrap"><label>Monto</label><input type="number" value="1200"></div>
+          <div class="field-wrap"><label>Medio de pago</label>
+            <select><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option></select>
+          </div>
+          <div class="field-wrap" style="align-self:end;">
+            <span class="toggle-link">+ agregar 2do pago</span>
+          </div>
+        </div>
+        <div class="row-check"><input type="checkbox"> ¿Requiere factura? <input type="text" placeholder="N° de factura" style="width:160px; margin-left:8px;"></div>
+        <div class="row-check"><input type="checkbox"> 👻 El paciente no vino / no se presentó</div>
+        <div class="summary-box">
+          <div><div class="lab">Paciente</div>María Fernanda Luna</div>
+          <div><div class="lab">Atendido por</div>Dra. Tania de la Vega</div>
+          <div><div class="lab">Tipo de consulta</div>Consulta de primera vez</div>
+          <div><div class="lab">Monto</div>$1,200.00</div>
+        </div>
+        <div style="margin-top:14px; text-align:right;"><button class="btn btn-teal">Guardar consulta</button></div>
+      </div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section class="screen" id="screen-historial">
+      <div class="card">
+        <div class="filters">
+          <div class="fitem"><label>Buscar paciente</label><input placeholder="Nombre..."></div>
+          <div class="fitem"><label>Período</label><select><option>Hoy</option><option>7 días</option><option>30 días</option><option>90 días</option><option>Año</option><option>Todo</option></select></div>
+          <div class="fitem"><label>Medio de pago</label><select><option>Todos</option><option>Efectivo</option><option>Tarjeta</option></select></div>
+          <div class="excl-links">
+            <span class="on">🧾 Solo facturado</span><span>❌ Solo no facturado</span><span>👻 Solo "No vino"</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <button class="btn btn-ghost">🗑️ Papelera</button>
+          <button class="btn btn-ghost">⬇️ Exportar</button>
+        </div>
+        <table>
+          <tr><th>Fecha</th><th>Paciente</th><th>Doctora</th><th>Tipo de Consulta</th><th>Monto</th><th>Pago</th><th>N° Factura</th><th>N° Recibo</th><th></th></tr>
+          <tr><td>21/09/2026</td><td>María Fernanda Luna</td><td>Dra. Tania</td><td>Consulta de primera vez</td><td>$1,200.00</td><td>Efectivo</td><td><input value="A-1042" style="width:80px;"></td><td><input value="R-330" style="width:70px;"></td><td>✏️</td></tr>
+          <tr><td>21/09/2026</td><td>Karla Espinoza <span class="badge badge-ghost">👻</span></td><td>Dra. Laura</td><td>Consulta subsecuente</td><td>$0.00</td><td>—</td><td>—</td><td>—</td><td>✏️</td></tr>
+          <tr><td>20/09/2026</td><td>Renata Ibarra</td><td>Cosmetóloga 1</td><td>Procedimientos</td><td>$2,400.00 <div style="color:var(--muted); font-size:10.5px;">$1,200 + $1,200</div></td><td>Tarjeta <div style="color:var(--muted); font-size:10.5px;">+ Transf.</div></td><td><span class="badge badge-warn">Pendiente</span></td><td>—</td><td>✏️</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- CIERRE -->
+    <section class="screen" id="screen-cierre">
+      <div class="card">
+        <div class="datefly">
+          <button>‹</button>
+          <strong>21 de septiembre, 2026</strong>
+          <button>›</button>
+          <button class="btn btn-ghost" style="width:auto; padding:6px 12px;">↻ Hoy</button>
+          <select style="width:auto;"><option>Día</option><option>Mes</option></select>
+          <select style="width:auto; margin-left:auto;"><option>Todas las doctoras</option><option>Dra. Tania de la Vega</option><option>Dra. Laura Galván</option></select>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="v">$18,400</div><div class="l">Ingreso total</div></div>
+          <div class="kpi"><div class="v">14</div><div class="l">Consultas</div></div>
+          <div class="kpi"><div class="v">$1,314</div><div class="l">Ticket promedio</div></div>
+          <div class="kpi"><div class="v">Dra. Tania</div><div class="l">Mayor ingreso</div></div>
+        </div>
+        <div class="subtabs">
+          <button class="active">👥 Por Doctora</button>
+          <button>💳 Por Medio de Pago</button>
+        </div>
+        <div class="doc-card">
+          <div class="hd"><strong>Dra. Tania de la Vega</strong><span>$11,200</span></div>
+          <div style="margin:8px 0;"><span class="pill pill-teal">Efectivo $6,000</span><span class="pill pill-navy">Tarjeta $5,200</span></div>
+          <div class="toggle-link">Ver pacientes ▾</div>
+        </div>
+        <div class="doc-card">
+          <div class="hd"><strong>Dra. Laura Galván</strong><span>$7,200</span></div>
+          <div style="margin:8px 0;"><span class="pill pill-teal">Efectivo $2,200</span><span class="pill pill-navy">Transferencia $5,000</span></div>
+          <div class="toggle-link">Ver pacientes ▾</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="screen" id="screen-dashboard">
+      <div class="card">
+        <div class="filters">
+          <div class="fitem"><label>Período</label><select><option>30 días</option><option>Este mes</option></select></div>
+          <div class="fitem"><label>Doctora</label><select><option>Todas</option></select></div>
+          <div class="fitem"><label>Tipo de consulta</label><select><option>Todos</option><option>Primera vez</option><option>Subsecuente</option><option>Procedimientos</option></select></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="v">$182,400</div><div class="l">Ingreso total</div></div>
+          <div class="kpi"><div class="v">126</div><div class="l">Pacientes</div></div>
+          <div class="kpi"><div class="v">$1,447</div><div class="l">Ticket promedio</div></div>
+          <div class="kpi"><div class="v">Dra. Tania</div><div class="l">Doctora top</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card" style="margin:0;"><h3>Tendencia (Día/Mes)</h3><canvas id="chTrend" height="160"></canvas></div>
+          <div class="card" style="margin:0;"><h3>Ingreso por doctora</h3><canvas id="chDoc" height="160"></canvas></div>
+        </div>
+        <div class="grid2" style="margin-top:16px;">
+          <div class="card" style="margin:0;"><h3>Medios de pago</h3><canvas id="chPay" height="160"></canvas></div>
+          <div class="card" style="margin:0;"><h3>Ingreso por tipo de consulta</h3><canvas id="chTipo" height="160"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRM/CRM -->
+    <section class="screen" id="screen-crm">
+      <div class="card">
+        <div class="crm-tabs">
+          <button class="active">🎯 Inactivos</button>
+          <button>👻 No vinieron</button>
+        </div>
+        <div class="doc-card">
+          <div class="hd"><strong>Renata Ibarra</strong><span style="color:var(--muted); font-size:12px;">Última visita: 12/07/2026 (71 días)</span></div>
+          <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">Dra. Tania de la Vega · Procedimientos</div>
+          <button class="btn btn-ghost">📖 Ver/gestionar</button>
+        </div>
+        <div class="doc-card">
+          <div class="hd"><strong>Karla Espinoza</strong><span style="color:var(--muted); font-size:12px;">Última visita: 03/06/2026 (110 días)</span></div>
+          <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">Dra. Laura Galván · Consulta subsecuente</div>
+          <button class="btn btn-ghost">📖 Ver/gestionar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACIÓN -->
+    <section class="screen" id="screen-config">
+      <div class="cfg-grid">
+        <div class="card">
+          <h3>👥 Usuarios con acceso</h3>
+          <table>
+            <tr><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr>
+            <tr><td>Dra. Tania de la Vega</td><td>Doctor</td><td><input type="checkbox" checked></td><td>🔑 · ✉️ · 🗑️</td></tr>
+          </table>
+          <div class="empty-state" style="margin-top:10px;">El resto del catálogo aún no tiene cuenta de acceso</div>
+        </div>
+        <div class="card">
+          <h3>🩺 Doctoras/cosmetólogas para Registro (sin acceso)</h3>
+          <table>
+            <tr><th>Nombre</th><th>Activo</th><th></th></tr>
+            <tr><td>Dra. Laura Galván</td><td>✅</td><td>Dar acceso · 🗑️</td></tr>
+            <tr><td>Cosmetóloga 1</td><td>✅</td><td>Dar acceso · 🗑️</td></tr>
+            <tr><td>Cosmetóloga 2</td><td>✅</td><td>Dar acceso · 🗑️</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>➕ Crear usuario</h3>
+          <div class="row-check"><input type="checkbox"> ¿Con acceso al sistema?</div>
+          <div class="field-wrap"><label>Nombre</label><input placeholder="Nombre completo"></div>
+          <div class="field-wrap"><label>Rol</label><select><option>recepcion</option><option>doctor</option><option>admin</option></select></div>
+          <button class="btn btn-teal">Crear</button>
+        </div>
+        <div class="card">
+          <h3>🧾 Catálogo de procedimientos</h3>
+          <div class="empty-state">Vacío por ahora — se carga cuando el cliente confirme la lista de procedimientos</div>
+        </div>
+        <div class="card">
+          <h3>🕐 Horario de acceso</h3>
+          <div class="row-check"><input type="checkbox"> Activar candado de horario (solo Recepción)</div>
+          <div class="grid2">
+            <div class="field-wrap"><label>Hora inicio</label><input type="time" value="08:45"></div>
+            <div class="field-wrap"><label>Hora fin</label><input type="time" value="20:00"></div>
+          </div>
+          <div class="row-check"><input type="checkbox" checked> Bloquear domingos</div>
+        </div>
+        <div class="card">
+          <h3>📜 Actividad reciente</h3>
+          <div style="font-size:12.5px; color:var(--muted); line-height:1.9;">
+            Admin creó a Dra. Laura Galván · hace 2 días<br>
+            Admin restauró consulta de Karla Espinoza · hace 3 días
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="disclaimer">
+    © 2026 Mediconsulting. Uso exclusivo para Clinderm. ·
+    <a onclick="document.getElementById('legalModal').classList.add('show')">Aviso legal completo</a>
+  </footer>
+</div>
+
+<!-- modal ejemplo (patrón mostrarConfirm) -->
+<div class="modal-bg" id="legalModal">
+  <div class="modal-box">
+    <div class="modal-icon">📄</div>
+    <h3>Aviso de confidencialidad</h3>
+    <p style="font-size:13px; color:var(--muted);">Texto de confidencialidad y tratamiento de datos personales (LFPDPPP) — placeholder en el boceto.</p>
+    <div class="modal-actions"><button class="btn btn-teal" onclick="document.getElementById('legalModal').classList.remove('show')">Cerrar</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+  function showScreen(id, btn){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+id).classList.add('active');
+    document.querySelectorAll('#mainNav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  function setRole(role){
+    const docBtn = document.querySelector('[data-doc]');
+    const admBtn = document.querySelector('[data-admin]');
+    docBtn.style.display = (role==='recepcion') ? 'none' : 'inline-block';
+    admBtn.style.display = (role==='admin') ? 'inline-block' : 'none';
+    if(role==='recepcion'){ showScreen('registro', document.querySelector('#mainNav button')); }
+  }
+  setRole('doctor');
+
+  const teal='#2ABFBF', navy='#1B3A6B', navyDark='#0E1D36';
+  new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:['Lun','Mar','Mié','Jue','Vie','Sáb'], datasets:[{data:[12000,15000,9000,18000,21000,16000], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35}]}, options:{plugins:{legend:{display:false}}}});
+  new Chart(document.getElementById('chDoc'), {type:'bar', data:{labels:['Dra. Tania','Dra. Laura'], datasets:[{data:[112000,70400], backgroundColor:[navy, teal]}]}, options:{plugins:{legend:{display:false}}}});
+  new Chart(document.getElementById('chPay'), {type:'doughnut', data:{labels:['Efectivo','Tarjeta','Transferencia'], datasets:[{data:[40,35,25], backgroundColor:[teal, navy, navyDark]}]}});
+  new Chart(document.getElementById('chTipo'), {type:'bar', data:{labels:['Primera vez','Subsecuente','Procedimientos'], datasets:[{data:[42000,58000,82400], backgroundColor:teal}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}}});
+</script>
