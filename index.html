@@ -118,7 +118,7 @@
   .app-title .t1 span{color:var(--teal);}
   .app-title .t2{font-size:11.5px; color:#93a6c4; margin-top:1px;}
   .header-actions{justify-self:end; display:flex; align-items:center; gap:10px; font-size:12.5px;}
-  .pill-role{background:rgba(42,191,191,.12); color:var(--teal); border:1.5px solid rgba(42,191,191,.55); border-radius:20px; padding:6px 12px; font-size:12px; font-weight:700; letter-spacing:.3px; cursor:pointer;}
+  .pill-role{background:rgba(42,191,191,.12); color:var(--teal); border:1.5px solid rgba(42,191,191,.55); border-radius:20px; padding:6px 12px; font-size:12px; font-weight:700; letter-spacing:.3px; white-space:nowrap;}
   .pill-role option{background:var(--navy-800); color:#fff; font-weight:500;}
   .user-tag{display:flex; align-items:center; gap:6px; color:#cdd8ea; font-size:12.5px; white-space:nowrap;}
   .pill-btn{display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.28); color:#fff; padding:7px 14px; border-radius:20px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex:none;}
@@ -244,6 +244,8 @@
   .modal-box h3{margin-top:0;}
   .modal-icon{width:44px; height:44px; border-radius:50%; background:#EAF7F7; color:var(--teal-dark); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:10px;}
   .modal-actions{display:flex; justify-content:center; gap:10px; margin-top:18px;}
+  .app-toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--navy-900); color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; box-shadow:0 12px 30px -8px rgba(0,0,0,.4); opacity:0; pointer-events:none; transition:.25s; z-index:999;}
+  .app-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
   .banner-note{background:#EAF0FA; border:1px solid #CFE0F5; color:var(--navy-600); font-size:12px; padding:8px 12px; border-radius:9px; margin-bottom:14px;}
 </style>
@@ -305,13 +307,9 @@
       <div class="t2">Sistema de gestión de consultas</div>
     </div>
     <div class="header-actions">
-      <select class="pill-role" id="roleSel" onchange="setRole(this.value)">
-        <option value="recepcion">★ RECEPCIÓN</option>
-        <option value="doctor">★ DOCTORA</option>
-        <option value="admin" selected>★ ADMIN</option>
-      </select>
-      <span class="user-tag">👤 Dra. Tania de la Vega</span>
-      <button class="pill-btn" data-admin onclick="showScreen('config', document.querySelector('[data-admin]'))">⚙️ Configuración</button>
+      <span class="pill-role" id="roleChip">★ …</span>
+      <span class="user-tag" id="userTag">👤 …</span>
+      <button class="pill-btn" data-admin style="display:none;" onclick="showScreen('config', document.querySelector('[data-admin]'))">⚙️ Configuración</button>
       <button class="pill-btn" onclick="doLogout()">⏻ Cerrar sesión</button>
     </div>
   </header>
@@ -321,7 +319,7 @@
     <button class="active" onclick="showScreen('registro',this)">📝 Registro</button>
     <button onclick="showScreen('historial',this)">🗂️ Historial</button>
     <button onclick="showScreen('cierre',this)">🧾 Cierre</button>
-    <button data-doc onclick="showScreen('dashboard',this)">📊 Dashboard</button>
+    <button data-doc style="display:none;" onclick="showScreen('dashboard',this)">📊 Dashboard</button>
     <button onclick="showScreen('crm',this)">💬 PRM/CRM</button>
   </nav>
 
@@ -334,17 +332,12 @@
         <hr class="section-head-divider">
 
         <div class="reg-grid">
-          <div class="field-wrap"><label>Fecha</label><input type="date" value="2026-09-21"></div>
+          <div class="field-wrap"><label>Fecha</label><input type="date" id="r-fecha" onchange="actualizarResumenLive()"></div>
           <div class="field-wrap"><label>Atendido por</label>
-            <select>
-              <option>Dra. Tania de la Vega</option>
-              <option>Dra. Laura Galván</option>
-              <option>Cosmetóloga 1</option>
-              <option>Cosmetóloga 2</option>
-            </select>
+            <select id="r-doctor" onchange="actualizarResumenLive()"><option value="">Cargando…</option></select>
           </div>
           <div class="field-wrap"><label>Tipo de Consulta</label>
-            <select onchange="document.getElementById('procWrap').style.display = this.value==='Procedimientos' ? 'block':'none';">
+            <select id="r-tipo" onchange="actualizarResumenLive()">
               <option>Consulta de primera vez</option>
               <option>Consulta subsecuente</option>
               <option value="Procedimientos">Procedimientos</option>
@@ -353,47 +346,53 @@
 
           <div class="field-wrap">
             <label>Paciente</label>
-            <input type="text" placeholder="Nombre completo" value="María Fernanda Luna">
+            <input type="text" id="r-paciente" placeholder="Nombre completo" autocomplete="off" oninput="onPacienteInput()" onchange="actualizarResumenLive()">
             <!-- Panel de sugeridos: oculto por defecto, aparece solo mientras se escribe y hay coincidencias -->
-            <div class="sugeridos-box" style="display:none;">
+            <div class="sugeridos-box" id="r-sugeridos-box" style="display:none;">
               <div class="sugeridos-head">📋 Pacientes con nombre parecido — clic para usar:</div>
-              <div class="chips"><span class="chip">María Fernanda Luna · 55 1234 5678</span><span class="chip">María Fernanda L. Torres · 55 9988 1122</span></div>
+              <div class="chips" id="r-sugeridos-chips"></div>
             </div>
           </div>
           <div class="field-wrap">
             <label>Teléfono</label>
-            <input type="text" placeholder="10 dígitos" value="55 1234 5678">
+            <input type="text" id="r-telefono" placeholder="10 dígitos">
           </div>
           <div class="resumen-live">
             <div class="rl-label">Resumen en vivo</div>
-            <div class="rl-name">María Fernanda Luna</div>
-            <div class="rl-meta">Dra. Tania de la Vega · Consulta de primera vez</div>
-            <div class="rl-amount">$1,200.00</div>
+            <div class="rl-name" id="rl-name">—</div>
+            <div class="rl-meta" id="rl-meta">—</div>
+            <div class="rl-amount" id="rl-amount">$0.00</div>
           </div>
 
           <div class="field-wrap" id="procWrap" style="display:none;">
             <label>Procedimiento específico</label>
             <select disabled><option>Catálogo pendiente — el cliente lo entregará después</option></select>
           </div>
-          <div class="field-wrap"><label>Monto</label><input type="number" value="1200"></div>
+          <div class="field-wrap"><label>Monto</label><input type="number" id="r-monto" value="0" onchange="actualizarResumenLive()"></div>
 
-          <div class="field-wrap"><label>Medio de pago</label>
-            <select><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option></select>
+          <div class="field-wrap" id="r-mediopago-wrap"><label>Medio de pago</label>
+            <select id="r-mediopago"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
           </div>
-          <div class="field-wrap"><label>Notas / Observaciones</label><textarea rows="2" placeholder="Opcional..."></textarea></div>
-          <div class="factura-box"><input type="checkbox"> ¿Requiere factura? <input type="text" placeholder="N° de factura" style="width:120px; margin-left:auto;"></div>
+          <div class="field-wrap"><label>Notas / Observaciones</label><textarea rows="2" id="r-notas" placeholder="Opcional..."></textarea></div>
+          <div class="factura-box"><input type="checkbox" id="r-factura-check" onchange="document.getElementById('r-factura-num').disabled = !this.checked;"> ¿Requiere factura? <input type="text" id="r-factura-num" placeholder="N° de factura" disabled style="width:120px; margin-left:auto;"></div>
         </div>
 
-        <div style="text-align:center;"><span class="toggle-link">+ agregar 2do pago</span></div>
+        <div id="r-pago2-wrap" class="reg-grid" style="display:none; margin-top:6px;">
+          <div class="field-wrap"><label>Monto 2do pago</label><input type="number" id="r-monto2" value="0"></div>
+          <div class="field-wrap"><label>Medio de pago 2</label>
+            <select id="r-mediopago2"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
+          </div>
+        </div>
+        <div style="text-align:center;"><span class="toggle-link" id="r-toggle-pago2" onclick="toggleSegundoPago()">+ agregar 2do pago</span></div>
 
         <div class="novino-box">
-          <label class="nv-check" style="margin:0;"><input type="checkbox"> 👻 El paciente no vino / no se presentó</label>
+          <label class="nv-check" style="margin:0;"><input type="checkbox" id="r-novino-check" onchange="toggleNoVino()"> 👻 El paciente no vino / no se presentó</label>
           <div class="nv-help">Se guarda para que aparezca en PRM/CRM y le des seguimiento — no cuenta como ingreso ni aparece en Historial normal. Si el paciente viene después, la marca desaparece sola.</div>
         </div>
 
         <div style="margin-top:14px; display:flex; gap:10px;">
-          <button class="btn btn-teal">Guardar consulta</button>
-          <button class="btn btn-navy">Limpiar</button>
+          <button class="btn btn-teal" id="r-btn-guardar" onclick="guardarConsulta()">Guardar consulta</button>
+          <button class="btn btn-navy" onclick="limpiarFormRegistro()">Limpiar</button>
         </div>
       </div>
     </section>
@@ -402,94 +401,67 @@
     <section class="screen" id="screen-historial">
       <div class="card">
         <div class="filters">
-          <div class="fitem"><label>Buscar paciente</label><input placeholder="Nombre..."></div>
-          <div class="fitem"><label>Período</label><select><option>Hoy</option><option>7 días</option><option>30 días</option><option>90 días</option><option>Año</option><option>Todo</option></select></div>
-          <div class="fitem"><label>Medio de pago</label><select><option>Todos</option><option>Efectivo</option><option>Tarjeta</option></select></div>
-          <div class="excl-links">
-            <span class="on">🧾 Solo facturado</span><span>❌ Solo no facturado</span><span>👻 Solo "No vino"</span>
-          </div>
+          <div class="fitem"><label>Buscar paciente</label><input id="h-buscar" placeholder="Nombre..." oninput="cargarHistorialDebounced()"></div>
+          <div class="fitem"><label>Período</label><select id="h-periodo" onchange="cargarHistorial()"><option value="0">Hoy</option><option value="7">7 días</option><option value="30">30 días</option><option value="90">90 días</option><option value="365">Año</option><option value="9999">Todo</option></select></div>
+          <div class="fitem"><label>Medio de pago</label><select id="h-mediopago" onchange="cargarHistorial()"><option value="">Todos</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select></div>
         </div>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <button class="btn btn-ghost">🗑️ Papelera</button>
-          <button class="btn btn-ghost">⬇️ Exportar</button>
+          <button class="btn btn-ghost" id="h-btn-papelera" onclick="togglePapelera()">🗑️ Papelera</button>
+          <button class="btn btn-ghost" onclick="exportarHistorialCSV()">⬇️ Exportar</button>
         </div>
         <table>
           <tr><th>Fecha</th><th>Paciente</th><th>Doctora</th><th>Tipo de Consulta</th><th>Monto</th><th>Pago</th><th>N° Factura</th><th>N° Recibo</th><th></th></tr>
-          <tr><td>21/09/2026</td><td>María Fernanda Luna</td><td>Dra. Tania</td><td>Consulta de primera vez</td><td>$1,200.00</td><td>Efectivo</td><td><input value="A-1042" style="width:80px;"></td><td><input value="R-330" style="width:70px;"></td><td>✏️</td></tr>
-          <tr><td>21/09/2026</td><td>Karla Espinoza <span class="badge badge-ghost">👻</span></td><td>Dra. Laura</td><td>Consulta subsecuente</td><td>$0.00</td><td>—</td><td>—</td><td>—</td><td>✏️</td></tr>
-          <tr><td>20/09/2026</td><td>Renata Ibarra</td><td>Cosmetóloga 1</td><td>Procedimientos</td><td>$2,400.00 <div style="color:var(--muted); font-size:10.5px;">$1,200 + $1,200</div></td><td>Tarjeta <div style="color:var(--muted); font-size:10.5px;">+ Transf.</div></td><td><span class="badge badge-warn">Pendiente</span></td><td>—</td><td>✏️</td></tr>
+          <tbody id="h-tbody"><tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">Cargando…</td></tr></tbody>
         </table>
       </div>
     </section>
+
+    <!-- Modal editar consulta -->
+    <div class="modal-bg" id="editConsultaModal">
+      <div class="modal-box" style="max-width:480px; text-align:left;">
+        <h3 style="margin-bottom:12px;">Editar consulta</h3>
+        <input type="hidden" id="ec-id">
+        <div class="field-wrap"><label>Tipo de Consulta</label>
+          <select id="ec-tipo"><option>Consulta de primera vez</option><option>Consulta subsecuente</option><option>Procedimientos</option></select>
+        </div>
+        <div class="field-wrap"><label>Monto</label><input type="number" id="ec-monto"></div>
+        <div class="field-wrap"><label>Medio de pago</label>
+          <select id="ec-mediopago"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
+        </div>
+        <div class="field-wrap"><label>N° de factura</label><input type="text" id="ec-factura"></div>
+        <div class="field-wrap"><label>N° de recibo</label><input type="text" id="ec-recibo"></div>
+        <div class="field-wrap"><label>Notas</label><textarea rows="2" id="ec-notas"></textarea></div>
+        <div class="modal-actions" style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn btn-teal" onclick="guardarEdicionConsulta()">Guardar cambios</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('editConsultaModal').classList.remove('show')">Cancelar</button>
+          <button class="btn" style="background:#fde8e8; color:#a11d1d; margin-left:auto;" id="ec-btn-eliminar" onclick="eliminarConsultaDesdeModal()">🗑️ Enviar a papelera</button>
+        </div>
+      </div>
+    </div>
 
     <!-- CIERRE -->
     <section class="screen" id="screen-cierre">
       <div class="card">
         <div class="datefly">
-          <button>‹</button>
-          <strong>21 de septiembre, 2026</strong>
-          <button>›</button>
-          <button class="btn btn-ghost" style="width:auto; padding:6px 12px;">↻ Hoy</button>
-          <select style="width:auto;"><option>Día</option><option>Mes</option></select>
-          <select style="width:auto; margin-left:auto;"><option>Todas las doctoras</option><option>Dra. Tania de la Vega</option><option>Dra. Laura Galván</option></select>
+          <button onclick="cierreNav(-1)">‹</button>
+          <strong id="cierre-fecha-label">—</strong>
+          <button onclick="cierreNav(1)">›</button>
+          <button class="btn btn-ghost" style="width:auto; padding:6px 12px;" onclick="cierreHoy()">↻ Hoy</button>
+          <select id="cierre-modo" style="width:auto;" onchange="cargarCierre()"><option value="dia">Día</option><option value="mes">Mes</option></select>
+          <select id="cierre-doctor-filtro" style="width:auto; margin-left:auto;" onchange="cargarCierre()"><option value="">Todas las doctoras</option></select>
         </div>
         <div class="kpi-row">
-          <div class="kpi"><div class="v">$18,400</div><div class="l">Ingreso total</div></div>
-          <div class="kpi"><div class="v">14</div><div class="l">Consultas</div></div>
-          <div class="kpi"><div class="v">$1,314</div><div class="l">Ticket promedio</div></div>
-          <div class="kpi"><div class="v">Dra. Tania</div><div class="l">Mayor ingreso</div></div>
+          <div class="kpi"><div class="v" id="cierre-kpi-total">$0</div><div class="l">Ingreso total</div></div>
+          <div class="kpi"><div class="v" id="cierre-kpi-n">0</div><div class="l">Consultas</div></div>
+          <div class="kpi"><div class="v" id="cierre-kpi-ticket">$0</div><div class="l">Ticket promedio</div></div>
+          <div class="kpi"><div class="v" id="cierre-kpi-top">—</div><div class="l">Mayor ingreso</div></div>
         </div>
         <div class="subtabs">
           <button class="active" id="cierreSubtabDoctor" onclick="cierreSubtab('doctor')">👥 Por Doctora</button>
           <button id="cierreSubtabPago" onclick="cierreSubtab('pago')">💳 Por Medio de Pago</button>
         </div>
-        <div id="cierreViewDoctor">
-          <div class="doc-card">
-            <div class="hd"><strong>Dra. Tania de la Vega</strong><span>$11,200</span></div>
-            <div style="margin:8px 0;"><span class="pill pill-teal">Efectivo $6,000</span><span class="pill pill-navy">Tarjeta $5,200</span></div>
-            <div class="toggle-link">Ver pacientes ▾</div>
-          </div>
-          <div class="doc-card">
-            <div class="hd"><strong>Dra. Laura Galván</strong><span>$7,200</span></div>
-            <div style="margin:8px 0;"><span class="pill pill-teal">Efectivo $2,200</span><span class="pill pill-navy">Transferencia $5,000</span></div>
-            <div class="toggle-link">Ver pacientes ▾</div>
-          </div>
-        </div>
-        <div id="cierreViewPago" style="display:none;">
-          <div class="pago-cards">
-            <div class="pago-card efectivo">
-              <div class="ico">💵</div>
-              <div class="nombre">Efectivo</div>
-              <div class="total">$8,200.00</div>
-              <div class="sub">45% del total · 5 pago(s)</div>
-              <div class="barra-bg"><div class="barra-fill" style="width:45%"></div></div>
-              <div class="pago-desglose">
-                <div><span>Dra. Tania de la Vega</span><span>$6,000.00</span></div>
-                <div><span>Dra. Laura Galván</span><span>$2,200.00</span></div>
-              </div>
-            </div>
-            <div class="pago-card tarjeta">
-              <div class="ico">💳</div>
-              <div class="nombre">Tarjeta</div>
-              <div class="total">$5,200.00</div>
-              <div class="sub">28% del total · 1 pago(s)</div>
-              <div class="barra-bg"><div class="barra-fill" style="width:28%"></div></div>
-              <div class="pago-desglose">
-                <div><span>Dra. Tania de la Vega</span><span>$5,200.00</span></div>
-              </div>
-            </div>
-            <div class="pago-card transferencia">
-              <div class="ico">🏦</div>
-              <div class="nombre">Transferencia</div>
-              <div class="total">$5,000.00</div>
-              <div class="sub">27% del total · 1 pago(s)</div>
-              <div class="barra-bg"><div class="barra-fill" style="width:27%"></div></div>
-              <div class="pago-desglose">
-                <div><span>Dra. Laura Galván</span><span>$5,000.00</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div id="cierreViewDoctor"><div class="empty-state">Cargando…</div></div>
+        <div id="cierreViewPago" style="display:none;"><div class="empty-state">Cargando…</div></div>
       </div>
     </section>
 
@@ -497,15 +469,15 @@
     <section class="screen" id="screen-dashboard">
       <div class="card">
         <div class="filters">
-          <div class="fitem"><label>Período</label><select><option>30 días</option><option>Este mes</option></select></div>
-          <div class="fitem"><label>Doctora</label><select><option>Todas</option></select></div>
-          <div class="fitem"><label>Tipo de consulta</label><select><option>Todos</option><option>Primera vez</option><option>Subsecuente</option><option>Procedimientos</option></select></div>
+          <div class="fitem"><label>Período</label><select id="dash-periodo" onchange="cargarDashboard()"><option value="30">30 días</option><option value="mes">Este mes</option><option value="90">90 días</option><option value="365">Año</option></select></div>
+          <div class="fitem"><label>Doctora</label><select id="dash-doctor-filtro" onchange="cargarDashboard()"><option value="">Todas</option></select></div>
+          <div class="fitem"><label>Tipo de consulta</label><select id="dash-tipo-filtro" onchange="cargarDashboard()"><option value="">Todos</option><option value="Consulta de primera vez">Primera vez</option><option value="Consulta subsecuente">Subsecuente</option><option value="Procedimientos">Procedimientos</option></select></div>
         </div>
         <div class="kpi-row">
-          <div class="kpi"><div class="v">$182,400</div><div class="l">Ingreso total</div></div>
-          <div class="kpi"><div class="v">126</div><div class="l">Pacientes</div></div>
-          <div class="kpi"><div class="v">$1,447</div><div class="l">Ticket promedio</div></div>
-          <div class="kpi"><div class="v">Dra. Tania</div><div class="l">Doctora top</div></div>
+          <div class="kpi"><div class="v" id="dash-kpi-total">$0</div><div class="l">Ingreso total</div></div>
+          <div class="kpi"><div class="v" id="dash-kpi-pac">0</div><div class="l">Pacientes</div></div>
+          <div class="kpi"><div class="v" id="dash-kpi-ticket">$0</div><div class="l">Ticket promedio</div></div>
+          <div class="kpi"><div class="v" id="dash-kpi-top">—</div><div class="l">Doctora top</div></div>
         </div>
         <div class="grid2">
           <div class="card" style="margin:0;"><h3>Tendencia (Día/Mes)</h3><canvas id="chTrend" height="160"></canvas></div>
@@ -522,48 +494,59 @@
     <section class="screen" id="screen-crm">
       <div class="card">
         <div class="crm-tabs">
-          <button class="active">🎯 Inactivos</button>
-          <button>👻 No vinieron</button>
+          <button class="active" id="crmTabInactivos" onclick="crmTab('inactivos')">🎯 Inactivos</button>
+          <button id="crmTabNoVino" onclick="crmTab('novino')">👻 No vinieron</button>
         </div>
-        <div class="doc-card">
-          <div class="hd"><strong>Renata Ibarra</strong><span style="color:var(--muted); font-size:12px;">Última visita: 12/07/2026 (71 días)</span></div>
-          <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">Dra. Tania de la Vega · Procedimientos</div>
-          <button class="btn btn-ghost">📖 Ver/gestionar</button>
-        </div>
-        <div class="doc-card">
-          <div class="hd"><strong>Karla Espinoza</strong><span style="color:var(--muted); font-size:12px;">Última visita: 03/06/2026 (110 días)</span></div>
-          <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">Dra. Laura Galván · Consulta subsecuente</div>
-          <button class="btn btn-ghost">📖 Ver/gestionar</button>
-        </div>
+        <div id="crmViewInactivos"><div class="empty-state">Cargando…</div></div>
+        <div id="crmViewNoVino" style="display:none;"><div class="empty-state">Cargando…</div></div>
       </div>
     </section>
+
+    <!-- Modal gestión CRM -->
+    <div class="modal-bg" id="gestionModal">
+      <div class="modal-box" style="max-width:440px; text-align:left;">
+        <h3 style="margin-bottom:4px;" id="gestion-paciente-nombre">Paciente</h3>
+        <p style="font-size:12.5px; color:var(--muted); margin-bottom:12px;" id="gestion-paciente-meta"></p>
+        <input type="hidden" id="gestion-paciente-id">
+        <div id="gestion-historial" style="max-height:180px; overflow-y:auto; margin-bottom:12px; font-size:12.5px;"></div>
+        <div class="field-wrap"><label>Tipo de gestión</label>
+          <select id="gestion-tipo"><option value="llamada">📞 Llamada</option><option value="whatsapp">💬 WhatsApp</option><option value="correo">✉️ Correo</option></select>
+        </div>
+        <div class="field-wrap"><label>Nota</label><textarea rows="2" id="gestion-nota" placeholder="¿Qué se acordó?"></textarea></div>
+        <div class="modal-actions" style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn btn-teal" onclick="guardarGestion()">Guardar gestión</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('gestionModal').classList.remove('show')">Cerrar</button>
+        </div>
+      </div>
+    </div>
 
     <!-- CONFIGURACIÓN -->
     <section class="screen" id="screen-config">
       <div class="cfg-grid">
         <div class="card">
           <h3>👥 Usuarios con acceso</h3>
-          <table>
+          <table id="cfg-tabla-con-acceso">
             <tr><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr>
-            <tr><td>Dra. Tania de la Vega</td><td>Doctor</td><td><input type="checkbox" checked></td><td>🔑 · ✉️ · 🗑️</td></tr>
           </table>
-          <div class="empty-state" style="margin-top:10px;">El resto del catálogo aún no tiene cuenta de acceso</div>
+          <div class="empty-state" id="cfg-con-acceso-empty" style="margin-top:10px; display:none;">Nadie tiene cuenta de acceso todavía</div>
         </div>
         <div class="card">
           <h3>🩺 Doctoras/cosmetólogas para Registro (sin acceso)</h3>
-          <table>
+          <table id="cfg-tabla-sin-acceso">
             <tr><th>Nombre</th><th>Activo</th><th></th></tr>
-            <tr><td>Dra. Laura Galván</td><td>✅</td><td>Dar acceso · 🗑️</td></tr>
-            <tr><td>Cosmetóloga 1</td><td>✅</td><td>Dar acceso · 🗑️</td></tr>
-            <tr><td>Cosmetóloga 2</td><td>✅</td><td>Dar acceso · 🗑️</td></tr>
           </table>
+          <div class="empty-state" id="cfg-sin-acceso-empty" style="margin-top:10px; display:none;">Todos tienen cuenta de acceso</div>
         </div>
         <div class="card">
           <h3>➕ Crear usuario</h3>
-          <div class="row-check"><input type="checkbox"> ¿Con acceso al sistema?</div>
-          <div class="field-wrap"><label>Nombre</label><input placeholder="Nombre completo"></div>
-          <div class="field-wrap"><label>Rol</label><select><option>recepcion</option><option>doctor</option><option>admin</option></select></div>
-          <button class="btn btn-teal">Crear</button>
+          <div class="row-check"><input type="checkbox" id="np-con-acceso" onchange="document.getElementById('np-acceso-wrap').style.display = this.checked ? 'block' : 'none';"> ¿Con acceso al sistema?</div>
+          <div class="field-wrap"><label>Nombre</label><input id="np-nombre" placeholder="Nombre completo"></div>
+          <div class="field-wrap"><label>Rol</label><select id="np-rol"><option value="recepcion">recepcion</option><option value="doctor">doctor</option><option value="admin">admin</option></select></div>
+          <div id="np-acceso-wrap" style="display:none;">
+            <div class="field-wrap"><label>Correo</label><input type="email" id="np-email" placeholder="correo@clinderm.mx"></div>
+            <div class="field-wrap"><label>Contraseña temporal</label><input type="text" id="np-password" placeholder="Mínimo 8 caracteres"></div>
+          </div>
+          <button class="btn btn-teal" onclick="crearUsuario()">Crear</button>
         </div>
         <div class="card">
           <h3>🧾 Catálogo de procedimientos</h3>
@@ -571,18 +554,17 @@
         </div>
         <div class="card">
           <h3>🕐 Horario de acceso</h3>
-          <div class="row-check"><input type="checkbox"> Activar candado de horario (solo Recepción)</div>
+          <div class="row-check"><input type="checkbox" id="cfg-horario-activo" onchange="guardarHorarioAcceso()"> Activar candado de horario (solo Recepción)</div>
           <div class="grid2">
-            <div class="field-wrap"><label>Hora inicio</label><input type="time" value="08:45"></div>
-            <div class="field-wrap"><label>Hora fin</label><input type="time" value="20:00"></div>
+            <div class="field-wrap"><label>Hora inicio</label><input type="time" id="cfg-horario-inicio" value="08:45" onchange="guardarHorarioAcceso()"></div>
+            <div class="field-wrap"><label>Hora fin</label><input type="time" id="cfg-horario-fin" value="20:00" onchange="guardarHorarioAcceso()"></div>
           </div>
-          <div class="row-check"><input type="checkbox" checked> Bloquear domingos</div>
+          <div class="row-check"><input type="checkbox" id="cfg-horario-domingo" checked onchange="guardarHorarioAcceso()"> Bloquear domingos</div>
         </div>
         <div class="card">
           <h3>📜 Actividad reciente</h3>
-          <div style="font-size:12.5px; color:var(--muted); line-height:1.9;">
-            Admin creó a Dra. Laura Galván · hace 2 días<br>
-            Admin restauró consulta de Karla Espinoza · hace 3 días
+          <div style="font-size:12.5px; color:var(--muted); line-height:1.9;" id="cfg-actividad">
+            Cargando…
           </div>
         </div>
       </div>
@@ -593,6 +575,37 @@
     © 2026 Mediconsulting. Uso exclusivo para Clinderm. ·
     <a onclick="document.getElementById('legalModal').classList.add('show')">Aviso legal completo</a>
   </footer>
+</div>
+
+<div id="toast" class="app-toast"></div>
+
+<!-- Modal genérico de confirmación (reemplaza confirm() nativo) -->
+<div class="modal-bg" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="confirm-icono">❓</div>
+    <h3 id="confirm-titulo">¿Confirmar?</h3>
+    <p style="font-size:13px; color:var(--muted);" id="confirm-mensaje"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirm-btn-cancelar">Cancelar</button>
+      <button class="btn btn-teal" id="confirm-btn-ok">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal genérico de entrada de texto (reemplaza prompt() nativo) -->
+<div class="modal-bg" id="promptModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="prompt-icono">✏️</div>
+    <h3 id="prompt-titulo"></h3>
+    <p style="font-size:13px; color:var(--muted); text-align:left;" id="prompt-mensaje"></p>
+    <div class="input-wrap" style="margin:10px 0;">
+      <input type="text" id="prompt-input" style="width:100%; padding:9px 11px; border:1.5px solid var(--border); border-radius:9px; font-size:13.5px;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="prompt-btn-cancelar">Cancelar</button>
+      <button class="btn btn-teal" id="prompt-btn-ok">Confirmar</button>
+    </div>
+  </div>
 </div>
 
 <!-- modal ejemplo (patrón mostrarConfirm) -->
@@ -611,8 +624,86 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script>
+  // ============================================================
+  // SUPABASE — Clinderm App
+  // ============================================================
+  const SUPABASE_URL = 'https://lgkgludqezqoklcyxiuz.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxna2dsdWRxZXpxb2tsY3l4aXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMjM2MzgsImV4cCI6MjEwNTU5OTYzOH0.7V7p5GwWYhpNAgKDDs5mfI5R4GzOR3g9hO4FNQscdQE';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const EDGE_URL = SUPABASE_URL + '/functions/v1/personal-admin';
+
+  let MI_PERFIL = null;
+  let MOSTRANDO_PAPELERA = false;
+  let CIERRE_FECHA = new Date();
+  let CIERRE_MODO = 'dia';
+  let CHARTS = {};
+  let PACIENTE_SELECCIONADO = null;
+
+  // ---- Helpers ----
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function money(n){ return '$' + Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function moneyRound(n){ return '$' + Math.round(Number(n||0)).toLocaleString('es-MX'); }
+  function isoLocal(d){ const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); return `${d.getFullYear()}-${mm}-${dd}`; }
+  function fechaCorta(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+  }
+
+  // ---- Modales genéricos (reemplazan confirm()/prompt() nativos) ----
+  let confirmCallback = null;
+  function mostrarConfirm(opts, callback){
+    document.getElementById('confirm-icono').textContent = opts.icono || '❓';
+    document.getElementById('confirm-titulo').textContent = opts.titulo || '¿Confirmar?';
+    document.getElementById('confirm-mensaje').innerHTML = opts.mensaje || '';
+    document.getElementById('confirm-btn-ok').textContent = opts.textoConfirmar || 'Confirmar';
+    confirmCallback = callback;
+    document.getElementById('confirmModal').classList.add('show');
+  }
+  document.getElementById('confirm-btn-ok').addEventListener('click', ()=>{
+    const cb = confirmCallback;
+    document.getElementById('confirmModal').classList.remove('show');
+    confirmCallback = null;
+    if(cb) cb();
+  });
+  document.getElementById('confirm-btn-cancelar').addEventListener('click', ()=>{
+    document.getElementById('confirmModal').classList.remove('show');
+    confirmCallback = null;
+  });
+
+  let promptCallback = null;
+  function mostrarPrompt(opts, callback){
+    document.getElementById('prompt-icono').textContent = opts.icono || '✏️';
+    document.getElementById('prompt-titulo').textContent = opts.titulo || '';
+    document.getElementById('prompt-mensaje').innerHTML = opts.mensaje || '';
+    const input = document.getElementById('prompt-input');
+    input.type = opts.tipo || 'text';
+    input.placeholder = opts.placeholder || '';
+    input.value = '';
+    promptCallback = callback;
+    document.getElementById('promptModal').classList.add('show');
+    setTimeout(()=>input.focus(), 60);
+  }
+  document.getElementById('prompt-input').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('prompt-btn-ok').click(); });
+  document.getElementById('prompt-btn-ok').addEventListener('click', ()=>{
+    const val = document.getElementById('prompt-input').value;
+    const cb = promptCallback;
+    document.getElementById('promptModal').classList.remove('show');
+    promptCallback = null;
+    if(cb) cb(val);
+  });
+  document.getElementById('prompt-btn-cancelar').addEventListener('click', ()=>{
+    document.getElementById('promptModal').classList.remove('show');
+    promptCallback = null;
+  });
+
+  // ---- Login / Auth ----
   function togglePassword(){
     const pw = document.getElementById('loginPass');
     const showing = pw.type === 'text';
@@ -620,45 +711,739 @@
     document.getElementById('eyeOpen').style.display = showing ? 'block' : 'none';
     document.getElementById('eyeClosed').style.display = showing ? 'none' : 'block';
   }
-  function doLogin(){
+
+  async function doLogin(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    if(!email || !password){ toast('⚠️ Ingresa tu correo y contraseña'); return; }
     document.getElementById('loginScreen').style.display = 'none';
-    const loading = document.getElementById('loadingScreen');
-    loading.classList.add('show');
-    setTimeout(function(){
-      loading.classList.remove('show');
-      document.getElementById('app').style.display = 'block';
-    }, 1100);
+    document.getElementById('loadingScreen').classList.add('show');
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if(error){
+      console.error('[Clinderm] Error en login:', error);
+      document.getElementById('loadingScreen').classList.remove('show');
+      document.getElementById('loginScreen').style.display = 'flex';
+      toast('⚠️ Correo o contraseña incorrectos');
+      return;
+    }
+    const { data: perfil, error: perfilErr } = await sb.from('personal')
+      .select('id, nombre, rol, activo, permisos')
+      .eq('auth_user_id', data.user.id)
+      .single();
+    document.getElementById('loadingScreen').classList.remove('show');
+    if(perfilErr || !perfil || !perfil.activo){
+      console.error('[Clinderm] Error consultando personal:', perfilErr);
+      document.getElementById('loginScreen').style.display = 'flex';
+      toast('⚠️ Tu cuenta no tiene un perfil activo. Contacta a un administrador.');
+      await sb.auth.signOut();
+      return;
+    }
+    entrarAlShell(perfil);
   }
+
   function doLogout(){
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'flex';
+    sb.auth.signOut().then(()=> window.location.reload());
   }
+
+  // Si ya hay sesión activa (recargó la página), entra directo
+  sb.auth.getSession().then(async ({data:{session}})=>{
+    if(!session) return;
+    const { data: perfil, error } = await sb.from('personal')
+      .select('id, nombre, rol, activo, permisos')
+      .eq('auth_user_id', session.user.id)
+      .single();
+    if(error){ console.error('[Clinderm] Error consultando personal (sesión existente):', error); return; }
+    if(perfil && perfil.activo) entrarAlShell(perfil);
+  });
+
+  function entrarAlShell(perfil){
+    MI_PERFIL = perfil;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('roleChip').textContent = '★ ' + perfil.rol.toUpperCase();
+    document.getElementById('userTag').textContent = '👤 ' + perfil.nombre;
+    document.querySelector('[data-admin]').style.display = perfil.rol === 'admin' ? 'inline-flex' : 'none';
+    document.querySelector('[data-doc]').style.display = perfil.rol !== 'recepcion' ? 'inline-flex' : 'none';
+    document.getElementById('r-fecha').value = isoLocal(new Date());
+    cargarDoctores();
+    showScreen('registro', document.querySelector('#mainNav button'));
+  }
+
+  // ---- Navegación de pantallas ----
   function showScreen(id, btn){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById('screen-'+id).classList.add('active');
     document.querySelectorAll('#mainNav button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(id === 'historial') cargarHistorial();
+    if(id === 'cierre') cargarCierre();
+    if(id === 'dashboard') cargarDashboard();
+    if(id === 'crm') crmTab('inactivos');
+    if(id === 'config') cargarConfigUsuarios();
   }
+
+  // ============================================================
+  // REGISTRO
+  // ============================================================
+  async function cargarDoctores(){
+    const { data, error } = await sb.from('personal').select('id, nombre').eq('rol','doctor').eq('activo', true).order('nombre');
+    if(error){ console.error('[Clinderm] Error cargando doctores:', error); return; }
+    const opts = (data||[]).map(d=>`<option value="${d.id}">${esc(d.nombre)}</option>`).join('');
+    const rDoctor = document.getElementById('r-doctor');
+    rDoctor.innerHTML = opts || '<option value="">Sin doctoras registradas</option>';
+    document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
+    document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas</option>' + opts;
+    actualizarResumenLive();
+  }
+
+  function actualizarResumenLive(){
+    const doctorSel = document.getElementById('r-doctor');
+    const doctorNombre = (doctorSel.options[doctorSel.selectedIndex] && doctorSel.value) ? doctorSel.options[doctorSel.selectedIndex].text : '—';
+    const tipo = document.getElementById('r-tipo').value;
+    const paciente = document.getElementById('r-paciente').value.trim() || '—';
+    const monto = parseFloat(document.getElementById('r-monto').value) || 0;
+    document.getElementById('rl-name').textContent = paciente;
+    document.getElementById('rl-meta').textContent = doctorNombre + ' · ' + tipo;
+    document.getElementById('rl-amount').textContent = money(monto);
+  }
+
+  let pacienteSearchTimer = null;
+  function onPacienteInput(){
+    PACIENTE_SELECCIONADO = null;
+    actualizarResumenLive();
+    const q = document.getElementById('r-paciente').value.trim();
+    clearTimeout(pacienteSearchTimer);
+    if(q.length < 3){ document.getElementById('r-sugeridos-box').style.display = 'none'; return; }
+    pacienteSearchTimer = setTimeout(async ()=>{
+      const { data, error } = await sb.from('pacientes').select('id, nombre, telefono').ilike('nombre', '%'+q+'%').limit(5);
+      if(error || !data || data.length===0){ document.getElementById('r-sugeridos-box').style.display = 'none'; return; }
+      window._sugeridosCache = data;
+      document.getElementById('r-sugeridos-chips').innerHTML = data.map((p,i)=>`<span class="chip" data-idx="${i}">${esc(p.nombre)} · ${esc(p.telefono)}</span>`).join('');
+      document.querySelectorAll('#r-sugeridos-chips .chip').forEach(chip=>{
+        chip.addEventListener('click', ()=>{
+          const p = window._sugeridosCache[Number(chip.dataset.idx)];
+          elegirPacienteSugerido(p);
+        });
+      });
+      document.getElementById('r-sugeridos-box').style.display = 'block';
+    }, 350);
+  }
+  function elegirPacienteSugerido(p){
+    PACIENTE_SELECCIONADO = p;
+    document.getElementById('r-paciente').value = p.nombre;
+    document.getElementById('r-telefono').value = p.telefono;
+    document.getElementById('r-sugeridos-box').style.display = 'none';
+    actualizarResumenLive();
+  }
+
+  function toggleSegundoPago(){
+    const wrap = document.getElementById('r-pago2-wrap');
+    const showing = wrap.style.display === 'grid';
+    wrap.style.display = showing ? 'none' : 'grid';
+    document.getElementById('r-toggle-pago2').textContent = showing ? '+ agregar 2do pago' : '– quitar 2do pago';
+  }
+  function toggleNoVino(){
+    const noVino = document.getElementById('r-novino-check').checked;
+    document.getElementById('r-monto').disabled = noVino;
+    document.getElementById('r-mediopago-wrap').style.display = noVino ? 'none' : 'block';
+    actualizarResumenLive();
+  }
+
+  async function guardarConsulta(){
+    const fecha = document.getElementById('r-fecha').value;
+    const doctorId = document.getElementById('r-doctor').value;
+    const tipo = document.getElementById('r-tipo').value;
+    const nombrePaciente = document.getElementById('r-paciente').value.trim();
+    const telefono = document.getElementById('r-telefono').value.trim();
+    const noVino = document.getElementById('r-novino-check').checked;
+    const monto = noVino ? 0 : (parseFloat(document.getElementById('r-monto').value) || 0);
+    const medioPago = noVino ? null : document.getElementById('r-mediopago').value;
+    const notas = document.getElementById('r-notas').value.trim() || null;
+    const factura = document.getElementById('r-factura-check').checked;
+    const numFactura = factura ? (document.getElementById('r-factura-num').value.trim() || null) : null;
+    const pago2Visible = document.getElementById('r-pago2-wrap').style.display === 'grid';
+    const monto2 = pago2Visible ? (parseFloat(document.getElementById('r-monto2').value) || 0) : null;
+    const medioPago2 = pago2Visible ? document.getElementById('r-mediopago2').value : null;
+
+    if(!fecha){ toast('⚠️ Falta la fecha'); return; }
+    if(!doctorId){ toast('⚠️ Selecciona quién atiende'); return; }
+    if(!nombrePaciente){ toast('⚠️ Falta el nombre del paciente'); return; }
+    if(!telefono){ toast('⚠️ Falta el teléfono'); return; }
+
+    const btn = document.getElementById('r-btn-guardar');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+
+    try{
+      let pacienteId = (PACIENTE_SELECCIONADO && PACIENTE_SELECCIONADO.nombre === nombrePaciente) ? PACIENTE_SELECCIONADO.id : null;
+      if(!pacienteId){
+        const { data: existente } = await sb.from('pacientes').select('id').eq('nombre', nombrePaciente).eq('telefono', telefono).maybeSingle();
+        if(existente){
+          pacienteId = existente.id;
+        } else {
+          const { data: nuevo, error: errNuevo } = await sb.from('pacientes').insert({ nombre: nombrePaciente, telefono }).select('id').single();
+          if(errNuevo) throw errNuevo;
+          pacienteId = nuevo.id;
+        }
+      }
+
+      const payload = {
+        fecha, paciente_id: pacienteId, doctor_id: doctorId, tipo_consulta: tipo,
+        monto, medio_pago: medioPago, monto_2: monto2, medio_pago_2: medioPago2,
+        factura, num_factura: numFactura, no_vino: noVino, notas,
+        created_by: MI_PERFIL.id
+      };
+      const { error: errInsert } = await sb.from('consultas').insert(payload);
+      if(errInsert) throw errInsert;
+
+      toast(noVino ? '👻 Registrado como "no vino"' : '✅ Consulta guardada');
+      limpiarFormRegistro();
+    } catch(err){
+      console.error('[Clinderm] Error guardando consulta:', err);
+      toast('⚠️ ' + (err.message || 'Error al guardar'));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Guardar consulta';
+    }
+  }
+
+  function limpiarFormRegistro(){
+    document.getElementById('r-fecha').value = isoLocal(new Date());
+    document.getElementById('r-paciente').value = '';
+    document.getElementById('r-telefono').value = '';
+    document.getElementById('r-monto').value = 0;
+    document.getElementById('r-monto').disabled = false;
+    document.getElementById('r-notas').value = '';
+    document.getElementById('r-factura-check').checked = false;
+    document.getElementById('r-factura-num').value = '';
+    document.getElementById('r-factura-num').disabled = true;
+    document.getElementById('r-novino-check').checked = false;
+    document.getElementById('r-mediopago-wrap').style.display = 'block';
+    document.getElementById('r-pago2-wrap').style.display = 'none';
+    document.getElementById('r-toggle-pago2').textContent = '+ agregar 2do pago';
+    document.getElementById('r-sugeridos-box').style.display = 'none';
+    PACIENTE_SELECCIONADO = null;
+    actualizarResumenLive();
+  }
+
+  // ============================================================
+  // HISTORIAL
+  // ============================================================
+  let historialDebounceTimer;
+  function cargarHistorialDebounced(){ clearTimeout(historialDebounceTimer); historialDebounceTimer = setTimeout(cargarHistorial, 350); }
+
+  function togglePapelera(){
+    MOSTRANDO_PAPELERA = !MOSTRANDO_PAPELERA;
+    document.getElementById('h-btn-papelera').textContent = MOSTRANDO_PAPELERA ? '📋 Ver historial normal' : '🗑️ Papelera';
+    cargarHistorial();
+  }
+
+  async function cargarHistorial(){
+    const tbody = document.getElementById('h-tbody');
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">Cargando…</td></tr>';
+    const buscar = document.getElementById('h-buscar').value.trim().toLowerCase();
+    const dias = Number(document.getElementById('h-periodo').value);
+    const medioPago = document.getElementById('h-mediopago').value;
+
+    let q = sb.from('consultas')
+      .select('id, fecha, tipo_consulta, monto, medio_pago, monto_2, medio_pago_2, factura, num_factura, numero_recibo, no_vino, notas, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)')
+      .eq('deleted', MOSTRANDO_PAPELERA)
+      .order('fecha', {ascending:false})
+      .limit(300);
+
+    if(dias < 9999){
+      const desde = new Date(); desde.setDate(desde.getDate() - dias);
+      q = q.gte('fecha', isoLocal(desde));
+    }
+    if(medioPago) q = q.or(`medio_pago.eq.${medioPago},medio_pago_2.eq.${medioPago}`);
+
+    const { data, error } = await q;
+    if(error){ console.error('[Clinderm] Error cargando historial:', error); tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#a11d1d; padding:20px;">Error cargando historial</td></tr>'; return; }
+
+    let rows = data || [];
+    if(buscar) rows = rows.filter(r => r.pacientes && r.pacientes.nombre.toLowerCase().includes(buscar));
+
+    window._historialCache = rows;
+
+    if(rows.length === 0){
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">'+(MOSTRANDO_PAPELERA ? 'La papelera está vacía' : 'Sin resultados')+'</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r=>{
+      const pacienteNombre = r.pacientes ? esc(r.pacientes.nombre) : '—';
+      const noVinoBadge = r.no_vino ? ' <span class="badge badge-ghost">👻</span>' : '';
+      const doctorNombre = r.personal ? esc(r.personal.nombre) : '—';
+      const montoTxt = r.no_vino ? '$0.00' : money(r.monto) + (r.monto_2 ? `<div style="color:var(--muted); font-size:10.5px;">+ ${money(r.monto_2)}</div>` : '');
+      const pagoTxt = r.no_vino ? '—' : esc(r.medio_pago||'—') + (r.medio_pago_2 ? `<div style="color:var(--muted); font-size:10.5px;">+ ${esc(r.medio_pago_2)}</div>` : '');
+      const accion = MOSTRANDO_PAPELERA
+        ? `<button class="btn btn-ghost" style="padding:4px 8px; font-size:11px;" onclick="restaurarConsulta('${r.id}')">♻️ Restaurar</button>`
+        : `<span style="cursor:pointer;" onclick="abrirEditarConsulta('${r.id}')">✏️</span>`;
+      return `<tr>
+        <td>${fechaCorta(r.fecha)}</td>
+        <td>${pacienteNombre}${noVinoBadge}</td>
+        <td>${doctorNombre}</td>
+        <td>${esc(r.tipo_consulta)}</td>
+        <td>${montoTxt}</td>
+        <td>${pagoTxt}</td>
+        <td>${esc(r.num_factura || '—')}</td>
+        <td>${esc(r.numero_recibo || '—')}</td>
+        <td>${accion}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function abrirEditarConsulta(id){
+    const r = (window._historialCache||[]).find(x=>x.id===id);
+    if(!r) return;
+    document.getElementById('ec-id').value = id;
+    document.getElementById('ec-tipo').value = r.tipo_consulta;
+    document.getElementById('ec-monto').value = r.monto;
+    document.getElementById('ec-mediopago').value = r.medio_pago || 'Efectivo';
+    document.getElementById('ec-factura').value = r.num_factura || '';
+    document.getElementById('ec-recibo').value = r.numero_recibo || '';
+    document.getElementById('ec-notas').value = r.notas || '';
+    document.getElementById('editConsultaModal').classList.add('show');
+  }
+  async function guardarEdicionConsulta(){
+    const id = document.getElementById('ec-id').value;
+    const payload = {
+      tipo_consulta: document.getElementById('ec-tipo').value,
+      monto: parseFloat(document.getElementById('ec-monto').value) || 0,
+      medio_pago: document.getElementById('ec-mediopago').value,
+      num_factura: document.getElementById('ec-factura').value.trim() || null,
+      numero_recibo: document.getElementById('ec-recibo').value.trim() || null,
+      notas: document.getElementById('ec-notas').value.trim() || null,
+      edited_by: MI_PERFIL.id,
+      edited_at: new Date().toISOString()
+    };
+    const { error } = await sb.from('consultas').update(payload).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('✅ Cambios guardados');
+    document.getElementById('editConsultaModal').classList.remove('show');
+    cargarHistorial();
+  }
+  function eliminarConsultaDesdeModal(){
+    const id = document.getElementById('ec-id').value;
+    mostrarConfirm({ titulo:'¿Enviar a la papelera?', mensaje:'Podrás restaurarla después desde la papelera.', textoConfirmar:'Sí, enviar', icono:'🗑️' }, async ()=>{
+      const { error } = await sb.from('consultas').update({ deleted:true, deleted_at: new Date().toISOString(), deleted_by: MI_PERFIL.id }).eq('id', id);
+      if(error){ toast('⚠️ ' + error.message); return; }
+      toast('🗑️ Enviado a la papelera');
+      document.getElementById('editConsultaModal').classList.remove('show');
+      cargarHistorial();
+    });
+  }
+  async function restaurarConsulta(id){
+    const { error } = await sb.from('consultas').update({ deleted:false, deleted_at:null, deleted_by:null }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('♻️ Restaurado');
+    cargarHistorial();
+  }
+  function exportarHistorialCSV(){
+    const rows = window._historialCache || [];
+    if(rows.length===0){ toast('⚠️ No hay datos para exportar'); return; }
+    const header = ['Fecha','Paciente','Doctora','Tipo de Consulta','Monto 1','Medio de Pago 1','Monto 2','Medio de Pago 2','N° Factura','N° Recibo'];
+    const csvRows = rows.map(r=>[
+      fechaCorta(r.fecha), r.pacientes?r.pacientes.nombre:'', r.personal?r.personal.nombre:'', r.tipo_consulta,
+      r.monto, r.medio_pago||'', r.monto_2||'', r.medio_pago_2||'', r.num_factura||'', r.numero_recibo||''
+    ]);
+    const csv = [header, ...csvRows].map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'historial_clinderm_'+isoLocal(new Date())+'.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ============================================================
+  // CIERRE
+  // ============================================================
+  function cierreNav(delta){
+    if(CIERRE_MODO==='dia') CIERRE_FECHA.setDate(CIERRE_FECHA.getDate()+delta);
+    else CIERRE_FECHA.setMonth(CIERRE_FECHA.getMonth()+delta);
+    cargarCierre();
+  }
+  function cierreHoy(){ CIERRE_FECHA = new Date(); cargarCierre(); }
   function cierreSubtab(which){
     document.getElementById('cierreSubtabDoctor').classList.toggle('active', which==='doctor');
     document.getElementById('cierreSubtabPago').classList.toggle('active', which==='pago');
     document.getElementById('cierreViewDoctor').style.display = which==='doctor' ? 'block' : 'none';
     document.getElementById('cierreViewPago').style.display = which==='pago' ? 'block' : 'none';
   }
-  function setRole(role){
-    const docBtn = document.querySelector('[data-doc]');
-    const admBtn = document.querySelector('[data-admin]');
-    docBtn.style.display = (role==='recepcion') ? 'none' : 'flex';
-    admBtn.style.display = (role==='admin') ? 'flex' : 'none';
-    if(role==='recepcion'){ showScreen('registro', document.querySelector('#mainNav button')); }
-  }
-  setRole('admin');
 
-  const teal='#2ABFBF', navy='#1B3A6B', navyDark='#0E1D36';
-  new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:['Lun','Mar','Mié','Jue','Vie','Sáb'], datasets:[{data:[12000,15000,9000,18000,21000,16000], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35}]}, options:{plugins:{legend:{display:false}}}});
-  new Chart(document.getElementById('chDoc'), {type:'bar', data:{labels:['Dra. Tania','Dra. Laura'], datasets:[{data:[112000,70400], backgroundColor:[navy, teal]}]}, options:{plugins:{legend:{display:false}}}});
-  new Chart(document.getElementById('chPay'), {type:'doughnut', data:{labels:['Efectivo','Tarjeta','Transferencia'], datasets:[{data:[40,35,25], backgroundColor:[teal, navy, navyDark]}]}});
-  new Chart(document.getElementById('chTipo'), {type:'bar', data:{labels:['Primera vez','Subsecuente','Procedimientos'], datasets:[{data:[42000,58000,82400], backgroundColor:teal}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}}});
-</script>
-</body>
+  const MEDIOS_INFO = { Efectivo:{cls:'efectivo', icon:'💵'}, Tarjeta:{cls:'tarjeta', icon:'💳'}, Transferencia:{cls:'transferencia', icon:'🏦'}, Cortesía:{cls:'cortesia', icon:'🎁'} };
+
+  async function cargarCierre(){
+    CIERRE_MODO = document.getElementById('cierre-modo').value;
+    const doctorFiltro = document.getElementById('cierre-doctor-filtro').value;
+    let desde, hasta, label;
+    if(CIERRE_MODO === 'dia'){
+      desde = hasta = isoLocal(CIERRE_FECHA);
+      label = CIERRE_FECHA.toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'});
+    } else {
+      const y = CIERRE_FECHA.getFullYear(), m = CIERRE_FECHA.getMonth();
+      desde = isoLocal(new Date(y, m, 1));
+      hasta = isoLocal(new Date(y, m+1, 0));
+      label = CIERRE_FECHA.toLocaleDateString('es-MX', {month:'long', year:'numeric'});
+    }
+    document.getElementById('cierre-fecha-label').textContent = label;
+
+    let q = sb.from('consultas').select('monto, medio_pago, monto_2, medio_pago_2, tipo_consulta, no_vino, personal!consultas_doctor_id_fkey(id, nombre)')
+      .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta);
+    if(doctorFiltro) q = q.eq('doctor_id', doctorFiltro);
+
+    const { data, error } = await q;
+    if(error){ console.error('[Clinderm] Error cargando cierre:', error); toast('⚠️ Error cargando cierre'); return; }
+    const rows = data || [];
+
+    const totalGeneral = rows.reduce((a,r)=> a + Number(r.monto||0) + Number(r.monto_2||0), 0);
+    const nConsultas = rows.length;
+    const ticketProm = nConsultas ? totalGeneral/nConsultas : 0;
+
+    document.getElementById('cierre-kpi-total').textContent = moneyRound(totalGeneral);
+    document.getElementById('cierre-kpi-n').textContent = nConsultas;
+    document.getElementById('cierre-kpi-ticket').textContent = moneyRound(ticketProm);
+
+    const porDoctor = {};
+    rows.forEach(r=>{
+      const doc = r.personal ? r.personal.nombre : 'Sin doctora';
+      if(!porDoctor[doc]) porDoctor[doc] = { total:0, pagos:{} };
+      porDoctor[doc].total += Number(r.monto||0) + Number(r.monto_2||0);
+      if(r.medio_pago) porDoctor[doc].pagos[r.medio_pago] = (porDoctor[doc].pagos[r.medio_pago]||0) + Number(r.monto||0);
+      if(r.medio_pago_2) porDoctor[doc].pagos[r.medio_pago_2] = (porDoctor[doc].pagos[r.medio_pago_2]||0) + Number(r.monto_2||0);
+    });
+    const doctorasOrdenadas = Object.entries(porDoctor).sort((a,b)=>b[1].total-a[1].total);
+    document.getElementById('cierre-kpi-top').textContent = doctorasOrdenadas.length ? doctorasOrdenadas[0][0] : '—';
+
+    const viewDoctor = document.getElementById('cierreViewDoctor');
+    if(doctorasOrdenadas.length===0){
+      viewDoctor.innerHTML = '<div class="empty-state">Sin consultas en este período.</div>';
+    } else {
+      viewDoctor.innerHTML = doctorasOrdenadas.map(([nombre, v])=>{
+        const pillsHtml = Object.entries(v.pagos).map(([medio,monto], i)=>`<span class="pill ${i%2===0?'pill-teal':'pill-navy'}">${esc(medio)} ${moneyRound(monto)}</span>`).join('');
+        return `<div class="doc-card"><div class="hd"><strong>${esc(nombre)}</strong><span>${money(v.total)}</span></div><div style="margin:8px 0;">${pillsHtml}</div></div>`;
+      }).join('');
+    }
+
+    const porPago = {};
+    rows.forEach(r=>{
+      const doc = r.personal ? r.personal.nombre : 'Sin doctora';
+      if(r.medio_pago){ if(!porPago[r.medio_pago]) porPago[r.medio_pago] = {total:0, doctoras:{}}; porPago[r.medio_pago].total += Number(r.monto||0); porPago[r.medio_pago].doctoras[doc] = (porPago[r.medio_pago].doctoras[doc]||0)+Number(r.monto||0); }
+      if(r.medio_pago_2){ if(!porPago[r.medio_pago_2]) porPago[r.medio_pago_2] = {total:0, doctoras:{}}; porPago[r.medio_pago_2].total += Number(r.monto_2||0); porPago[r.medio_pago_2].doctoras[doc] = (porPago[r.medio_pago_2].doctoras[doc]||0)+Number(r.monto_2||0); }
+    });
+    const viewPago = document.getElementById('cierreViewPago');
+    const pagosActivos = Object.entries(porPago).filter(([,v])=>v.total>0);
+    if(pagosActivos.length===0){
+      viewPago.innerHTML = '<div class="empty-state">Sin pagos en este período.</div>';
+    } else {
+      viewPago.innerHTML = '<div class="pago-cards">' + pagosActivos.sort((a,b)=>b[1].total-a[1].total).map(([medio,v])=>{
+        const info = MEDIOS_INFO[medio] || {cls:'efectivo', icon:'💰'};
+        const pct = totalGeneral ? Math.round(v.total/totalGeneral*100) : 0;
+        const desglose = Object.entries(v.doctoras).sort((a,b)=>b[1]-a[1]).map(([doc,monto])=>`<div><span>${esc(doc)}</span><span>${money(monto)}</span></div>`).join('');
+        return `<div class="pago-card ${info.cls}"><div class="ico">${info.icon}</div><div class="nombre">${esc(medio)}</div><div class="total">${money(v.total)}</div><div class="sub">${pct}% del total</div><div class="barra-bg"><div class="barra-fill" style="width:${pct}%"></div></div><div class="pago-desglose">${desglose}</div></div>`;
+      }).join('') + '</div>';
+    }
+  }
+
+  // ============================================================
+  // DASHBOARD
+  // ============================================================
+  async function cargarDashboard(){
+    const periodo = document.getElementById('dash-periodo').value;
+    const doctorFiltro = document.getElementById('dash-doctor-filtro').value;
+    const tipoFiltro = document.getElementById('dash-tipo-filtro').value;
+    let desde, hasta;
+    const hoy = new Date();
+    if(periodo === 'mes'){ desde = isoLocal(new Date(hoy.getFullYear(), hoy.getMonth(), 1)); hasta = isoLocal(hoy); }
+    else { const d = new Date(); d.setDate(d.getDate() - Number(periodo)); desde = isoLocal(d); hasta = isoLocal(hoy); }
+
+    let q = sb.from('consultas').select('fecha, monto, monto_2, medio_pago, medio_pago_2, tipo_consulta, paciente_id, personal!consultas_doctor_id_fkey(id, nombre)')
+      .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta);
+    if(doctorFiltro) q = q.eq('doctor_id', doctorFiltro);
+    if(tipoFiltro) q = q.eq('tipo_consulta', tipoFiltro);
+
+    const { data, error } = await q;
+    if(error){ console.error('[Clinderm] Error cargando dashboard:', error); return; }
+    const rows = data || [];
+
+    const total = rows.reduce((a,r)=>a+Number(r.monto||0)+Number(r.monto_2||0), 0);
+    const pacientesUnicos = new Set(rows.map(r=>r.paciente_id)).size;
+    const ticketProm = rows.length ? total/rows.length : 0;
+
+    const porDoc = {};
+    rows.forEach(r=>{ const doc = r.personal?r.personal.nombre:'Sin doctora'; porDoc[doc] = (porDoc[doc]||0) + Number(r.monto||0)+Number(r.monto_2||0); });
+    const topDoc = Object.entries(porDoc).sort((a,b)=>b[1]-a[1])[0];
+
+    document.getElementById('dash-kpi-total').textContent = moneyRound(total);
+    document.getElementById('dash-kpi-pac').textContent = pacientesUnicos;
+    document.getElementById('dash-kpi-ticket').textContent = moneyRound(ticketProm);
+    document.getElementById('dash-kpi-top').textContent = topDoc ? topDoc[0] : '—';
+
+    const porDia = {};
+    rows.forEach(r=>{ porDia[r.fecha] = (porDia[r.fecha]||0) + Number(r.monto||0)+Number(r.monto_2||0); });
+    const diasOrdenados = Object.keys(porDia).sort();
+    const labelsDias = diasOrdenados.map(d=>{ const [,m,dd]=d.split('-'); return dd+'/'+m; });
+    const dataDias = diasOrdenados.map(d=>porDia[d]);
+
+    const porPago = {};
+    rows.forEach(r=>{
+      if(r.medio_pago) porPago[r.medio_pago] = (porPago[r.medio_pago]||0)+Number(r.monto||0);
+      if(r.medio_pago_2) porPago[r.medio_pago_2] = (porPago[r.medio_pago_2]||0)+Number(r.monto_2||0);
+    });
+
+    const porTipo = {};
+    rows.forEach(r=>{ porTipo[r.tipo_consulta] = (porTipo[r.tipo_consulta]||0) + Number(r.monto||0)+Number(r.monto_2||0); });
+
+    const teal='#2ABFBF', navy='#1B3A6B', navyDark='#0E1D36', amber='#c99a3a';
+
+    if(CHARTS.trend) CHARTS.trend.destroy();
+    CHARTS.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:labelsDias.length?labelsDias:['—'], datasets:[{data:dataDias.length?dataDias:[0], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35}]}, options:{plugins:{legend:{display:false}}}});
+
+    if(CHARTS.doc) CHARTS.doc.destroy();
+    const docLabels = Object.keys(porDoc), docData = Object.values(porDoc);
+    CHARTS.doc = new Chart(document.getElementById('chDoc'), {type:'bar', data:{labels:docLabels.length?docLabels:['—'], datasets:[{data:docData.length?docData:[0], backgroundColor:[navy, teal, navyDark, amber]}]}, options:{plugins:{legend:{display:false}}}});
+
+    if(CHARTS.pay) CHARTS.pay.destroy();
+    const payLabels = Object.keys(porPago), payData = Object.values(porPago);
+    CHARTS.pay = new Chart(document.getElementById('chPay'), {type:'doughnut', data:{labels:payLabels.length?payLabels:['Sin datos'], datasets:[{data:payData.length?payData:[1], backgroundColor:[teal, navy, navyDark, amber]}]}});
+
+    if(CHARTS.tipo) CHARTS.tipo.destroy();
+    const tipoLabels = Object.keys(porTipo), tipoData = Object.values(porTipo);
+    CHARTS.tipo = new Chart(document.getElementById('chTipo'), {type:'bar', data:{labels:tipoLabels.length?tipoLabels:['—'], datasets:[{data:tipoData.length?tipoData:[0], backgroundColor:teal}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}}});
+  }
+
+  // ============================================================
+  // PRM / CRM
+  // ============================================================
+  function crmTab(which){
+    document.getElementById('crmTabInactivos').classList.toggle('active', which==='inactivos');
+    document.getElementById('crmTabNoVino').classList.toggle('active', which==='novino');
+    document.getElementById('crmViewInactivos').style.display = which==='inactivos' ? 'block' : 'none';
+    document.getElementById('crmViewNoVino').style.display = which==='novino' ? 'block' : 'none';
+    if(which==='inactivos') cargarCRMInactivos(); else cargarCRMNoVino();
+  }
+
+  async function cargarCRMInactivos(){
+    const cont = document.getElementById('crmViewInactivos');
+    cont.innerHTML = '<div class="empty-state">Cargando…</div>';
+    const { data, error } = await sb.from('consultas').select('paciente_id, fecha, tipo_consulta, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)').eq('deleted', false).eq('no_vino', false).order('fecha', {ascending:false});
+    if(error){ console.error('[Clinderm] Error CRM inactivos:', error); cont.innerHTML = '<div class="empty-state">Error cargando datos</div>'; return; }
+    const ultimaPorPaciente = {};
+    (data||[]).forEach(r=>{ if(r.paciente_id && !ultimaPorPaciente[r.paciente_id]) ultimaPorPaciente[r.paciente_id] = r; });
+    const hoy = new Date();
+    const inactivos = Object.values(ultimaPorPaciente).map(r=>{
+      const dias = Math.floor((hoy - new Date(r.fecha+'T00:00:00')) / 86400000);
+      return Object.assign({}, r, {dias});
+    }).filter(r=>r.dias >= 60).sort((a,b)=>b.dias-a.dias);
+
+    if(inactivos.length===0){ cont.innerHTML = '<div class="empty-state">No hay pacientes inactivos (60+ días sin visita).</div>'; return; }
+    cont.innerHTML = inactivos.map(r=>`
+      <div class="doc-card">
+        <div class="hd"><strong>${esc(r.pacientes?r.pacientes.nombre:'—')}</strong><span style="color:var(--muted); font-size:12px;">Última visita: ${fechaCorta(r.fecha)} (${r.dias} días)</span></div>
+        <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">${esc(r.personal?r.personal.nombre:'—')} · ${esc(r.tipo_consulta)}</div>
+        <button class="btn btn-ghost" onclick="abrirGestion('${r.paciente_id}')">📖 Ver/gestionar</button>
+      </div>
+    `).join('');
+  }
+
+  async function cargarCRMNoVino(){
+    const cont = document.getElementById('crmViewNoVino');
+    cont.innerHTML = '<div class="empty-state">Cargando…</div>';
+    const { data, error } = await sb.from('consultas').select('paciente_id, fecha, tipo_consulta, pacientes(id, nombre), personal!consultas_doctor_id_fkey(nombre)').eq('deleted', false).eq('no_vino', true).order('fecha', {ascending:false});
+    if(error){ console.error('[Clinderm] Error CRM no vino:', error); cont.innerHTML = '<div class="empty-state">Error cargando datos</div>'; return; }
+    const rows = data || [];
+    if(rows.length===0){ cont.innerHTML = '<div class="empty-state">Nadie marcado como "no vino" por ahora.</div>'; return; }
+    cont.innerHTML = rows.map(r=>`
+      <div class="doc-card">
+        <div class="hd"><strong>${esc(r.pacientes?r.pacientes.nombre:'—')}</strong><span style="color:var(--muted); font-size:12px;">${fechaCorta(r.fecha)}</span></div>
+        <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">${esc(r.personal?r.personal.nombre:'—')} · ${esc(r.tipo_consulta)}</div>
+        <button class="btn btn-ghost" onclick="abrirGestion('${r.paciente_id}')">📖 Ver/gestionar</button>
+      </div>
+    `).join('');
+  }
+
+  async function abrirGestion(pacienteId){
+    if(!pacienteId) return;
+    const { data: pac } = await sb.from('pacientes').select('nombre, telefono').eq('id', pacienteId).single();
+    document.getElementById('gestion-paciente-id').value = pacienteId;
+    document.getElementById('gestion-paciente-nombre').textContent = pac ? pac.nombre : 'Paciente';
+    document.getElementById('gestion-paciente-meta').textContent = pac ? pac.telefono : '';
+    const { data: hist } = await sb.from('gestiones').select('tipo, nota, fecha').eq('paciente_id', pacienteId).order('fecha', {ascending:false});
+    const iconos = {llamada:'📞', whatsapp:'💬', correo:'✉️'};
+    document.getElementById('gestion-historial').innerHTML = (hist && hist.length)
+      ? hist.map(g=>`<div style="padding:4px 0; border-bottom:1px solid var(--border);">${iconos[g.tipo]||''} <strong>${fechaCorta(g.fecha)}</strong> — ${esc(g.nota||'(sin nota)')}</div>`).join('')
+      : '<div style="color:var(--muted);">Sin gestiones previas</div>';
+    document.getElementById('gestion-nota').value = '';
+    document.getElementById('gestionModal').classList.add('show');
+  }
+  async function guardarGestion(){
+    const pacienteId = document.getElementById('gestion-paciente-id').value;
+    const tipo = document.getElementById('gestion-tipo').value;
+    const nota = document.getElementById('gestion-nota').value.trim() || null;
+    const { error } = await sb.from('gestiones').insert({ paciente_id: pacienteId, tipo, nota, fecha: isoLocal(new Date()), creado_por: MI_PERFIL.id });
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('✅ Gestión guardada');
+    document.getElementById('gestionModal').classList.remove('show');
+  }
+
+  // ============================================================
+  // CONFIGURACIÓN
+  // ============================================================
+  async function cargarConfigUsuarios(){
+    const { data, error } = await sb.from('personal').select('id, nombre, rol, activo, email, auth_user_id').order('nombre');
+    if(error){ console.error('[Clinderm] Error cargando personal:', error); return; }
+    const conAcceso = (data||[]).filter(p=>p.auth_user_id);
+    const sinAcceso = (data||[]).filter(p=>!p.auth_user_id);
+
+    const tablaCon = document.getElementById('cfg-tabla-con-acceso');
+    tablaCon.innerHTML = '<tr><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr>' + conAcceso.map(p=>`
+      <tr>
+        <td>${esc(p.nombre)}</td><td>${esc(p.rol)}</td>
+        <td><input type="checkbox" ${p.activo?'checked':''} onchange="togglePersonalActivo('${p.id}', this.checked)"></td>
+        <td>
+          <span style="cursor:pointer;" title="Restablecer contraseña" onclick="abrirResetPassword('${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">🔑</span> ·
+          <span style="cursor:pointer;" title="Cambiar correo" onclick="abrirCambiarCorreo('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">✉️</span> ·
+          <span style="cursor:pointer;" title="Eliminar" onclick="confirmarEliminarPersonal('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>
+        </td>
+      </tr>`).join('');
+    document.getElementById('cfg-con-acceso-empty').style.display = conAcceso.length ? 'none' : 'block';
+
+    const tablaSin = document.getElementById('cfg-tabla-sin-acceso');
+    tablaSin.innerHTML = '<tr><th>Nombre</th><th>Activo</th><th></th></tr>' + sinAcceso.map(p=>`
+      <tr>
+        <td>${esc(p.nombre)}</td>
+        <td><input type="checkbox" ${p.activo?'checked':''} onchange="togglePersonalActivo('${p.id}', this.checked)"></td>
+        <td>
+          <span style="cursor:pointer; color:var(--teal-dark); font-weight:700;" onclick="abrirDarAcceso('${p.id}','${esc(p.nombre).replace(/'/g,"\\'")}')">Dar acceso</span> ·
+          <span style="cursor:pointer;" onclick="confirmarEliminarPersonal('${p.id}', null, '${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>
+        </td>
+      </tr>`).join('');
+    document.getElementById('cfg-sin-acceso-empty').style.display = sinAcceso.length ? 'none' : 'block';
+
+    const { data: audit } = await sb.from('audit_log').select('accion, detalle, created_at').order('created_at', {ascending:false}).limit(8);
+    const nombresAccion = { crear_personal:'Se creó un usuario', reset_password:'Se restableció una contraseña', cambiar_correo:'Se cambió un correo', eliminar_personal:'Se eliminó un usuario' };
+    document.getElementById('cfg-actividad').innerHTML = (audit && audit.length)
+      ? audit.map(a=>`${esc(nombresAccion[a.accion]||a.accion)} · ${new Date(a.created_at).toLocaleDateString('es-MX')}`).join('<br>')
+      : 'Sin actividad reciente';
+  }
+
+  async function togglePersonalActivo(id, activo){
+    const { error } = await sb.from('personal').update({ activo }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); cargarConfigUsuarios(); return; }
+    toast(activo ? '✅ Activado' : '⏸️ Desactivado');
+    cargarDoctores();
+  }
+
+  async function llamarPersonalAdmin(payload){
+    const { data: { session } } = await sb.auth.getSession();
+    const resp = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token, 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify(payload)
+    });
+    const body = await resp.json();
+    if(!resp.ok) throw new Error(body.error || 'Error desconocido');
+    return body;
+  }
+
+  async function crearUsuario(){
+    const nombre = document.getElementById('np-nombre').value.trim();
+    const rol = document.getElementById('np-rol').value;
+    const conAcceso = document.getElementById('np-con-acceso').checked;
+    if(!nombre){ toast('⚠️ Falta el nombre'); return; }
+    try{
+      if(conAcceso){
+        const email = document.getElementById('np-email').value.trim();
+        const password = document.getElementById('np-password').value;
+        if(!email || !password){ toast('⚠️ Falta correo o contraseña'); return; }
+        if(password.length < 8){ toast('⚠️ La contraseña debe tener mínimo 8 caracteres'); return; }
+        await llamarPersonalAdmin({ action:'create_user', nombre, rol, email, password });
+        toast('✅ Usuario creado con acceso');
+      } else {
+        const { error } = await sb.from('personal').insert({ nombre, rol, email:null, activo:true, auth_user_id:null });
+        if(error) throw error;
+        toast('✅ Agregado (sin acceso)');
+      }
+      document.getElementById('np-nombre').value = '';
+      document.getElementById('np-email').value = '';
+      document.getElementById('np-password').value = '';
+      document.getElementById('np-con-acceso').checked = false;
+      document.getElementById('np-acceso-wrap').style.display = 'none';
+      cargarConfigUsuarios();
+      cargarDoctores();
+    } catch(err){
+      console.error('[Clinderm] Error creando usuario:', err);
+      toast('⚠️ ' + err.message);
+    }
+  }
+
+  function abrirDarAcceso(personalId, nombre){
+    mostrarPrompt({ titulo:'Correo de acceso', mensaje:`Correo para <b>${esc(nombre)}</b>:`, tipo:'email', placeholder:'correo@clinderm.mx', icono:'✉️' }, (email)=>{
+      if(!email) return;
+      mostrarPrompt({ titulo:'Contraseña temporal', mensaje:`Contraseña para <b>${esc(nombre)}</b> (mínimo 8 caracteres):`, tipo:'password', placeholder:'••••••••', icono:'🔑' }, (password)=>{
+        if(!password) return;
+        llamarPersonalAdmin({ action:'create_user', personal_id: personalId, email, password })
+          .then(()=>{ toast('✅ Acceso creado'); cargarConfigUsuarios(); cargarDoctores(); })
+          .catch(err=>{ console.error('[Clinderm] Error dando acceso:', err); toast('⚠️ ' + err.message); });
+      });
+    });
+  }
+  function abrirResetPassword(authUserId, nombre){
+    mostrarPrompt({ titulo:'Restablecer contraseña', mensaje:`Nueva contraseña para <b>${esc(nombre)}</b> (mínimo 8 caracteres):`, tipo:'password', placeholder:'••••••••', icono:'🔑' }, (password)=>{
+      if(!password) return;
+      llamarPersonalAdmin({ action:'reset_password', auth_user_id: authUserId, new_password: password })
+        .then(()=>{ toast('✅ Contraseña restablecida'); })
+        .catch(err=>{ console.error('[Clinderm] Error reseteando:', err); toast('⚠️ ' + err.message); });
+    });
+  }
+  function abrirCambiarCorreo(personalId, authUserId, nombre){
+    mostrarPrompt({ titulo:'Cambiar correo', mensaje:`Nuevo correo para <b>${esc(nombre)}</b>:`, tipo:'email', placeholder:'correo@clinderm.mx', icono:'✉️' }, (nuevoCorreo)=>{
+      if(!nuevoCorreo) return;
+      llamarPersonalAdmin({ action:'change_email', personal_id: personalId, auth_user_id: authUserId, new_email: nuevoCorreo })
+        .then(()=>{ toast('✅ Correo actualizado'); cargarConfigUsuarios(); })
+        .catch(err=>{ console.error('[Clinderm] Error cambiando correo:', err); toast('⚠️ ' + err.message); });
+    });
+  }
+  function confirmarEliminarPersonal(personalId, authUserId, nombre){
+    mostrarConfirm({
+      titulo: '¿Eliminar definitivamente?',
+      mensaje: `Vas a eliminar a <b>${esc(nombre)}</b>. Esta acción no se puede deshacer.<br><br>Si tiene consultas registradas, no se podrá eliminar — en ese caso, desactívalo en su lugar.`,
+      textoConfirmar: 'Sí, eliminar',
+      icono: '🗑️'
+    }, ()=>{
+      llamarPersonalAdmin({ action:'delete_user', personal_id: personalId, auth_user_id: authUserId || null, nombre_snapshot: nombre })
+        .then((res)=>{
+          toast(res.warning ? '⚠️ ' + res.warning : '✅ Eliminado');
+          cargarConfigUsuarios();
+          cargarDoctores();
+        })
+        .catch(err=>{ console.error('[Clinderm] Error eliminando:', err); toast('⚠️ ' + err.message); });
+    });
+  }
+
+  async function guardarHorarioAcceso(){
+    const payload = {
+      activo: document.getElementById('cfg-horario-activo').checked,
+      hora_inicio: document.getElementById('cfg-horario-inicio').value,
+      hora_fin: document.getElementById('cfg-horario-fin').value,
+      bloquear_domingo: document.getElementById('cfg-horario-domingo').checked,
+      updated_at: new Date().toISOString(),
+      updated_by: MI_PERFIL ? MI_PERFIL.id : null
+    };
+    const { data: existente } = await sb.from('horario_acceso').select('id').order('updated_at', {ascending:false}).limit(1).maybeSingle();
+    const { error } = existente
+      ? await sb.from('horario_acceso').update(payload).eq('id', existente.id)
+      : await sb.from('horario_acceso').insert(payload);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('✅ Horario actualizado');
+  }
+  async function cargarHorarioAcceso(){
+    const { data } = await sb.from('horario_acceso').select('*').order('updated_at', {ascending:false}).limit(1).maybeSingle();
+    if(!data) return;
+    document.getElementById('cfg-horario-activo').checked = !!data.activo;
+    document.getElementById('cfg-horario-inicio').value = (data.hora_inicio||'08:45').slice(0,5);
+    document.getElementById('cfg-horario-fin').value = (data.hora_fin||'20:00').slice(0,5);
+    document.getElementById('cfg-horario-domingo').checked = !!data.bloquear_domingo;
+  }
+  cargarHorarioAcceso();
+</script></body>
 </html>
