@@ -319,6 +319,7 @@
     <button class="active" onclick="showScreen('registro',this)">📝 Registro</button>
     <button onclick="showScreen('historial',this)">🗂️ Historial</button>
     <button onclick="showScreen('cierre',this)">🧾 Cierre</button>
+    <button data-admin style="display:none;" onclick="showScreen('comisiones',this)">💰 Comisiones</button>
     <button data-doc style="display:none;" onclick="showScreen('dashboard',this)">📊 Dashboard</button>
     <button onclick="showScreen('crm',this)">💬 PRM/CRM</button>
   </nav>
@@ -334,7 +335,14 @@
         <div class="reg-grid">
           <div class="field-wrap"><label>Fecha</label><input type="date" id="r-fecha" onchange="actualizarResumenLive()"></div>
           <div class="field-wrap"><label>Atendido por</label>
-            <select id="r-doctor" onchange="actualizarResumenLive()"><option value="">Cargando…</option></select>
+            <select id="r-doctor" onchange="onDoctorChange()"><option value="">Cargando…</option></select>
+          </div>
+          <div class="field-wrap" id="r-tipopaciente-wrap" style="display:none;">
+            <label>Paciente propio o de la clínica</label>
+            <select id="r-tipopaciente" onchange="actualizarResumenLive()">
+              <option value="clinica">Paciente de la clínica</option>
+              <option value="propio">Paciente propio de la doctora</option>
+            </select>
           </div>
           <div class="field-wrap"><label>Tipo de Consulta</label>
             <select id="r-tipo" onchange="onTipoConsultaChange()">
@@ -463,6 +471,27 @@
         <div id="cierreViewDoctor"><div class="empty-state">Cargando…</div></div>
         <div id="cierreViewPago" style="display:none;"><div class="empty-state">Cargando…</div></div>
       </div>
+    </section>
+
+    <!-- COMISIONES -->
+    <section class="screen" id="screen-comisiones">
+      <div class="card">
+        <div class="section-head">💰 Comisiones</div>
+        <hr class="section-head-divider">
+        <div class="filters">
+          <div class="fitem"><label>Período</label>
+            <select id="com-periodo" onchange="cargarComisiones()">
+              <option value="mes">Este mes</option>
+              <option value="q1">Quincena 1 (día 1–15)</option>
+              <option value="q2">Quincena 2 (día 16–fin)</option>
+              <option value="30">Últimos 30 días</option>
+              <option value="90">Últimos 90 días</option>
+            </select>
+          </div>
+          <div class="fitem"><label>Persona</label><select id="com-persona" onchange="cargarComisiones()"><option value="">Todas</option></select></div>
+        </div>
+      </div>
+      <div id="com-cards"><div class="empty-state">Cargando…</div></div>
     </section>
 
     <!-- DASHBOARD -->
@@ -778,8 +807,8 @@
     document.getElementById('app').style.display = 'block';
     document.getElementById('roleChip').textContent = '★ ' + perfil.rol.toUpperCase();
     document.getElementById('userTag').textContent = '👤 ' + perfil.nombre;
-    document.querySelector('[data-admin]').style.display = perfil.rol === 'admin' ? 'inline-flex' : 'none';
-    document.querySelector('[data-doc]').style.display = perfil.rol !== 'recepcion' ? 'inline-flex' : 'none';
+    document.querySelectorAll('[data-admin]').forEach(el=> el.style.display = perfil.rol === 'admin' ? 'inline-flex' : 'none');
+    document.querySelectorAll('[data-doc]').forEach(el=> el.style.display = perfil.rol !== 'recepcion' ? 'inline-flex' : 'none');
     document.getElementById('r-fecha').value = isoLocal(new Date());
     cargarDoctores();
     cargarCatalogoServicios();
@@ -794,6 +823,7 @@
     if(btn) btn.classList.add('active');
     if(id === 'historial') cargarHistorial();
     if(id === 'cierre') cargarCierre();
+    if(id === 'comisiones') cargarComisiones();
     if(id === 'dashboard') cargarDashboard();
     if(id === 'crm') crmTab('inactivos');
     if(id === 'config'){ cargarConfigUsuarios(); cargarConfigCatalogo(); }
@@ -803,13 +833,23 @@
   // REGISTRO
   // ============================================================
   async function cargarDoctores(){
-    const { data, error } = await sb.from('personal').select('id, nombre').eq('rol','doctor').eq('activo', true).order('nombre');
+    const { data, error } = await sb.from('personal').select('id, nombre, permisos').eq('rol','doctor').eq('activo', true).order('nombre');
     if(error){ console.error('[Clinderm] Error cargando doctores:', error); return; }
     const opts = (data||[]).map(d=>`<option value="${d.id}">${esc(d.nombre)}</option>`).join('');
+    const optsConPropios = (data||[]).map(d=>`<option value="${d.id}" data-propios="${!!(d.permisos && d.permisos.comision_solo_propios)}">${esc(d.nombre)}</option>`).join('');
     const rDoctor = document.getElementById('r-doctor');
-    rDoctor.innerHTML = opts || '<option value="">Sin doctoras registradas</option>';
+    rDoctor.innerHTML = optsConPropios || '<option value="">Sin doctoras registradas</option>';
     document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
     document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas</option>' + opts;
+    onDoctorChange();
+  }
+
+  function onDoctorChange(){
+    const sel = document.getElementById('r-doctor');
+    const opt = sel.options[sel.selectedIndex];
+    const aplicaPropios = !!(opt && opt.dataset.propios === 'true');
+    document.getElementById('r-tipopaciente-wrap').style.display = aplicaPropios ? 'block' : 'none';
+    if(!aplicaPropios) document.getElementById('r-tipopaciente').value = 'clinica';
     actualizarResumenLive();
   }
 
@@ -926,6 +966,8 @@
     const pago2Visible = document.getElementById('r-pago2-wrap').style.display === 'grid';
     const monto2 = pago2Visible ? (parseFloat(document.getElementById('r-monto2').value) || 0) : null;
     const medioPago2 = pago2Visible ? document.getElementById('r-mediopago2').value : null;
+    const tipoPacienteWrapVisible = document.getElementById('r-tipopaciente-wrap').style.display === 'block';
+    const pacientePropio = tipoPacienteWrapVisible ? (document.getElementById('r-tipopaciente').value === 'propio') : null;
 
     if(!fecha){ toast('⚠️ Falta la fecha'); return; }
     if(!doctorId){ toast('⚠️ Selecciona quién atiende'); return; }
@@ -959,6 +1001,7 @@
         fecha, paciente_id: pacienteId, doctor_id: doctorId, tipo_consulta: tipo,
         monto, medio_pago: medioPago, monto_2: monto2, medio_pago_2: medioPago2,
         factura, num_factura: numFactura, no_vino: noVino, notas,
+        paciente_propio: pacientePropio,
         created_by: MI_PERFIL.id
       };
       const { error: errInsert } = await sb.from('consultas').insert(payload);
@@ -989,6 +1032,7 @@
     document.getElementById('r-toggle-pago2').textContent = '+ agregar 2do pago';
     document.getElementById('r-sugeridos-box').style.display = 'none';
     PACIENTE_SELECCIONADO = null;
+    document.getElementById('r-tipopaciente').value = 'clinica'; // por seguridad, cada consulta nueva empieza como "de la clínica"
     onTipoConsultaChange(); // re-aplica el precio sugerido del catálogo y limpia el monto si no hay match
     actualizarResumenLive();
   }
@@ -1211,6 +1255,130 @@
         return `<div class="pago-card ${info.cls}"><div class="ico">${info.icon}</div><div class="nombre">${esc(medio)}</div><div class="total">${money(v.total)}</div><div class="sub">${pct}% del total</div><div class="barra-bg"><div class="barra-fill" style="width:${pct}%"></div></div><div class="pago-desglose">${desglose}</div></div>`;
       }).join('') + '</div>';
     }
+  }
+
+  // ============================================================
+  // COMISIONES
+  // ============================================================
+  function rangoComisiones(periodo){
+    const hoy = new Date();
+    let desde, hasta;
+    if(periodo === 'mes'){
+      desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      hasta = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
+    } else if(periodo === 'q1'){
+      desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 15);
+    } else if(periodo === 'q2'){
+      desde = new Date(hoy.getFullYear(), hoy.getMonth(), 16);
+      hasta = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
+    } else {
+      const dias = parseInt(periodo, 10) || 30;
+      hasta = hoy;
+      desde = new Date(hoy); desde.setDate(desde.getDate() - dias);
+    }
+    return { desde: isoLocal(desde), hasta: isoLocal(hasta) };
+  }
+
+  async function cargarComisiones(){
+    const periodo = document.getElementById('com-periodo').value;
+    const personaFiltro = document.getElementById('com-persona').value;
+    const { desde, hasta } = rangoComisiones(periodo);
+
+    const { data: personal, error: errPersonal } = await sb.from('personal')
+      .select('id, nombre, permisos').eq('rol','doctor').eq('activo', true).order('nombre');
+    if(errPersonal){ console.error('[Clinderm] Error cargando personal para comisiones:', errPersonal); return; }
+
+    const selPersona = document.getElementById('com-persona');
+    const seleccionActual = selPersona.value;
+    selPersona.innerHTML = '<option value="">Todas</option>' + (personal||[]).map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
+    selPersona.value = seleccionActual;
+
+    const personas = (personal||[]).filter(p => !personaFiltro || p.id === personaFiltro);
+
+    const { data: consultas, error: errConsultas } = await sb.from('consultas')
+      .select('doctor_id, monto, monto_2, paciente_propio')
+      .eq('deleted', false).eq('no_vino', false)
+      .gte('fecha', desde).lte('fecha', hasta);
+    if(errConsultas){ console.error('[Clinderm] Error cargando consultas para comisiones:', errConsultas); return; }
+
+    const cont = document.getElementById('com-cards');
+    if(personas.length === 0){ cont.innerHTML = '<div class="empty-state">No hay doctoras/cosmetólogas activas.</div>'; return; }
+
+    cont.innerHTML = personas.map(p=>{
+      const misConsultas = (consultas||[]).filter(c => c.doctor_id === p.id);
+      const soloPropios = !!(p.permisos && p.permisos.comision_solo_propios);
+      const totalGeneral = misConsultas.reduce((a,c)=> a + Number(c.monto||0) + Number(c.monto_2||0), 0);
+      const totalPropios = misConsultas.filter(c=>c.paciente_propio===true).reduce((a,c)=> a + Number(c.monto||0) + Number(c.monto_2||0), 0);
+      const totalClinica = totalGeneral - totalPropios;
+      const base = soloPropios ? totalPropios : totalGeneral;
+
+      const pct = (p.permisos && p.permisos.comision_pct != null) ? Number(p.permisos.comision_pct) : null;
+      const isrPct = (p.permisos && p.permisos.comision_isr_pct != null) ? Number(p.permisos.comision_isr_pct) : 0;
+
+      let cuerpo;
+      if(pct === null){
+        cuerpo = `
+          <div class="empty-state">⚠️ Esquema de comisión pendiente de definir para ${esc(p.nombre)}.<br>Productividad del período (informativa): <b>${money(totalGeneral)}</b></div>
+          <div style="margin-top:10px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+            <div class="field-wrap" style="margin:0;"><label>% Comisión</label><input type="number" id="com-pct-${p.id}" style="width:90px;" placeholder="Ej. 30"></div>
+            <div class="field-wrap" style="margin:0;"><label>% ISR / descuento</label><input type="number" id="com-isr-${p.id}" style="width:90px;" value="0"></div>
+            <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;"><input type="checkbox" id="com-propios-${p.id}"> Solo pacientes propios</label>
+            <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComision('${p.id}')">Guardar esquema</button>
+          </div>`;
+      } else {
+        const comisionBruta = base * (pct/100);
+        const isr = comisionBruta * (isrPct/100);
+        const neto = comisionBruta - isr;
+        cuerpo = `
+          <table style="width:100%; margin-top:6px;">
+            ${soloPropios ? `
+            <tr><td>Productividad total (todas sus consultas)</td><td style="text-align:right;">${money(totalGeneral)}</td></tr>
+            <tr><td>Pacientes de la clínica (no aplica comisión)</td><td style="text-align:right; color:var(--muted);">− ${money(totalClinica)}</td></tr>
+            <tr style="border-top:1px solid var(--border);"><td><b>Base de comisión (pacientes propios)</b></td><td style="text-align:right;"><b>${money(base)}</b></td></tr>
+            ` : `
+            <tr style="border-top:1px solid var(--border);"><td><b>Base de comisión (productividad total)</b></td><td style="text-align:right;"><b>${money(base)}</b></td></tr>
+            `}
+            <tr><td>Comisión (${pct}%)</td><td style="text-align:right;">${money(comisionBruta)}</td></tr>
+            <tr><td>ISR / descuento (${isrPct}%)</td><td style="text-align:right; color:var(--muted);">− ${money(isr)}</td></tr>
+            <tr style="border-top:2px solid var(--navy-900);"><td><b>Neto a pagar</b></td><td style="text-align:right; font-size:16px;"><b>${money(neto)}</b></td></tr>
+          </table>
+          <div style="margin-top:10px; text-align:right;">
+            <span class="toggle-link" onclick="mostrarEditorComision('${p.id}')">Editar esquema de comisión</span>
+          </div>
+          <div id="com-editor-${p.id}" style="display:none; margin-top:10px; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+            <div class="field-wrap" style="margin:0;"><label>% Comisión</label><input type="number" id="com-pct-${p.id}" style="width:90px;" value="${pct}"></div>
+            <div class="field-wrap" style="margin:0;"><label>% ISR / descuento</label><input type="number" id="com-isr-${p.id}" style="width:90px;" value="${isrPct}"></div>
+            <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;"><input type="checkbox" id="com-propios-${p.id}" ${soloPropios?'checked':''}> Solo pacientes propios</label>
+            <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComision('${p.id}')">Guardar</button>
+          </div>`;
+      }
+
+      return `<div class="card"><h3>${esc(p.nombre)}</h3>${cuerpo}</div>`;
+    }).join('');
+  }
+
+  function mostrarEditorComision(id){
+    const el = document.getElementById('com-editor-'+id);
+    el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+  }
+
+  async function guardarConfigComision(id){
+    const pctInput = document.getElementById('com-pct-'+id);
+    const isrInput = document.getElementById('com-isr-'+id);
+    const propiosInput = document.getElementById('com-propios-'+id);
+    const pct = parseFloat(pctInput.value);
+    if(isNaN(pct)){ toast('⚠️ Ingresa el % de comisión'); return; }
+    const isrPct = parseFloat(isrInput.value) || 0;
+    const soloPropios = propiosInput.checked;
+
+    const { data: actual, error: errGet } = await sb.from('personal').select('permisos').eq('id', id).single();
+    if(errGet){ toast('⚠️ ' + errGet.message); return; }
+    const nuevosPermisos = Object.assign({}, actual.permisos, { comision_pct: pct, comision_isr_pct: isrPct, comision_solo_propios: soloPropios });
+    const { error } = await sb.from('personal').update({ permisos: nuevosPermisos }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('✅ Esquema de comisión guardado');
+    cargarComisiones();
   }
 
   // ============================================================
