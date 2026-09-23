@@ -248,6 +248,64 @@
   .app-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
   .banner-note{background:#EAF0FA; border:1px solid #CFE0F5; color:var(--navy-600); font-size:12px; padding:8px 12px; border-radius:9px; margin-bottom:14px;}
+
+  /* ===========================================================
+     RESPONSIVE — MÓVIL / TABLET
+     =========================================================== */
+  @media (max-width: 860px){
+    /* Login */
+    #loginScreen{padding:16px;}
+    .login-wrap{max-width:420px;}
+    .login-card{padding:28px 22px 22px;}
+
+    /* Header */
+    header.topbar{
+      grid-template-columns:1fr; text-align:center; gap:10px; padding:14px 16px;
+    }
+    .brand-lockup{justify-content:center;}
+    .header-actions{justify-self:stretch; justify-content:center; flex-wrap:wrap; row-gap:8px;}
+
+    /* Nav */
+    nav.mainnav{padding:8px 10px; gap:6px; justify-content:flex-start;}
+    nav.mainnav button{padding:8px 12px; font-size:13px;}
+
+    main{padding:14px;}
+
+    /* Grids → una sola columna */
+    .reg-grid, .grid2, .grid3, .cfg-grid{grid-template-columns:1fr;}
+    .resumen-live{grid-column:1; grid-row:auto;}
+
+    /* KPIs y resumen → 2 columnas en vez de 4 */
+    .kpi-row, .summary-box{grid-template-columns:1fr 1fr;}
+
+    /* Tarjetas de medio de pago un poco más angostas */
+    .pago-cards{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+
+    /* Tablas anchas (Historial, Configuración): scroll horizontal en vez de comprimirse ilegibles.
+       Las tablas angostas (ej. desglose de Comisiones) no llevan esta clase y se quedan responsive normales. */
+    table.data-table{display:block; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch;}
+    table.data-table thead, table.data-table tbody, table.data-table tr{display:table; width:100%; table-layout:auto;}
+
+    .datefly{flex-wrap:wrap; row-gap:8px;}
+    .datefly select{margin-left:0 !important;}
+
+    .filters .fitem{min-width:130px; flex:1 1 130px;}
+
+    .modal-box{padding:20px; width:100%;}
+  }
+
+  @media (max-width: 480px){
+    .app-title .t2{display:none;}
+    .app-title .t1{font-size:16px;}
+    .mc-logo-header{height:30px;}
+    .pill-btn{padding:6px 10px; font-size:11.5px;}
+    .user-tag{font-size:11.5px;}
+    .kpi-row, .summary-box{grid-template-columns:1fr 1fr;}
+    .kpi .v{font-size:18px;}
+    main{padding:10px;}
+    .card{padding:14px 14px 16px;}
+    nav.mainnav button{padding:7px 10px; font-size:12.3px;}
+  }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -417,7 +475,7 @@
           <button class="btn btn-ghost" id="h-btn-papelera" onclick="togglePapelera()">🗑️ Papelera</button>
           <button class="btn btn-ghost" onclick="exportarHistorialCSV()">⬇️ Exportar</button>
         </div>
-        <table>
+        <table class="data-table">
           <tr><th>Fecha</th><th>Paciente</th><th>Doctora</th><th>Tipo de Consulta</th><th>Monto</th><th>Pago</th><th>N° Factura</th><th>N° Recibo</th><th></th></tr>
           <tbody id="h-tbody"><tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">Cargando…</td></tr></tbody>
         </table>
@@ -554,14 +612,14 @@
       <div class="cfg-grid">
         <div class="card">
           <h3>👥 Usuarios con acceso</h3>
-          <table id="cfg-tabla-con-acceso">
+          <table id="cfg-tabla-con-acceso" class="data-table">
             <tr><th>Nombre</th><th>Rol</th><th>Activo</th><th></th></tr>
           </table>
           <div class="empty-state" id="cfg-con-acceso-empty" style="margin-top:10px; display:none;">Nadie tiene cuenta de acceso todavía</div>
         </div>
         <div class="card">
           <h3>🩺 Doctoras/cosmetólogas para Registro (sin acceso)</h3>
-          <table id="cfg-tabla-sin-acceso">
+          <table id="cfg-tabla-sin-acceso" class="data-table">
             <tr><th>Nombre</th><th>Activo</th><th></th></tr>
           </table>
           <div class="empty-state" id="cfg-sin-acceso-empty" style="margin-top:10px; display:none;">Todos tienen cuenta de acceso</div>
@@ -579,7 +637,7 @@
         </div>
         <div class="card" style="grid-column:1 / -1;">
           <h3>💰 Catálogo de servicios y precios</h3>
-          <table id="cfg-tabla-catalogo">
+          <table id="cfg-tabla-catalogo" class="data-table">
             <tr><th>Categoría</th><th>Nombre</th><th>Precio</th><th>Activo</th><th></th></tr>
           </table>
           <div class="empty-state" id="cfg-catalogo-empty" style="margin-top:10px; display:none;">Sin servicios en el catálogo todavía</div>
