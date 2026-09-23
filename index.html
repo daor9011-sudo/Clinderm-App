@@ -337,7 +337,7 @@
             <select id="r-doctor" onchange="actualizarResumenLive()"><option value="">Cargando…</option></select>
           </div>
           <div class="field-wrap"><label>Tipo de Consulta</label>
-            <select id="r-tipo" onchange="actualizarResumenLive()">
+            <select id="r-tipo" onchange="onTipoConsultaChange()">
               <option>Consulta de primera vez</option>
               <option>Consulta subsecuente</option>
               <option value="Procedimientos">Procedimientos</option>
@@ -366,7 +366,7 @@
 
           <div class="field-wrap" id="procWrap" style="display:none;">
             <label>Procedimiento específico</label>
-            <select disabled><option>Catálogo pendiente — el cliente lo entregará después</option></select>
+            <select id="r-procedimiento" onchange="onProcedimientoChange()"><option value="">Selecciona un procedimiento…</option></select>
           </div>
           <div class="field-wrap"><label>Monto</label><input type="number" id="r-monto" value="0" onchange="actualizarResumenLive()"></div>
 
@@ -548,9 +548,24 @@
           </div>
           <button class="btn btn-teal" onclick="crearUsuario()">Crear</button>
         </div>
-        <div class="card">
-          <h3>🧾 Catálogo de procedimientos</h3>
-          <div class="empty-state">Vacío por ahora — se carga cuando el cliente confirme la lista de procedimientos</div>
+        <div class="card" style="grid-column:1 / -1;">
+          <h3>💰 Catálogo de servicios y precios</h3>
+          <table id="cfg-tabla-catalogo">
+            <tr><th>Categoría</th><th>Nombre</th><th>Precio</th><th>Activo</th><th></th></tr>
+          </table>
+          <div class="empty-state" id="cfg-catalogo-empty" style="margin-top:10px; display:none;">Sin servicios en el catálogo todavía</div>
+
+          <div style="margin-top:18px; padding-top:16px; border-top:1px solid var(--border);">
+            <h3 style="margin-bottom:10px;">➕ Agregar servicio</h3>
+            <div class="reg-grid">
+              <div class="field-wrap"><label>Categoría</label>
+                <select id="cs-categoria"><option value="CONSULTAS">Consultas</option><option value="PROCEDIMIENTOS" selected>Procedimientos</option></select>
+              </div>
+              <div class="field-wrap"><label>Nombre</label><input type="text" id="cs-nombre" placeholder="Ej. Botox mujeres"></div>
+              <div class="field-wrap"><label>Precio</label><input type="number" id="cs-precio" placeholder="0.00"></div>
+            </div>
+            <button class="btn btn-teal" style="margin-top:6px;" onclick="crearServicio()">Agregar servicio</button>
+          </div>
         </div>
         <div class="card">
           <h3>🕐 Horario de acceso</h3>
@@ -641,6 +656,7 @@
   let CIERRE_MODO = 'dia';
   let CHARTS = {};
   let PACIENTE_SELECCIONADO = null;
+  let CATALOGO_CACHE = [];
 
   // ---- Helpers ----
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -766,6 +782,7 @@
     document.querySelector('[data-doc]').style.display = perfil.rol !== 'recepcion' ? 'inline-flex' : 'none';
     document.getElementById('r-fecha').value = isoLocal(new Date());
     cargarDoctores();
+    cargarCatalogoServicios();
     showScreen('registro', document.querySelector('#mainNav button'));
   }
 
@@ -779,7 +796,7 @@
     if(id === 'cierre') cargarCierre();
     if(id === 'dashboard') cargarDashboard();
     if(id === 'crm') crmTab('inactivos');
-    if(id === 'config') cargarConfigUsuarios();
+    if(id === 'config'){ cargarConfigUsuarios(); cargarConfigCatalogo(); }
   }
 
   // ============================================================
@@ -796,14 +813,59 @@
     actualizarResumenLive();
   }
 
+  // ---- Catálogo de servicios (precios) — usado en Registro y en Configuración ----
+  async function cargarCatalogoServicios(){
+    const { data, error } = await sb.from('catalogo_servicios').select('id, motivo, tipo_consulta, precio, activo').eq('activo', true).order('tipo_consulta');
+    if(error){ console.error('[Clinderm] Error cargando catálogo:', error); return; }
+    CATALOGO_CACHE = data || [];
+    onTipoConsultaChange();
+  }
+
+  function onTipoConsultaChange(){
+    const tipo = document.getElementById('r-tipo').value;
+    const procWrap = document.getElementById('procWrap');
+    document.getElementById('r-monto').value = 0;
+    if(tipo === 'Procedimientos'){
+      procWrap.style.display = 'block';
+      const sel = document.getElementById('r-procedimiento');
+      const procedimientos = CATALOGO_CACHE.filter(c => c.motivo === 'PROCEDIMIENTOS');
+      sel.innerHTML = '<option value="">Selecciona un procedimiento…</option>' +
+        procedimientos.map(p=>`<option value="${p.id}" data-precio="${p.precio}">${esc(p.tipo_consulta)} — ${money(p.precio)}</option>`).join('');
+      onProcedimientoChange();
+    } else {
+      procWrap.style.display = 'none';
+      // Autocompleta el monto sugerido según el catálogo de consultas (editable después)
+      const match = CATALOGO_CACHE.find(c => c.motivo === 'CONSULTAS' &&
+        ((tipo === 'Consulta de primera vez' && /PRIMERA/i.test(c.tipo_consulta)) ||
+         (tipo === 'Consulta subsecuente' && /SUBSECUENTE/i.test(c.tipo_consulta))));
+      if(match) document.getElementById('r-monto').value = match.precio;
+      actualizarResumenLive();
+    }
+  }
+
+  function onProcedimientoChange(){
+    const sel = document.getElementById('r-procedimiento');
+    const opt = sel.options[sel.selectedIndex];
+    if(opt && opt.dataset.precio !== undefined){
+      document.getElementById('r-monto').value = opt.dataset.precio;
+    }
+    actualizarResumenLive();
+  }
+
   function actualizarResumenLive(){
     const doctorSel = document.getElementById('r-doctor');
     const doctorNombre = (doctorSel.options[doctorSel.selectedIndex] && doctorSel.value) ? doctorSel.options[doctorSel.selectedIndex].text : '—';
     const tipo = document.getElementById('r-tipo').value;
+    let tipoLabel = tipo;
+    if(tipo === 'Procedimientos'){
+      const procSel = document.getElementById('r-procedimiento');
+      const procOpt = procSel.options[procSel.selectedIndex];
+      if(procOpt && procOpt.value) tipoLabel = procOpt.textContent.split(' — ')[0];
+    }
     const paciente = document.getElementById('r-paciente').value.trim() || '—';
     const monto = parseFloat(document.getElementById('r-monto').value) || 0;
     document.getElementById('rl-name').textContent = paciente;
-    document.getElementById('rl-meta').textContent = doctorNombre + ' · ' + tipo;
+    document.getElementById('rl-meta').textContent = doctorNombre + ' · ' + tipoLabel;
     document.getElementById('rl-amount').textContent = money(monto);
   }
 
@@ -852,7 +914,7 @@
   async function guardarConsulta(){
     const fecha = document.getElementById('r-fecha').value;
     const doctorId = document.getElementById('r-doctor').value;
-    const tipo = document.getElementById('r-tipo').value;
+    let tipo = document.getElementById('r-tipo').value;
     const nombrePaciente = document.getElementById('r-paciente').value.trim();
     const telefono = document.getElementById('r-telefono').value.trim();
     const noVino = document.getElementById('r-novino-check').checked;
@@ -869,6 +931,13 @@
     if(!doctorId){ toast('⚠️ Selecciona quién atiende'); return; }
     if(!nombrePaciente){ toast('⚠️ Falta el nombre del paciente'); return; }
     if(!telefono){ toast('⚠️ Falta el teléfono'); return; }
+    if(tipo === 'Procedimientos'){
+      // Guarda el nombre específico del procedimiento (ej. "BOTOX MUJERES") en vez del genérico "Procedimientos"
+      const procSel = document.getElementById('r-procedimiento');
+      const procOpt = procSel.options[procSel.selectedIndex];
+      if(!procOpt || !procOpt.value){ toast('⚠️ Selecciona el procedimiento específico'); return; }
+      tipo = procOpt.textContent.split(' — ')[0];
+    }
 
     const btn = document.getElementById('r-btn-guardar');
     btn.disabled = true; btn.textContent = 'Guardando...';
@@ -909,7 +978,6 @@
     document.getElementById('r-fecha').value = isoLocal(new Date());
     document.getElementById('r-paciente').value = '';
     document.getElementById('r-telefono').value = '';
-    document.getElementById('r-monto').value = 0;
     document.getElementById('r-monto').disabled = false;
     document.getElementById('r-notas').value = '';
     document.getElementById('r-factura-check').checked = false;
@@ -921,6 +989,7 @@
     document.getElementById('r-toggle-pago2').textContent = '+ agregar 2do pago';
     document.getElementById('r-sugeridos-box').style.display = 'none';
     PACIENTE_SELECCIONADO = null;
+    onTipoConsultaChange(); // re-aplica el precio sugerido del catálogo y limpia el monto si no hay match
     actualizarResumenLive();
   }
 
@@ -1333,6 +1402,51 @@
     if(error){ toast('⚠️ ' + error.message); cargarConfigUsuarios(); return; }
     toast(activo ? '✅ Activado' : '⏸️ Desactivado');
     cargarDoctores();
+  }
+
+  // ---- Catálogo de servicios y precios (Configuración) ----
+  async function cargarConfigCatalogo(){
+    const { data, error } = await sb.from('catalogo_servicios').select('id, motivo, tipo_consulta, precio, activo').order('motivo').order('tipo_consulta');
+    if(error){ console.error('[Clinderm] Error cargando catálogo:', error); return; }
+    const tabla = document.getElementById('cfg-tabla-catalogo');
+    const nombreCat = { CONSULTAS:'Consultas', PROCEDIMIENTOS:'Procedimientos' };
+    tabla.innerHTML = '<tr><th>Categoría</th><th>Nombre</th><th>Precio</th><th>Activo</th><th></th></tr>' + (data||[]).map(s=>`
+      <tr>
+        <td>${esc(nombreCat[s.motivo] || s.motivo)}</td>
+        <td>${esc(s.tipo_consulta)}</td>
+        <td><input type="number" value="${s.precio}" style="width:100px;" onchange="guardarPrecioServicio('${s.id}', this.value)"></td>
+        <td><input type="checkbox" ${s.activo?'checked':''} onchange="toggleServicioActivo('${s.id}', this.checked)"></td>
+        <td></td>
+      </tr>`).join('');
+    document.getElementById('cfg-catalogo-empty').style.display = (data && data.length) ? 'none' : 'block';
+  }
+
+  async function guardarPrecioServicio(id, precio){
+    const { error } = await sb.from('catalogo_servicios').update({ precio: parseFloat(precio) || 0 }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('✅ Precio actualizado');
+    cargarCatalogoServicios();
+  }
+
+  async function toggleServicioActivo(id, activo){
+    const { error } = await sb.from('catalogo_servicios').update({ activo }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); cargarConfigCatalogo(); return; }
+    toast(activo ? '✅ Activado' : '⏸️ Desactivado');
+    cargarCatalogoServicios();
+  }
+
+  async function crearServicio(){
+    const motivo = document.getElementById('cs-categoria').value;
+    const nombre = document.getElementById('cs-nombre').value.trim();
+    const precio = parseFloat(document.getElementById('cs-precio').value) || 0;
+    if(!nombre){ toast('⚠️ Falta el nombre del servicio'); return; }
+    const { error } = await sb.from('catalogo_servicios').insert({ motivo, tipo_consulta: nombre, precio, activo: true });
+    if(error){ toast('⚠️ ' + error.message); return; }
+    document.getElementById('cs-nombre').value = '';
+    document.getElementById('cs-precio').value = '';
+    toast('✅ Servicio agregado');
+    cargarConfigCatalogo();
+    cargarCatalogoServicios();
   }
 
   async function llamarPersonalAdmin(payload){
