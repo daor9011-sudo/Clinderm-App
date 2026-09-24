@@ -166,6 +166,13 @@
   .chip{background:#fff; color:var(--navy-900); border:1px solid rgba(42,191,191,.5); padding:5px 11px; border-radius:20px; font-size:11px; font-weight:600; cursor:pointer;}
   .sugeridos-box{margin-top:6px; padding:8px 10px; background:rgba(42,191,191,.14); border:1px solid rgba(42,191,191,.35); border-radius:7px;}
   .sugeridos-head{font-size:9.5px; font-weight:700; color:#0B6E6E; text-transform:uppercase; letter-spacing:.4px; margin-bottom:5px;}
+  .farmacia-dropdown{margin-top:6px; max-height:280px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; background:#fff; box-shadow:0 8px 20px rgba(10,30,60,.12); position:relative; z-index:5;}
+  .farmacia-dropdown .fd-hint{padding:7px 12px; color:var(--muted); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; background:rgba(42,191,191,.10); border-bottom:1px solid var(--border); position:sticky; top:0;}
+  .farmacia-dropdown .fd-item{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 12px; cursor:pointer; border-bottom:1px solid var(--border); font-size:13px;}
+  .farmacia-dropdown .fd-item:last-child{border-bottom:none;}
+  .farmacia-dropdown .fd-item:hover{background:rgba(42,191,191,.14);}
+  .farmacia-dropdown .fd-price{color:var(--muted); white-space:nowrap; font-weight:600; font-size:12px;}
+  .farmacia-dropdown .fd-empty{padding:12px; color:var(--muted); font-size:12.5px; text-align:center;}
   .toggle-link{color:var(--teal-dark); font-size:12.5px; font-weight:600; cursor:pointer; display:inline-block; margin:4px 0 10px;}
   .summary-box{background:var(--navy-700); color:#fff; border-radius:12px; padding:14px 16px; font-size:13px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
   .summary-box .lab{opacity:.6; font-size:10.5px; text-transform:uppercase;}
@@ -439,13 +446,12 @@
             <select id="r-farmgenpor" onchange="actualizarResumenLive()"><option value="">Selecciona…</option></select>
           </div>
           <div class="field-wrap" id="farmaciaWrap" style="display:none; grid-column:1 / -1;">
-            <label>Productos de farmacia (busca y agrega uno o varios)</label>
-            <input type="text" id="r-farmacia-buscar" placeholder="Buscar producto por nombre (mínimo 3 letras)..." autocomplete="off" oninput="onFarmaciaInput()">
-            <!-- Dropdown de resultados: aparece debajo del buscador mientras escribes, clic agrega al carrito -->
-            <div class="sugeridos-box" id="r-farmacia-sugeridos-box" style="display:none;">
-              <div class="sugeridos-head">💊 Resultados — clic para agregar al carrito:</div>
-              <div class="chips" id="r-farmacia-sugeridos-chips"></div>
-            </div>
+            <label>Productos de farmacia (navega la lista o escribe para buscar — agrega uno o varios)</label>
+            <input type="text" id="r-farmacia-buscar" placeholder="Clic para ver todos los productos, o escribe para buscar..." autocomplete="off"
+                   oninput="onFarmaciaInput()" onfocus="onFarmaciaInput()" onblur="ocultarDropdownFarmaciaConRetraso()">
+            <!-- Barra desplegable: al hacer foco muestra el catálogo completo en orden alfabético;
+                 al escribir, filtra por coincidencia. Clic en un renglón agrega al carrito. -->
+            <div class="farmacia-dropdown" id="r-farmacia-dropdown" style="display:none;"></div>
             <div style="margin-top:10px;">
               <table class="data-table" id="r-farmacia-carrito-tabla" style="display:none;">
                 <tr><th>Producto</th><th style="width:130px;">Precio</th><th></th></tr>
@@ -781,6 +787,7 @@
   let CHARTS = {};
   let PACIENTE_SELECCIONADO = null;
   let FARMACIA_CARRITO = []; // { id, nombre, precio } — uno o varios productos en la venta de farmacia actual
+  let FARMACIA_CATALOGO_CACHE = []; // catálogo completo (activo=true), cargado una vez y ordenado alfabéticamente
   let CATALOGO_CACHE = [];
 
   // ---- Helpers ----
@@ -909,6 +916,7 @@
     configurarTipoConsultaPorRol();
     cargarDoctores();
     cargarCatalogoServicios();
+    cargarCatalogoFarmacia();
     showScreen('registro', document.querySelector('#mainNav button'));
   }
 
@@ -1040,32 +1048,59 @@
     actualizarResumenLive();
   }
 
-  // ---- Búsqueda de productos de farmacia (autocompletado, catálogo grande ~1500 items) ----
-  // Carrito: permite agregar uno o varios productos a la misma venta; cada uno se guarda
-  // como su propio renglón al momento de guardar, y el monto total se calcula solo.
-  let farmaciaSearchTimer = null;
+  // ---- Catálogo y buscador de farmacia (barra desplegable: navega alfabético o escribe para filtrar) ----
+  // Se carga UNA vez al entrar (catálogo de ~600+ productos, cabe cómodo en memoria) y de ahí
+  // en adelante el filtrado es instantáneo en el navegador, sin ida y vuelta al servidor.
+  const FARMACIA_DROPDOWN_LIMITE = 60;
+  async function cargarCatalogoFarmacia(){
+    const { data, error } = await sb.from('farmacia_productos').select('id, nombre, precio').eq('activo', true).order('nombre');
+    if(error){ console.error('[Clinderm] Error cargando catálogo de farmacia:', error); return; }
+    FARMACIA_CATALOGO_CACHE = data || [];
+  }
   function onFarmaciaInput(){
-    const q = document.getElementById('r-farmacia-buscar').value.trim();
-    clearTimeout(farmaciaSearchTimer);
-    if(q.length < 3){ document.getElementById('r-farmacia-sugeridos-box').style.display = 'none'; return; }
-    farmaciaSearchTimer = setTimeout(async ()=>{
-      const { data, error } = await sb.from('farmacia_productos').select('id, nombre, precio').eq('activo', true).ilike('nombre', '%'+q+'%').limit(10);
-      if(error || !data || data.length===0){ document.getElementById('r-farmacia-sugeridos-box').style.display = 'none'; return; }
-      window._farmaciaSugeridosCache = data;
-      document.getElementById('r-farmacia-sugeridos-chips').innerHTML = data.map((p,i)=>`<span class="chip" data-idx="${i}">${esc(p.nombre)} · ${money(p.precio)}</span>`).join('');
-      document.querySelectorAll('#r-farmacia-sugeridos-chips .chip').forEach(chip=>{
-        chip.addEventListener('click', ()=>{
-          const p = window._farmaciaSugeridosCache[Number(chip.dataset.idx)];
-          agregarProductoFarmacia(p);
-        });
+    const q = document.getElementById('r-farmacia-buscar').value.trim().toLowerCase();
+    const dropdown = document.getElementById('r-farmacia-dropdown');
+    if(FARMACIA_CATALOGO_CACHE.length === 0){
+      dropdown.innerHTML = '<div class="fd-empty">Cargando catálogo…</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+    let resultados, hint;
+    if(q.length === 0){
+      // Sin texto: navega el catálogo completo en orden alfabético (ya viene ordenado del servidor)
+      resultados = FARMACIA_CATALOGO_CACHE.slice(0, FARMACIA_DROPDOWN_LIMITE);
+      hint = `Mostrando ${resultados.length} de ${FARMACIA_CATALOGO_CACHE.length} productos (A–Z) — escribe para filtrar`;
+    } else {
+      // Con texto: filtra por coincidencia en cualquier parte del nombre
+      resultados = FARMACIA_CATALOGO_CACHE.filter(p => p.nombre.toLowerCase().includes(q)).slice(0, FARMACIA_DROPDOWN_LIMITE);
+      hint = resultados.length ? `${resultados.length} resultado${resultados.length===1?'':'s'} para "${q}"` : null;
+    }
+    if(resultados.length === 0){
+      dropdown.innerHTML = `<div class="fd-empty">Sin resultados para "${esc(q)}".</div>`;
+      dropdown.style.display = 'block';
+      return;
+    }
+    window._farmaciaDropdownCache = resultados;
+    dropdown.innerHTML = (hint ? `<div class="fd-hint">${esc(hint)}</div>` : '') +
+      resultados.map((p,i)=>`<div class="fd-item" data-idx="${i}"><span>${esc(p.nombre)}</span><span class="fd-price">${money(p.precio)}</span></div>`).join('');
+    dropdown.querySelectorAll('.fd-item').forEach(item=>{
+      // mousedown (no click) + preventDefault: agrega el producto sin que el input pierda el foco primero
+      item.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        const p = window._farmaciaDropdownCache[Number(item.dataset.idx)];
+        agregarProductoFarmacia(p);
       });
-      document.getElementById('r-farmacia-sugeridos-box').style.display = 'block';
-    }, 350);
+    });
+    dropdown.style.display = 'block';
+  }
+  function ocultarDropdownFarmaciaConRetraso(){
+    // Retraso corto para que un clic en un renglón del dropdown alcance a registrarse antes de ocultarlo
+    setTimeout(()=>{ document.getElementById('r-farmacia-dropdown').style.display = 'none'; }, 150);
   }
   function agregarProductoFarmacia(p){
     FARMACIA_CARRITO.push({ id: p.id, nombre: p.nombre, precio: Number(p.precio) || 0 });
     document.getElementById('r-farmacia-buscar').value = '';
-    document.getElementById('r-farmacia-sugeridos-box').style.display = 'none';
+    document.getElementById('r-farmacia-dropdown').style.display = 'none';
     renderCarritoFarmacia();
   }
   function quitarProductoCarritoFarmacia(idx){
@@ -1100,7 +1135,7 @@
   function limpiarSeleccionFarmacia(){
     FARMACIA_CARRITO = [];
     document.getElementById('r-farmacia-buscar').value = '';
-    document.getElementById('r-farmacia-sugeridos-box').style.display = 'none';
+    document.getElementById('r-farmacia-dropdown').style.display = 'none';
     document.getElementById('r-farmgenpor').value = '';
     renderCarritoFarmacia();
   }
