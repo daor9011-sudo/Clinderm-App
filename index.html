@@ -164,6 +164,9 @@
   /* ---- Selector de Servicios (buscador + cuadrícula de chips + seleccionados), estilo Skin Fabric ---- */
   .req-badge{background:rgba(42,191,191,.12); color:var(--teal-dark); font-size:9px; padding:1px 7px; border-radius:20px; border:1px solid rgba(42,191,191,.35); font-weight:700; letter-spacing:.5px;}
   .a-box{border:1.5px solid var(--border); border-radius:12px; padding:14px 16px; background:#F7F9FC;}
+  .a-filtros{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
+  .a-filtro-btn{border:1.5px solid var(--border); background:#fff; padding:6px 13px; border-radius:20px; font-size:11.5px; cursor:pointer; font-weight:700; color:var(--muted);}
+  .a-filtro-btn.active{background:var(--teal); color:#fff; border-color:var(--teal);}
   .a-search{margin-bottom:10px; width:100%;}
   .a-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; max-height:220px; overflow-y:auto; padding-right:4px; margin-bottom:14px;}
   .a-chip{display:flex; align-items:flex-start; gap:9px; padding:8px 10px; border-radius:9px; border:1.5px solid var(--border); background:#fff; cursor:pointer; user-select:none; transition:.15s;}
@@ -227,10 +230,37 @@
   .kpi .v{font-size:22px; font-weight:700;}
   .kpi .l{font-size:11.5px; color:var(--muted); text-transform:uppercase;}
 
+  /* ---- Tarjetas KPI con ícono del Dashboard, estilo Skin Fabric ---- */
+  .kpi-cards{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px;}
+  .kpi-card{background:#fff; border:1.5px solid var(--border); border-radius:11px; padding:14px 16px;}
+  .kpi-card .ico{font-size:17px; margin-bottom:6px;}
+  .kpi-card .l{font-size:10px; font-weight:700; letter-spacing:.4px; color:var(--muted); text-transform:uppercase; margin-bottom:2px;}
+  .kpi-card .v{font-family:'Bricolage Grotesque',sans-serif; font-size:19px; font-weight:800; color:var(--navy-900);}
+  #chDoc-wrap{position:relative; width:100%;}
+
+  /* ---- Tarjetas de resumen (KPI chips) del Historial, estilo Skin Fabric ---- */
+  .hist-kpi-chips{display:flex; gap:10px; flex-wrap:wrap; margin:-2px 0 16px;}
+  .hist-chip{background:#fff; border:1px solid var(--border); border-radius:11px; padding:8px 16px 8px 8px; display:flex; align-items:center; gap:10px; box-shadow:0 1px 2px rgba(11,22,40,.04);}
+  .hist-chip .ico{width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;}
+  .hist-chip.c-total .ico{background:#FDECD2;}
+  .hist-chip.c-pac .ico{background:#EBE1F7;}
+  .hist-chip.c-ticket .ico{background:#FBDDEA;}
+  .hist-chip.c-primera .ico{background:#DFF3E5;}
+  .hist-chip.c-subsecuente .ico{background:#DCEAFB;}
+  .hist-chip.c-procedimiento .ico{background:#FDF0D2;}
+  .hist-chip.c-farmacia .ico{background:#D7F3F3;}
+  .hist-chip .v{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:15px; color:var(--navy-900); line-height:1.15;}
+  .hist-chip .l{font-size:9px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin-top:1px;}
+
   .subtabs{display:flex; gap:8px; margin-bottom:14px;}
   .subtabs button{border:1px solid var(--border); background:#fff; padding:8px 14px; border-radius:20px; font-size:12.5px; cursor:pointer; font-weight:600; color:var(--muted);}
   .subtabs button.active{background:var(--navy-700); color:#fff; border-color:var(--navy-700);}
   .doc-card{border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px;}
+  .doc-pill{display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; margin:6px 6px 0 0;}
+  .doc-pill.efectivo{background:#EAF7EE; border:1px solid #A8D8B4; color:#2E7D4F;}
+  .doc-pill.tarjeta{background:#EEF5FC; border:1px solid #BDD5F0; color:#1B5C9E;}
+  .doc-pill.transferencia{background:#FDF6EC; border:1px solid #EDD49A; color:#9A6010;}
+  .doc-pill.cortesia{background:#F5F0FC; border:1px solid #D2B4DE; color:#7D3C98;}
   .pago-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;}
   .pago-card{border-radius:12px; padding:16px; position:relative; overflow:hidden;}
   .pago-card.efectivo{background:#EAF7EE; border:1.5px solid #A8D8B4;}
@@ -309,7 +339,7 @@
     .reg-grid, .grid2, .grid3, .cfg-grid{grid-template-columns:1fr;}
 
     /* KPIs y resumen → 2 columnas en vez de 4 */
-    .kpi-row, .summary-box{grid-template-columns:1fr 1fr;}
+    .kpi-row, .summary-box, .kpi-cards{grid-template-columns:1fr 1fr;}
 
     /* Tarjetas de medio de pago un poco más angostas */
     .pago-cards{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
@@ -333,8 +363,9 @@
     .mc-logo-header{height:30px;}
     .pill-btn{padding:6px 10px; font-size:11.5px;}
     .user-tag{font-size:11.5px;}
-    .kpi-row, .summary-box{grid-template-columns:1fr 1fr;}
+    .kpi-row, .summary-box, .kpi-cards{grid-template-columns:1fr 1fr;}
     .kpi .v{font-size:18px;}
+    .kpi-card .v{font-size:16px;}
     main{padding:10px;}
     .card{padding:14px 14px 16px;}
     nav.mainnav button{padding:7px 10px; font-size:12.3px;}
@@ -443,6 +474,12 @@
           <div class="field-wrap" id="serviciosWrap" style="grid-column:1 / -1;">
             <label>Servicios <span class="req-badge">al menos uno</span></label>
             <div class="a-box">
+              <div class="a-filtros" id="r-servicio-filtros">
+                <button type="button" class="a-filtro-btn active" data-cat="todos" onclick="filtrarServicioCategoria('todos', this)">Todos</button>
+                <button type="button" class="a-filtro-btn" data-cat="Consulta" onclick="filtrarServicioCategoria('Consulta', this)">🩺 Consultas</button>
+                <button type="button" class="a-filtro-btn" data-cat="Procedimiento" onclick="filtrarServicioCategoria('Procedimiento', this)">💉 Procedimientos</button>
+                <button type="button" class="a-filtro-btn" id="r-servicio-filtro-farmacia" data-cat="Farmacia" onclick="filtrarServicioCategoria('Farmacia', this)" style="display:none;">💊 Farmacia</button>
+              </div>
               <input class="a-search" type="text" id="r-servicio-buscar" placeholder="🔎 Buscar consulta, procedimiento o producto de farmacia..." autocomplete="off" oninput="renderSelectorServicios()">
               <div class="a-grid" id="r-servicio-grid"></div>
               <div class="a-seleccion">
@@ -502,6 +539,7 @@
           <div class="fitem"><label>Período</label><select id="h-periodo" onchange="cargarHistorial()"><option value="0">Hoy</option><option value="7">7 días</option><option value="30">30 días</option><option value="90">90 días</option><option value="365">Año</option><option value="9999">Todo</option></select></div>
           <div class="fitem"><label>Medio de pago</label><select id="h-mediopago" onchange="cargarHistorial()"><option value="">Todos</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select></div>
         </div>
+        <div class="hist-kpi-chips" id="h-kpi-chips"></div>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
           <button class="btn btn-ghost" id="h-btn-papelera" onclick="togglePapelera()">🗑️ Papelera</button>
           <button class="btn btn-ghost" onclick="exportarHistorialCSV()">⬇️ Exportar</button>
@@ -589,21 +627,21 @@
         <div class="filters">
           <div class="fitem"><label>Período</label><select id="dash-periodo" onchange="cargarDashboard()"><option value="30">30 días</option><option value="mes">Este mes</option><option value="90">90 días</option><option value="365">Año</option></select></div>
           <div class="fitem"><label>Doctora</label><select id="dash-doctor-filtro" onchange="cargarDashboard()"><option value="">Todas</option></select></div>
-          <div class="fitem"><label>Tipo de consulta</label><select id="dash-tipo-filtro" onchange="cargarDashboard()"><option value="">Todos</option><option value="Consulta de primera vez">Primera vez</option><option value="Consulta subsecuente">Subsecuente</option><option value="Procedimientos">Procedimientos</option></select></div>
+          <div class="fitem"><label>Tipo de consulta</label><select id="dash-tipo-filtro" onchange="cargarDashboard()"><option value="">Todos</option><option value="primera">Primera vez</option><option value="subsecuente">Subsecuente</option><option value="procedimiento">Procedimientos</option><option value="farmacia">Farmacia</option></select></div>
         </div>
-        <div class="kpi-row">
-          <div class="kpi"><div class="v" id="dash-kpi-total">$0</div><div class="l">Ingreso total</div></div>
-          <div class="kpi"><div class="v" id="dash-kpi-pac">0</div><div class="l">Pacientes</div></div>
-          <div class="kpi"><div class="v" id="dash-kpi-ticket">$0</div><div class="l">Ticket promedio</div></div>
-          <div class="kpi"><div class="v" id="dash-kpi-top">—</div><div class="l">Doctora top</div></div>
+        <div class="kpi-cards">
+          <div class="kpi-card"><div class="ico">💰</div><div class="l">Ingreso total</div><div class="v" id="dash-kpi-total">$0</div></div>
+          <div class="kpi-card"><div class="ico">👥</div><div class="l">Pacientes</div><div class="v" id="dash-kpi-pac">0</div></div>
+          <div class="kpi-card"><div class="ico">🎟️</div><div class="l">Ticket promedio</div><div class="v" id="dash-kpi-ticket">$0</div></div>
+          <div class="kpi-card"><div class="ico">🏆</div><div class="l">Doctora top</div><div class="v" id="dash-kpi-top" style="font-size:14px;">—</div></div>
         </div>
         <div class="grid2">
-          <div class="card" style="margin:0;"><h3>Tendencia (Día/Mes)</h3><canvas id="chTrend" height="160"></canvas></div>
-          <div class="card" style="margin:0;"><h3>Ingreso por doctora</h3><canvas id="chDoc" height="160"></canvas></div>
+          <div class="card" style="margin:0;"><h3>📈 Tendencia de ingresos</h3><canvas id="chTrend" height="160"></canvas></div>
+          <div class="card" style="margin:0;"><h3>🩺 Ingreso por doctora</h3><div id="chDoc-wrap"><canvas id="chDoc"></canvas></div></div>
         </div>
         <div class="grid2" style="margin-top:16px;">
-          <div class="card" style="margin:0;"><h3>Medios de pago</h3><canvas id="chPay" height="160"></canvas></div>
-          <div class="card" style="margin:0;"><h3>Ingreso por tipo de consulta</h3><canvas id="chTipo" height="160"></canvas></div>
+          <div class="card" style="margin:0;"><h3>💳 Medios de pago</h3><canvas id="chPay" height="160"></canvas></div>
+          <div class="card" style="margin:0;"><h3>🗂️ Ingreso por categoría</h3><canvas id="chTipo" height="160"></canvas></div>
         </div>
       </div>
     </section>
@@ -777,6 +815,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script>
   // ============================================================
   // SUPABASE — Clinderm App
@@ -791,6 +830,9 @@
   let CIERRE_FECHA = new Date();
   let CIERRE_MODO = 'dia';
   let CHARTS = {};
+  // El plugin de datalabels se registra una sola vez, globalmente — cada chart que no lo quiera
+  // lo apaga explícitamente con datalabels:{display:false} en sus propias opciones.
+  try{ if(window.Chart && window.ChartDataLabels) Chart.register(ChartDataLabels); }catch(e){ console.error('[Clinderm] Error registrando chartjs-plugin-datalabels:', e); }
   let PACIENTE_SELECCIONADO = null;
   let FARMACIA_CATALOGO_CACHE = []; // catálogo de farmacia (activo=true), cargado una vez y ordenado alfabéticamente
   let CATALOGO_CACHE = []; // catálogo de consultas/procedimientos (catalogo_servicios)
@@ -1004,6 +1046,13 @@
   // ---- Selector de Servicios (Consulta + Procedimientos + Farmacia): buscador + cuadrícula de
   // chips + lista de seleccionados, cada uno con su propio "Atendido por" y precio cobrado ----
   const SERVICIO_GRID_LIMITE_SIN_TEXTO = 60; // límite solo para Farmacia cuando no hay texto de búsqueda (catálogo de ~623 productos)
+  let SERVICIO_FILTRO_CAT = 'todos'; // 'todos' | 'Consulta' | 'Procedimiento' | 'Farmacia' — para no mezclar todo en una sola cuadrícula
+
+  function filtrarServicioCategoria(cat, btn){
+    SERVICIO_FILTRO_CAT = cat;
+    document.querySelectorAll('#r-servicio-filtros .a-filtro-btn').forEach(b => b.classList.toggle('active', b === btn));
+    renderServicioGrid();
+  }
 
   // Regla de negocio de Clinderm: la consulta (de primera vez o subsecuente) solo la dan la Dra.
   // Laura Galván y la Dra. Tania de la Vega — las cosmetólogas solo atienden Procedimientos/Farmacia.
@@ -1028,23 +1077,32 @@
 
   function renderServicioGrid(){
     const grid = document.getElementById('r-servicio-grid');
+    const btnFarmacia = document.getElementById('r-servicio-filtro-farmacia');
+    if(btnFarmacia) btnFarmacia.style.display = puedeAgregarFarmacia() ? 'inline-flex' : 'none';
     const filtro = normalizar(document.getElementById('r-servicio-buscar').value);
     if(SERVICIOS_CATALOGO_CACHE.length === 0){ grid.innerHTML = '<div class="a-empty">Cargando catálogo…</div>'; return; }
 
     // Farmacia solo aparece en el selector para quien tiene permiso de registrar ventas de farmacia
     let visibles = SERVICIOS_CATALOGO_CACHE.filter(it => puedeAgregarFarmacia() || it.categoria !== 'Farmacia');
+    if(SERVICIO_FILTRO_CAT !== 'todos') visibles = visibles.filter(it => it.categoria === SERVICIO_FILTRO_CAT);
     if(filtro) visibles = visibles.filter(it => normalizar(it.nombre).includes(filtro));
     visibles = visibles.slice().sort((a,b)=> a.nombre.localeCompare(b.nombre, 'es'));
 
-    // Sin texto de búsqueda, Farmacia se limita a los primeros N en orden alfabético — escribir
-    // para buscar sí muestra todas las coincidencias, sin límite.
-    if(!filtro){
+    // El límite alfabético de Farmacia (sin texto de búsqueda) solo aplica en la vista "Todos" — para
+    // no saturar la cuadrícula mixta con los ~623 productos. Al filtrar explícitamente por 💊 Farmacia
+    // se listan todos (y escribir para buscar también quita el límite en cualquier vista).
+    let nota = '';
+    if(!filtro && SERVICIO_FILTRO_CAT === 'todos'){
+      const totalFarmacia = visibles.filter(it => it.categoria === 'Farmacia').length;
       let restanteFarmacia = SERVICIO_GRID_LIMITE_SIN_TEXTO;
       visibles = visibles.filter(it=>{
         if(it.categoria !== 'Farmacia') return true;
         if(restanteFarmacia <= 0) return false;
         restanteFarmacia--; return true;
       });
+      if(totalFarmacia > SERVICIO_GRID_LIMITE_SIN_TEXTO){
+        nota = `<div class="a-empty" style="grid-column:1/-1;">Mostrando ${SERVICIO_GRID_LIMITE_SIN_TEXTO} de ${totalFarmacia} productos de farmacia — usa el filtro 💊 Farmacia o escribe para buscar el resto</div>`;
+      }
     }
 
     if(!visibles.length){ grid.innerHTML = '<div class="a-empty">Sin resultados</div>'; return; }
@@ -1052,7 +1110,7 @@
       <label class="a-chip ${SERVICIOS_SEL.has(it.id)?'on':''}" data-id="${esc(it.id)}">
         <input type="checkbox" ${SERVICIOS_SEL.has(it.id)?'checked':''}>
         <div><div class="nom">${esc(it.nombre)}</div><div class="ref">${esc(it.categoria)} · ${money(it.precio)}</div></div>
-      </label>`).join('');
+      </label>`).join('') + nota;
     grid.querySelectorAll('.a-chip').forEach(chip=>{
       const id = chip.dataset.id;
       chip.querySelector('input').addEventListener('change', e=>{
@@ -1331,6 +1389,32 @@
     cargarHistorial();
   }
 
+  // Tarjetas de resumen arriba de la tabla — se calculan sobre lo mismo que ya está filtrado/cargado
+  // (período, medio de pago, búsqueda), y se ocultan en la Papelera (esos registros no cuentan como
+  // ingreso real). "Procedimientos" es todo lo que no es Consulta ni Farmacia.
+  function renderHistorialKpis(rows){
+    const cont = document.getElementById('h-kpi-chips');
+    if(MOSTRANDO_PAPELERA){ cont.innerHTML = ''; return; }
+    const filasReales = rows.filter(r => !r.no_vino);
+    if(!filasReales.length){ cont.innerHTML = ''; return; }
+    const totalIngreso = filasReales.reduce((a,r)=> a + Number(r.monto||0) + Number(r.monto_2||0), 0);
+    const pacientesUnicos = new Set(filasReales.map(r=> r.pacientes ? r.pacientes.id : null).filter(Boolean)).size;
+    const ticketProm = totalIngreso / filasReales.length;
+    const nPrimeraVez = filasReales.filter(r=> r.tipo_consulta === 'Consulta de primera vez').length;
+    const nSubsecuente = filasReales.filter(r=> r.tipo_consulta === 'Consulta subsecuente').length;
+    const nFarmacia = filasReales.filter(r=> r.farmacia_generado_por).length;
+    const nProcedimiento = filasReales.length - nPrimeraVez - nSubsecuente - nFarmacia;
+    cont.innerHTML = `
+      <div class="hist-chip c-total"><span class="ico">💰</span><div><div class="v">${moneyRound(totalIngreso)}</div><div class="l">Total</div></div></div>
+      <div class="hist-chip c-pac"><span class="ico">👥</span><div><div class="v">${pacientesUnicos}</div><div class="l">Pacientes</div></div></div>
+      <div class="hist-chip c-ticket"><span class="ico">🎟️</span><div><div class="v">${moneyRound(ticketProm)}</div><div class="l">Ticket prom.</div></div></div>
+      <div class="hist-chip c-primera"><span class="ico">🆕</span><div><div class="v">${nPrimeraVez}</div><div class="l">Primera vez</div></div></div>
+      <div class="hist-chip c-subsecuente"><span class="ico">🔁</span><div><div class="v">${nSubsecuente}</div><div class="l">Subsecuentes</div></div></div>
+      <div class="hist-chip c-procedimiento"><span class="ico">💉</span><div><div class="v">${nProcedimiento}</div><div class="l">Procedimientos</div></div></div>
+      <div class="hist-chip c-farmacia"><span class="ico">💊</span><div><div class="v">${nFarmacia}</div><div class="l">Farmacia</div></div></div>
+    `;
+  }
+
   async function cargarHistorial(){
     const tbody = document.getElementById('h-tbody');
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">Cargando…</td></tr>';
@@ -1339,7 +1423,7 @@
     const medioPago = document.getElementById('h-mediopago').value;
 
     let q = sb.from('consultas')
-      .select('id, fecha, tipo_consulta, monto, medio_pago, monto_2, medio_pago_2, factura, num_factura, numero_recibo, no_vino, notas, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)')
+      .select('id, fecha, tipo_consulta, monto, medio_pago, monto_2, medio_pago_2, factura, num_factura, numero_recibo, no_vino, notas, farmacia_generado_por, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)')
       .eq('deleted', MOSTRANDO_PAPELERA)
       .order('fecha', {ascending:false})
       .limit(300);
@@ -1357,6 +1441,7 @@
     if(buscar) rows = rows.filter(r => r.pacientes && r.pacientes.nombre.toLowerCase().includes(buscar));
 
     window._historialCache = rows;
+    renderHistorialKpis(rows);
 
     if(rows.length === 0){
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">'+(MOSTRANDO_PAPELERA ? 'La papelera está vacía' : 'Sin resultados')+'</td></tr>';
@@ -1465,7 +1550,15 @@
     document.getElementById('cierreViewPago').style.display = which==='pago' ? 'block' : 'none';
   }
 
-  const MEDIOS_INFO = { Efectivo:{cls:'efectivo', icon:'💵'}, Tarjeta:{cls:'tarjeta', icon:'💳'}, Transferencia:{cls:'transferencia', icon:'🏦'}, Cortesía:{cls:'cortesia', icon:'🎁'} };
+  // "bar" es el mismo hex que .barra-fill/.doc-pill en CSS — se reutiliza tal cual en el doughnut
+  // del Dashboard para que el color de cada medio de pago sea idéntico en toda la app.
+  const MEDIOS_INFO = {
+    Efectivo:{cls:'efectivo', icon:'💵', bar:'#2E7D4F'},
+    Tarjeta:{cls:'tarjeta', icon:'💳', bar:'#1B5C9E'},
+    Transferencia:{cls:'transferencia', icon:'🏦', bar:'#9A6010'},
+    Cortesía:{cls:'cortesia', icon:'🎁', bar:'#7D3C98'}
+  };
+  function colorMedioPago(nombre){ return (MEDIOS_INFO[nombre] || {}).bar || '#334155'; }
 
   async function cargarCierre(){
     CIERRE_MODO = document.getElementById('cierre-modo').value;
@@ -1514,7 +1607,10 @@
       viewDoctor.innerHTML = '<div class="empty-state">Sin consultas en este período.</div>';
     } else {
       viewDoctor.innerHTML = doctorasOrdenadas.map(([nombre, v])=>{
-        const pillsHtml = Object.entries(v.pagos).map(([medio,monto], i)=>`<span class="pill ${i%2===0?'pill-teal':'pill-navy'}">${esc(medio)} ${moneyRound(monto)}</span>`).join('');
+        const pillsHtml = Object.entries(v.pagos).map(([medio,monto])=>{
+          const info = MEDIOS_INFO[medio] || {cls:'efectivo', icon:'💰'};
+          return `<span class="doc-pill ${info.cls}">${info.icon} ${esc(medio)} ${moneyRound(monto)}</span>`;
+        }).join('');
         return `<div class="doc-card"><div class="hd"><strong>${esc(nombre)}</strong><span>${money(v.total)}</span></div><div style="margin:8px 0;">${pillsHtml}</div></div>`;
       }).join('');
     }
@@ -1743,6 +1839,16 @@
   // ============================================================
   // DASHBOARD
   // ============================================================
+  // Categoriza una fila para el filtro/gráfica "por categoría" — igual que en Historial: Primera vez /
+  // Subsecuente / Farmacia (por farmacia_generado_por) / Procedimientos (todo lo demás).
+  function categoriaFilaDashboard(r){
+    if(r.tipo_consulta === 'Consulta de primera vez') return 'primera';
+    if(r.tipo_consulta === 'Consulta subsecuente') return 'subsecuente';
+    if(r.farmacia_generado_por) return 'farmacia';
+    return 'procedimiento';
+  }
+  const CATEGORIA_DASH_LABEL = { primera:'🆕 Primera vez', subsecuente:'🔁 Subsecuente', procedimiento:'💉 Procedimientos', farmacia:'💊 Farmacia' };
+
   async function cargarDashboard(){
     const periodo = document.getElementById('dash-periodo').value;
     const doctorFiltro = document.getElementById('dash-doctor-filtro').value;
@@ -1752,14 +1858,16 @@
     if(periodo === 'mes'){ desde = isoLocal(new Date(hoy.getFullYear(), hoy.getMonth(), 1)); hasta = isoLocal(hoy); }
     else { const d = new Date(); d.setDate(d.getDate() - Number(periodo)); desde = isoLocal(d); hasta = isoLocal(hoy); }
 
-    let q = sb.from('consultas').select('fecha, monto, monto_2, medio_pago, medio_pago_2, tipo_consulta, paciente_id, personal!consultas_doctor_id_fkey(id, nombre)')
+    let q = sb.from('consultas').select('fecha, monto, monto_2, medio_pago, medio_pago_2, tipo_consulta, paciente_id, farmacia_generado_por, personal!consultas_doctor_id_fkey(id, nombre)')
       .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta);
     if(doctorFiltro) q = q.eq('doctor_id', doctorFiltro);
-    if(tipoFiltro) q = q.eq('tipo_consulta', tipoFiltro);
 
     const { data, error } = await q;
     if(error){ console.error('[Clinderm] Error cargando dashboard:', error); return; }
-    const rows = data || [];
+    // El filtro de categoría se aplica en el navegador: "Procedimientos" ya no es un único valor de
+    // tipo_consulta (cada procedimiento tiene su propio nombre), así que hay que categorizar fila por fila.
+    let rows = data || [];
+    if(tipoFiltro) rows = rows.filter(r => categoriaFilaDashboard(r) === tipoFiltro);
 
     const total = rows.reduce((a,r)=>a+Number(r.monto||0)+Number(r.monto_2||0), 0);
     const pacientesUnicos = new Set(rows.map(r=>r.paciente_id)).size;
@@ -1786,25 +1894,56 @@
       if(r.medio_pago_2) porPago[r.medio_pago_2] = (porPago[r.medio_pago_2]||0)+Number(r.monto_2||0);
     });
 
-    const porTipo = {};
-    rows.forEach(r=>{ porTipo[r.tipo_consulta] = (porTipo[r.tipo_consulta]||0) + Number(r.monto||0)+Number(r.monto_2||0); });
+    const porCategoria = { primera:0, subsecuente:0, procedimiento:0, farmacia:0 };
+    rows.forEach(r=>{ porCategoria[categoriaFilaDashboard(r)] += Number(r.monto||0) + Number(r.monto_2||0); });
 
-    const teal='#2ABFBF', navy='#1B3A6B', navyDark='#0E1D36', amber='#c99a3a';
+    const teal='#2ABFBF';
 
     if(CHARTS.trend) CHARTS.trend.destroy();
-    CHARTS.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:labelsDias.length?labelsDias:['—'], datasets:[{data:dataDias.length?dataDias:[0], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35}]}, options:{plugins:{legend:{display:false}}}});
+    CHARTS.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:labelsDias.length?labelsDias:['—'], datasets:[{data:dataDias.length?dataDias:[0], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35, pointRadius:2}]}, options:{plugins:{legend:{display:false}, datalabels:{display:false}}, scales:{y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-MX')}}}}});
 
+    // Barra horizontal con el monto directamente sobre cada barra (estilo Skin Fabric) — la altura
+    // crece con la cantidad de doctoras para que ninguna etiqueta se encime o se oculte.
     if(CHARTS.doc) CHARTS.doc.destroy();
-    const docLabels = Object.keys(porDoc), docData = Object.values(porDoc);
-    CHARTS.doc = new Chart(document.getElementById('chDoc'), {type:'bar', data:{labels:docLabels.length?docLabels:['—'], datasets:[{data:docData.length?docData:[0], backgroundColor:[navy, teal, navyDark, amber]}]}, options:{plugins:{legend:{display:false}}}});
+    const docEntries = Object.entries(porDoc).sort((a,b)=>b[1]-a[1]);
+    const docWrap = document.getElementById('chDoc-wrap');
+    if(docWrap) docWrap.style.height = Math.max(160, docEntries.length * 42) + 'px';
+    CHARTS.doc = new Chart(document.getElementById('chDoc'), {
+      type:'bar',
+      data:{ labels: docEntries.length?docEntries.map(e=>e[0]):['—'], datasets:[{ data: docEntries.length?docEntries.map(e=>e[1]):[0], backgroundColor: teal, borderRadius:6 }] },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        layout:{ padding:{ right:44 } },
+        plugins:{
+          legend:{display:false},
+          datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => moneyRound(v) }
+        },
+        scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } }, y:{ ticks:{ font:{size:10.5}, autoSkip:false } } }
+      }
+    });
 
+    // Doughnut de medios de pago con el mismo color por medio que las tarjetas de Cierre, y el
+    // porcentaje de cada uno escrito directamente sobre su rebanada.
     if(CHARTS.pay) CHARTS.pay.destroy();
-    const payLabels = Object.keys(porPago), payData = Object.values(porPago);
-    CHARTS.pay = new Chart(document.getElementById('chPay'), {type:'doughnut', data:{labels:payLabels.length?payLabels:['Sin datos'], datasets:[{data:payData.length?payData:[1], backgroundColor:[teal, navy, navyDark, amber]}]}});
+    const payEntries = Object.entries(porPago).sort((a,b)=>b[1]-a[1]);
+    CHARTS.pay = new Chart(document.getElementById('chPay'), {
+      type:'doughnut',
+      data:{ labels: payEntries.length?payEntries.map(e=>e[0]):['Sin datos'], datasets:[{ data: payEntries.length?payEntries.map(e=>e[1]):[1], backgroundColor: payEntries.length?payEntries.map(e=>colorMedioPago(e[0])):['#E2E8F4'] }] },
+      options:{
+        plugins:{
+          legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:10} } },
+          datalabels: payEntries.length ? { color:'#fff', font:{size:10, weight:'700'}, formatter:(v,ctx)=>{ const t = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return t ? Math.round(v/t*100)+'%' : ''; } } : { display:false }
+        }
+      }
+    });
 
     if(CHARTS.tipo) CHARTS.tipo.destroy();
-    const tipoLabels = Object.keys(porTipo), tipoData = Object.values(porTipo);
-    CHARTS.tipo = new Chart(document.getElementById('chTipo'), {type:'bar', data:{labels:tipoLabels.length?tipoLabels:['—'], datasets:[{data:tipoData.length?tipoData:[0], backgroundColor:teal}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}}});
+    const catKeys = ['primera','subsecuente','procedimiento','farmacia'];
+    CHARTS.tipo = new Chart(document.getElementById('chTipo'), {
+      type:'bar',
+      data:{ labels: catKeys.map(k=>CATEGORIA_DASH_LABEL[k]), datasets:[{ data: catKeys.map(k=>porCategoria[k]), backgroundColor: teal, borderRadius:6 }] },
+      options:{ indexAxis:'y', layout:{padding:{right:44}}, plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => v>0 ? moneyRound(v) : '' } }, scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } } } }
+    });
   }
 
   // ============================================================
