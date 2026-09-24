@@ -459,19 +459,19 @@
               <div class="empty-state" id="r-farmacia-carrito-empty">Aún no agregas productos. Búscalos arriba y haz clic para sumarlos — puedes agregar varios en la misma venta.</div>
             </div>
           </div>
-          <div class="field-wrap" id="r-monto-wrap"><label>Monto</label><input type="number" id="r-monto" value="0" onchange="actualizarResumenLive()"></div>
+          <div class="field-wrap" id="r-monto-wrap"><label>Monto</label><input type="number" id="r-monto" placeholder="$0.00" onchange="actualizarResumenLive()"></div>
 
           <div class="field-wrap" id="r-mediopago-wrap"><label>Medio de pago</label>
-            <select id="r-mediopago"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
+            <select id="r-mediopago"><option value="" selected disabled>Selecciona…</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
           </div>
           <div class="field-wrap"><label>Notas / Observaciones</label><textarea rows="2" id="r-notas" placeholder="Opcional..."></textarea></div>
           <div class="factura-box"><input type="checkbox" id="r-factura-check" onchange="document.getElementById('r-factura-num').disabled = !this.checked;"> ¿Requiere factura? <input type="text" id="r-factura-num" placeholder="N° de factura" disabled style="width:120px; margin-left:auto;"></div>
         </div>
 
         <div id="r-pago2-wrap" class="reg-grid" style="display:none; margin-top:6px;">
-          <div class="field-wrap"><label>Monto 2do pago</label><input type="number" id="r-monto2" value="0"></div>
+          <div class="field-wrap"><label>Monto 2do pago</label><input type="number" id="r-monto2" placeholder="$0.00"></div>
           <div class="field-wrap"><label>Medio de pago 2</label>
-            <select id="r-mediopago2"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
+            <select id="r-mediopago2"><option value="" selected disabled>Selecciona…</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
           </div>
         </div>
         <div style="text-align:center;" id="r-pago2-toggle-wrap"><span class="toggle-link" id="r-toggle-pago2" onclick="toggleSegundoPago()">+ agregar 2do pago</span></div>
@@ -988,7 +988,7 @@
     const pago2ToggleWrap = document.getElementById('r-pago2-toggle-wrap');
     const novinoBox = document.getElementById('r-novino-box');
     const montoInput = document.getElementById('r-monto');
-    montoInput.value = 0;
+    montoInput.value = ''; // en blanco (con placeholder "$0.00") en vez de un 0 real, para no aparentar un monto ya capturado
     if(tipo === 'Procedimientos'){
       doctorWrap.style.display = 'block';
       procWrap.style.display = 'block';
@@ -1229,6 +1229,8 @@
     if(tipo !== 'Farmacia' && !doctorId){ toast('⚠️ Selecciona quién atiende'); return; }
     if(!nombrePaciente){ toast('⚠️ Falta el nombre del paciente'); return; }
     if(!telefono){ toast('⚠️ Falta el teléfono'); return; }
+    if(!noVino && !medioPago){ toast('⚠️ Selecciona el medio de pago'); return; }
+    if(pago2Visible && !medioPago2){ toast('⚠️ Selecciona el medio de pago del 2do pago'); return; }
     if(tipo === 'Procedimientos'){
       // Guarda el nombre específico del procedimiento (ej. "BOTOX MUJERES") en vez del genérico "Procedimientos"
       const procSel = document.getElementById('r-procedimiento');
@@ -1316,6 +1318,9 @@
     document.getElementById('r-paciente').value = '';
     document.getElementById('r-telefono').value = '';
     document.getElementById('r-monto').disabled = false;
+    document.getElementById('r-mediopago').value = ''; // vuelve al placeholder "Selecciona…", nunca queda en "Efectivo" por defecto
+    document.getElementById('r-monto2').value = '';
+    document.getElementById('r-mediopago2').value = '';
     document.getElementById('r-notas').value = '';
     document.getElementById('r-factura-check').checked = false;
     document.getElementById('r-factura-num').value = '';
