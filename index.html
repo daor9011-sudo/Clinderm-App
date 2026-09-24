@@ -392,6 +392,13 @@
 
         <div class="reg-grid">
           <div class="field-wrap"><label>Fecha</label><input type="date" id="r-fecha" onchange="actualizarResumenLive()"></div>
+          <div class="field-wrap"><label>Tipo de Consulta</label>
+            <select id="r-tipo" onchange="onTipoConsultaChange()">
+              <option>Consulta de primera vez</option>
+              <option>Consulta subsecuente</option>
+              <option value="Procedimientos">Procedimientos</option>
+            </select>
+          </div>
           <div class="field-wrap" id="r-doctor-wrap"><label>Atendido por</label>
             <select id="r-doctor" onchange="onDoctorChange()"><option value="">Cargando…</option></select>
           </div>
@@ -400,13 +407,6 @@
             <select id="r-tipopaciente" onchange="actualizarResumenLive()">
               <option value="clinica">Paciente de la clínica</option>
               <option value="propio">Paciente propio de la doctora</option>
-            </select>
-          </div>
-          <div class="field-wrap"><label>Tipo de Consulta</label>
-            <select id="r-tipo" onchange="onTipoConsultaChange()">
-              <option>Consulta de primera vez</option>
-              <option>Consulta subsecuente</option>
-              <option value="Procedimientos">Procedimientos</option>
             </select>
           </div>
 
@@ -434,20 +434,26 @@
             <label>Procedimiento específico</label>
             <select id="r-procedimiento" onchange="onProcedimientoChange()"><option value="">Selecciona un procedimiento…</option></select>
           </div>
-          <div class="field-wrap" id="farmaciaWrap" style="display:none;">
-            <label>Producto de farmacia</label>
-            <input type="text" id="r-farmacia-buscar" placeholder="Buscar producto (mínimo 3 letras)..." autocomplete="off" oninput="onFarmaciaInput()">
-            <input type="hidden" id="r-farmacia-producto-id">
-            <div class="sugeridos-box" id="r-farmacia-sugeridos-box" style="display:none;">
-              <div class="sugeridos-head">💊 Productos encontrados — clic para usar:</div>
-              <div class="chips" id="r-farmacia-sugeridos-chips"></div>
-            </div>
-          </div>
           <div class="field-wrap" id="r-farmgenpor-wrap" style="display:none;">
             <label>¿Quién genera la venta?</label>
             <select id="r-farmgenpor" onchange="actualizarResumenLive()"><option value="">Selecciona…</option></select>
           </div>
-          <div class="field-wrap"><label>Monto</label><input type="number" id="r-monto" value="0" onchange="actualizarResumenLive()"></div>
+          <div class="field-wrap" id="farmaciaWrap" style="display:none; grid-column:1 / -1;">
+            <label>Productos de farmacia (busca y agrega uno o varios)</label>
+            <input type="text" id="r-farmacia-buscar" placeholder="Buscar producto por nombre (mínimo 3 letras)..." autocomplete="off" oninput="onFarmaciaInput()">
+            <!-- Dropdown de resultados: aparece debajo del buscador mientras escribes, clic agrega al carrito -->
+            <div class="sugeridos-box" id="r-farmacia-sugeridos-box" style="display:none;">
+              <div class="sugeridos-head">💊 Resultados — clic para agregar al carrito:</div>
+              <div class="chips" id="r-farmacia-sugeridos-chips"></div>
+            </div>
+            <div style="margin-top:10px;">
+              <table class="data-table" id="r-farmacia-carrito-tabla" style="display:none;">
+                <tr><th>Producto</th><th style="width:130px;">Precio</th><th></th></tr>
+              </table>
+              <div class="empty-state" id="r-farmacia-carrito-empty">Aún no agregas productos. Búscalos arriba y haz clic para sumarlos — puedes agregar varios en la misma venta.</div>
+            </div>
+          </div>
+          <div class="field-wrap" id="r-monto-wrap"><label>Monto</label><input type="number" id="r-monto" value="0" onchange="actualizarResumenLive()"></div>
 
           <div class="field-wrap" id="r-mediopago-wrap"><label>Medio de pago</label>
             <select id="r-mediopago"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
@@ -462,9 +468,9 @@
             <select id="r-mediopago2"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
           </div>
         </div>
-        <div style="text-align:center;"><span class="toggle-link" id="r-toggle-pago2" onclick="toggleSegundoPago()">+ agregar 2do pago</span></div>
+        <div style="text-align:center;" id="r-pago2-toggle-wrap"><span class="toggle-link" id="r-toggle-pago2" onclick="toggleSegundoPago()">+ agregar 2do pago</span></div>
 
-        <div class="novino-box">
+        <div class="novino-box" id="r-novino-box">
           <label class="nv-check" style="margin:0;"><input type="checkbox" id="r-novino-check" onchange="toggleNoVino()"> 👻 El paciente no vino / no se presentó</label>
           <div class="nv-help">Se guarda para que aparezca en PRM/CRM y le des seguimiento — no cuenta como ingreso ni aparece en Historial normal. Si el paciente viene después, la marca desaparece sola.</div>
         </div>
@@ -774,7 +780,7 @@
   let CIERRE_MODO = 'dia';
   let CHARTS = {};
   let PACIENTE_SELECCIONADO = null;
-  let FARMACIA_PRODUCTO_SELECCIONADO = null;
+  let FARMACIA_CARRITO = []; // { id, nombre, precio } — uno o varios productos en la venta de farmacia actual
   let CATALOGO_CACHE = [];
 
   // ---- Helpers ----
@@ -971,12 +977,18 @@
     const farmaciaWrap = document.getElementById('farmaciaWrap');
     const farmGenPorWrap = document.getElementById('r-farmgenpor-wrap');
     const doctorWrap = document.getElementById('r-doctor-wrap');
-    document.getElementById('r-monto').value = 0;
+    const pago2ToggleWrap = document.getElementById('r-pago2-toggle-wrap');
+    const novinoBox = document.getElementById('r-novino-box');
+    const montoInput = document.getElementById('r-monto');
+    montoInput.value = 0;
     if(tipo === 'Procedimientos'){
       doctorWrap.style.display = 'block';
       procWrap.style.display = 'block';
       farmaciaWrap.style.display = 'none';
       farmGenPorWrap.style.display = 'none';
+      montoInput.readOnly = false;
+      pago2ToggleWrap.style.display = '';
+      novinoBox.style.display = '';
       limpiarSeleccionFarmacia();
       const sel = document.getElementById('r-procedimiento');
       const procedimientos = CATALOGO_CACHE.filter(c => c.motivo === 'PROCEDIMIENTOS');
@@ -985,12 +997,20 @@
       onProcedimientoChange();
     } else if(tipo === 'Farmacia'){
       // "Atendido por" y "paciente propio/clínica" no aplican para farmacia: la persona que
-      // genera la venta (abajo) ya cubre esa atribución.
+      // genera la venta ya cubre esa atribución. El monto se calcula solo con el carrito de
+      // productos, y por ser posiblemente varios productos en una sola venta, ocultamos el
+      // 2do pago (no aplica dividir el pago por producto) y el "no vino" (una venta o se hizo o no se registra).
       doctorWrap.style.display = 'none';
       document.getElementById('r-tipopaciente-wrap').style.display = 'none';
       procWrap.style.display = 'none';
       farmaciaWrap.style.display = 'block';
       farmGenPorWrap.style.display = 'block';
+      montoInput.readOnly = true;
+      document.getElementById('r-pago2-wrap').style.display = 'none';
+      document.getElementById('r-toggle-pago2').textContent = '+ agregar 2do pago';
+      pago2ToggleWrap.style.display = 'none';
+      document.getElementById('r-novino-check').checked = false;
+      novinoBox.style.display = 'none';
       limpiarSeleccionFarmacia();
       actualizarResumenLive();
     } else {
@@ -998,12 +1018,15 @@
       procWrap.style.display = 'none';
       farmaciaWrap.style.display = 'none';
       farmGenPorWrap.style.display = 'none';
+      montoInput.readOnly = false;
+      pago2ToggleWrap.style.display = '';
+      novinoBox.style.display = '';
       limpiarSeleccionFarmacia();
       // Autocompleta el monto sugerido según el catálogo de consultas (editable después)
       const match = CATALOGO_CACHE.find(c => c.motivo === 'CONSULTAS' &&
         ((tipo === 'Consulta de primera vez' && /PRIMERA/i.test(c.tipo_consulta)) ||
          (tipo === 'Consulta subsecuente' && /SUBSECUENTE/i.test(c.tipo_consulta))));
-      if(match) document.getElementById('r-monto').value = match.precio;
+      if(match) montoInput.value = match.precio;
       actualizarResumenLive();
     }
   }
@@ -1018,42 +1041,68 @@
   }
 
   // ---- Búsqueda de productos de farmacia (autocompletado, catálogo grande ~1500 items) ----
+  // Carrito: permite agregar uno o varios productos a la misma venta; cada uno se guarda
+  // como su propio renglón al momento de guardar, y el monto total se calcula solo.
   let farmaciaSearchTimer = null;
   function onFarmaciaInput(){
-    FARMACIA_PRODUCTO_SELECCIONADO = null;
-    document.getElementById('r-farmacia-producto-id').value = '';
-    actualizarResumenLive();
     const q = document.getElementById('r-farmacia-buscar').value.trim();
     clearTimeout(farmaciaSearchTimer);
     if(q.length < 3){ document.getElementById('r-farmacia-sugeridos-box').style.display = 'none'; return; }
     farmaciaSearchTimer = setTimeout(async ()=>{
-      const { data, error } = await sb.from('farmacia_productos').select('id, nombre, precio').eq('activo', true).ilike('nombre', '%'+q+'%').limit(8);
+      const { data, error } = await sb.from('farmacia_productos').select('id, nombre, precio').eq('activo', true).ilike('nombre', '%'+q+'%').limit(10);
       if(error || !data || data.length===0){ document.getElementById('r-farmacia-sugeridos-box').style.display = 'none'; return; }
       window._farmaciaSugeridosCache = data;
       document.getElementById('r-farmacia-sugeridos-chips').innerHTML = data.map((p,i)=>`<span class="chip" data-idx="${i}">${esc(p.nombre)} · ${money(p.precio)}</span>`).join('');
       document.querySelectorAll('#r-farmacia-sugeridos-chips .chip').forEach(chip=>{
         chip.addEventListener('click', ()=>{
           const p = window._farmaciaSugeridosCache[Number(chip.dataset.idx)];
-          elegirFarmaciaSugerido(p);
+          agregarProductoFarmacia(p);
         });
       });
       document.getElementById('r-farmacia-sugeridos-box').style.display = 'block';
     }, 350);
   }
-  function elegirFarmaciaSugerido(p){
-    FARMACIA_PRODUCTO_SELECCIONADO = p;
-    document.getElementById('r-farmacia-buscar').value = p.nombre;
-    document.getElementById('r-farmacia-producto-id').value = p.id;
-    document.getElementById('r-monto').value = p.precio;
+  function agregarProductoFarmacia(p){
+    FARMACIA_CARRITO.push({ id: p.id, nombre: p.nombre, precio: Number(p.precio) || 0 });
+    document.getElementById('r-farmacia-buscar').value = '';
     document.getElementById('r-farmacia-sugeridos-box').style.display = 'none';
+    renderCarritoFarmacia();
+  }
+  function quitarProductoCarritoFarmacia(idx){
+    FARMACIA_CARRITO.splice(idx, 1);
+    renderCarritoFarmacia();
+  }
+  function actualizarPrecioCarritoFarmacia(idx, valor){
+    FARMACIA_CARRITO[idx].precio = parseFloat(valor) || 0;
+    renderCarritoFarmacia();
+  }
+  function renderCarritoFarmacia(){
+    const tabla = document.getElementById('r-farmacia-carrito-tabla');
+    const empty = document.getElementById('r-farmacia-carrito-empty');
+    if(FARMACIA_CARRITO.length === 0){
+      tabla.style.display = 'none';
+      empty.style.display = 'block';
+    } else {
+      tabla.innerHTML = '<tr><th>Producto</th><th style="width:130px;">Precio</th><th></th></tr>' +
+        FARMACIA_CARRITO.map((item,idx)=>`
+          <tr>
+            <td>${esc(item.nombre)}</td>
+            <td><input type="number" value="${item.precio}" style="width:100px;" onchange="actualizarPrecioCarritoFarmacia(${idx}, this.value)"></td>
+            <td><span class="toggle-link" onclick="quitarProductoCarritoFarmacia(${idx})">Quitar</span></td>
+          </tr>`).join('') +
+        `<tr style="border-top:2px solid var(--navy-900);"><td><b>Total (${FARMACIA_CARRITO.length} producto${FARMACIA_CARRITO.length===1?'':'s'})</b></td><td colspan="2"><b>${money(FARMACIA_CARRITO.reduce((a,i)=>a+i.precio,0))}</b></td></tr>`;
+      tabla.style.display = 'table';
+      empty.style.display = 'none';
+    }
+    document.getElementById('r-monto').value = FARMACIA_CARRITO.reduce((a,i)=>a+i.precio,0);
     actualizarResumenLive();
   }
   function limpiarSeleccionFarmacia(){
-    FARMACIA_PRODUCTO_SELECCIONADO = null;
+    FARMACIA_CARRITO = [];
     document.getElementById('r-farmacia-buscar').value = '';
-    document.getElementById('r-farmacia-producto-id').value = '';
     document.getElementById('r-farmacia-sugeridos-box').style.display = 'none';
     document.getElementById('r-farmgenpor').value = '';
+    renderCarritoFarmacia();
   }
 
   function actualizarResumenLive(){
@@ -1155,14 +1204,10 @@
     }
     let farmaciaGeneradoPor = null;
     if(tipo === 'Farmacia'){
-      // Guarda el nombre específico del producto de farmacia en vez del genérico "Farmacia"
-      const prodId = document.getElementById('r-farmacia-producto-id').value;
-      const prodNombre = document.getElementById('r-farmacia-buscar').value.trim();
-      if(!prodId){ toast('⚠️ Busca y selecciona un producto de farmacia'); return; }
+      if(FARMACIA_CARRITO.length === 0){ toast('⚠️ Busca y agrega al menos un producto de farmacia'); return; }
       farmaciaGeneradoPor = document.getElementById('r-farmgenpor').value;
       if(!farmaciaGeneradoPor){ toast('⚠️ Selecciona quién genera la venta (para la comisión)'); return; }
       doctorId = farmaciaGeneradoPor; // sin "Atendido por" en farmacia: se usa a quien generó la venta
-      tipo = prodNombre;
     }
 
     const btn = document.getElementById('r-btn-guardar');
@@ -1181,18 +1226,34 @@
         }
       }
 
-      const payload = {
-        fecha, paciente_id: pacienteId, doctor_id: doctorId, tipo_consulta: tipo,
-        monto, medio_pago: medioPago, monto_2: monto2, medio_pago_2: medioPago2,
-        factura, num_factura: numFactura, no_vino: noVino, notas,
-        paciente_propio: pacientePropio,
-        farmacia_generado_por: farmaciaGeneradoPor,
-        created_by: MI_PERFIL.id
-      };
-      const { error: errInsert } = await sb.from('consultas').insert(payload);
-      if(errInsert) throw errInsert;
-
-      toast(noVino ? '👻 Registrado como "no vino"' : '✅ Consulta guardada');
+      if(tipo === 'Farmacia'){
+        // Un renglón por producto del carrito — así el Historial queda detallado por producto
+        // y la comisión de farmacia (que suma por farmacia_generado_por) cuadra sola, sin
+        // necesidad de lógica extra.
+        const filas = FARMACIA_CARRITO.map(item => ({
+          fecha, paciente_id: pacienteId, doctor_id: doctorId, tipo_consulta: item.nombre,
+          monto: item.precio, medio_pago: medioPago, monto_2: null, medio_pago_2: null,
+          factura, num_factura: numFactura, no_vino: false, notas,
+          paciente_propio: null,
+          farmacia_generado_por: farmaciaGeneradoPor,
+          created_by: MI_PERFIL.id
+        }));
+        const { error: errInsert } = await sb.from('consultas').insert(filas);
+        if(errInsert) throw errInsert;
+        toast(`✅ Venta de farmacia guardada (${filas.length} producto${filas.length===1?'':'s'})`);
+      } else {
+        const payload = {
+          fecha, paciente_id: pacienteId, doctor_id: doctorId, tipo_consulta: tipo,
+          monto, medio_pago: medioPago, monto_2: monto2, medio_pago_2: medioPago2,
+          factura, num_factura: numFactura, no_vino: noVino, notas,
+          paciente_propio: pacientePropio,
+          farmacia_generado_por: null,
+          created_by: MI_PERFIL.id
+        };
+        const { error: errInsert } = await sb.from('consultas').insert(payload);
+        if(errInsert) throw errInsert;
+        toast(noVino ? '👻 Registrado como "no vino"' : '✅ Consulta guardada');
+      }
       limpiarFormRegistro();
     } catch(err){
       console.error('[Clinderm] Error guardando consulta:', err);
