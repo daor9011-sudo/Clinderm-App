@@ -1005,18 +1005,17 @@
       onProcedimientoChange();
     } else if(tipo === 'Farmacia'){
       // "Atendido por" y "paciente propio/clínica" no aplican para farmacia: la persona que
-      // genera la venta ya cubre esa atribución. El monto se calcula solo con el carrito de
-      // productos, y por ser posiblemente varios productos en una sola venta, ocultamos el
-      // 2do pago (no aplica dividir el pago por producto) y el "no vino" (una venta o se hizo o no se registra).
+      // genera la venta ya cubre esa atribución. El "no vino" tampoco aplica (una venta o se
+      // hizo o no se registra). El 2do pago SÍ aplica, igual que en consulta — por si el total
+      // de la venta se paga dividido en dos métodos — así que el Monto queda editable para
+      // poder repartirlo entre los dos pagos (aunque el carrito lo sugiere ya sumado).
       doctorWrap.style.display = 'none';
       document.getElementById('r-tipopaciente-wrap').style.display = 'none';
       procWrap.style.display = 'none';
       farmaciaWrap.style.display = 'block';
       farmGenPorWrap.style.display = 'block';
-      montoInput.readOnly = true;
-      document.getElementById('r-pago2-wrap').style.display = 'none';
-      document.getElementById('r-toggle-pago2').textContent = '+ agregar 2do pago';
-      pago2ToggleWrap.style.display = 'none';
+      montoInput.readOnly = true; // siempre es el total del carrito; el 2do pago solo reparte ese total
+      pago2ToggleWrap.style.display = '';
       document.getElementById('r-novino-check').checked = false;
       novinoBox.style.display = 'none';
       limpiarSeleccionFarmacia();
@@ -1243,6 +1242,9 @@
       farmaciaGeneradoPor = document.getElementById('r-farmgenpor').value;
       if(!farmaciaGeneradoPor){ toast('⚠️ Selecciona quién genera la venta (para la comisión)'); return; }
       doctorId = farmaciaGeneradoPor; // sin "Atendido por" en farmacia: se usa a quien generó la venta
+      if(pago2Visible && monto2 > FARMACIA_CARRITO.reduce((a,i)=>a+i.precio,0)){
+        toast('⚠️ El 2do pago no puede ser mayor al total de la venta de farmacia'); return;
+      }
     }
 
     const btn = document.getElementById('r-btn-guardar');
@@ -1264,15 +1266,26 @@
       if(tipo === 'Farmacia'){
         // Un renglón por producto del carrito — así el Historial queda detallado por producto
         // y la comisión de farmacia (que suma por farmacia_generado_por) cuadra sola, sin
-        // necesidad de lógica extra.
-        const filas = FARMACIA_CARRITO.map(item => ({
-          fecha, paciente_id: pacienteId, doctor_id: doctorId, tipo_consulta: item.nombre,
-          monto: item.precio, medio_pago: medioPago, monto_2: null, medio_pago_2: null,
-          factura, num_factura: numFactura, no_vino: false, notas,
-          paciente_propio: null,
-          farmacia_generado_por: farmaciaGeneradoPor,
-          created_by: MI_PERFIL.id
-        }));
+        // necesidad de lógica extra. Si hay 2do pago, se reparte el monto2 empezando por el
+        // último producto del carrito hacia atrás, restándolo de ese mismo renglón (nunca se
+        // suma aparte), así monto + monto_2 de cada fila sigue sumando exactamente el precio
+        // de su producto y el total de la venta no se duplica en Cierre/Dashboard/Comisiones.
+        let restantePago2 = pago2Visible ? (monto2 || 0) : 0;
+        const filas = [];
+        for(let idx = FARMACIA_CARRITO.length - 1; idx >= 0; idx--){
+          const item = FARMACIA_CARRITO[idx];
+          const usar2 = Math.min(restantePago2, item.precio);
+          restantePago2 -= usar2;
+          filas.unshift({
+            fecha, paciente_id: pacienteId, doctor_id: doctorId, tipo_consulta: item.nombre,
+            monto: item.precio - usar2, medio_pago: medioPago,
+            monto_2: usar2 > 0 ? usar2 : null, medio_pago_2: usar2 > 0 ? medioPago2 : null,
+            factura, num_factura: numFactura, no_vino: false, notas,
+            paciente_propio: null,
+            farmacia_generado_por: farmaciaGeneradoPor,
+            created_by: MI_PERFIL.id
+          });
+        }
         const { error: errInsert } = await sb.from('consultas').insert(filas);
         if(errInsert) throw errInsert;
         toast(`✅ Venta de farmacia guardada (${filas.length} producto${filas.length===1?'':'s'})`);
