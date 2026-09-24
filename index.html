@@ -148,14 +148,6 @@
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
   label{display:block; font-size:11px; color:#3E6FA8; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; font-weight:700;}
-  /* Barra compacta de una sola fila (antes era una tarjeta vertical que ocupaba 2 filas y dejaba
-     un hueco vacío debajo de Fecha/Paciente/Teléfono una vez que el panel de Servicios absorbió
-     los campos que antes llenaban ese espacio). */
-  .resumen-live{background:linear-gradient(135deg, var(--navy-700), var(--navy-900)); color:#fff; border-radius:12px; padding:11px 18px; grid-column:1 / -1; display:flex; align-items:center; gap:8px 16px; flex-wrap:wrap;}
-  .resumen-live .rl-label{color:var(--teal); font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; flex:none;}
-  .resumen-live .rl-name{font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:14.5px; flex:none;}
-  .resumen-live .rl-meta{color:#9fb2cf; font-size:12px; flex:1 1 auto;}
-  .resumen-live .rl-amount{color:var(--teal); font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:19px; margin-left:auto; flex:none;}
   .factura-box{background:#F7F9FC; border:1px solid var(--border); border-radius:10px; padding:14px; display:flex; align-items:center; gap:9px; font-size:13px; font-weight:600;}
   .novino-box{background:#FBF1FA; border:1px solid #EED3EC; border-radius:10px; padding:14px 16px; margin:12px 0;}
   .novino-box .nv-check{display:flex; align-items:center; gap:8px; font-weight:700; color:#7A3E86; font-size:13.5px;}
@@ -169,13 +161,45 @@
   .chip{background:#fff; color:var(--navy-900); border:1px solid rgba(42,191,191,.5); padding:5px 11px; border-radius:20px; font-size:11px; font-weight:600; cursor:pointer;}
   .sugeridos-box{margin-top:6px; padding:8px 10px; background:rgba(42,191,191,.14); border:1px solid rgba(42,191,191,.35); border-radius:7px;}
   .sugeridos-head{font-size:9.5px; font-weight:700; color:#0B6E6E; text-transform:uppercase; letter-spacing:.4px; margin-bottom:5px;}
-  .farmacia-dropdown{margin-top:6px; max-height:280px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; background:#fff; box-shadow:0 8px 20px rgba(10,30,60,.12); position:relative; z-index:5;}
-  .farmacia-dropdown .fd-hint{padding:7px 12px; color:var(--muted); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; background:rgba(42,191,191,.10); border-bottom:1px solid var(--border); position:sticky; top:0;}
-  .farmacia-dropdown .fd-item{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 12px; cursor:pointer; border-bottom:1px solid var(--border); font-size:13px;}
-  .farmacia-dropdown .fd-item:last-child{border-bottom:none;}
-  .farmacia-dropdown .fd-item:hover{background:rgba(42,191,191,.14);}
-  .farmacia-dropdown .fd-price{color:var(--muted); white-space:nowrap; font-weight:600; font-size:12px;}
-  .farmacia-dropdown .fd-empty{padding:12px; color:var(--muted); font-size:12.5px; text-align:center;}
+  /* ---- Selector de Servicios (buscador + cuadrícula de chips + seleccionados), estilo Skin Fabric ---- */
+  .req-badge{background:rgba(42,191,191,.12); color:var(--teal-dark); font-size:9px; padding:1px 7px; border-radius:20px; border:1px solid rgba(42,191,191,.35); font-weight:700; letter-spacing:.5px;}
+  .a-box{border:1.5px solid var(--border); border-radius:12px; padding:14px 16px; background:#F7F9FC;}
+  .a-search{margin-bottom:10px; width:100%;}
+  .a-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; max-height:220px; overflow-y:auto; padding-right:4px; margin-bottom:14px;}
+  .a-chip{display:flex; align-items:flex-start; gap:9px; padding:8px 10px; border-radius:9px; border:1.5px solid var(--border); background:#fff; cursor:pointer; user-select:none; transition:.15s;}
+  .a-chip:hover{border-color:rgba(42,191,191,.5);}
+  .a-chip.on{background:rgba(42,191,191,.10); border-color:rgba(42,191,191,.5);}
+  .a-chip input{margin-top:2px; flex-shrink:0; accent-color:var(--teal); width:15px; height:15px;}
+  .a-chip .nom{font-size:12px; font-weight:700; color:var(--navy-900); line-height:1.3;}
+  .a-chip .ref{font-size:10px; color:var(--muted); margin-top:1px; font-weight:400;}
+  .a-empty{padding:14px; font-size:12px; color:var(--muted); text-align:center; grid-column:1/-1;}
+  .a-seleccion{border-top:1px dashed var(--border); padding-top:12px;}
+  .a-seleccion-titulo{font-size:10.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
+  .a-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); flex-wrap:wrap;}
+  .a-row:last-of-type{border-bottom:none;}
+  .a-row .nom{flex:1 1 150px; min-width:0; font-size:12.5px; font-weight:700; color:var(--navy-900);}
+  .a-row .ref{font-size:10px; color:var(--muted); font-weight:400; margin-left:6px;}
+  .a-row select{flex:0 0 auto; width:auto; max-width:170px; font-size:11px; padding:6px 8px; border-radius:7px;}
+  .a-row .monto-wrap{display:flex; align-items:center; gap:4px; background:#fff; border:1px solid rgba(42,191,191,.5); border-radius:7px; padding:0 8px; width:120px; flex-shrink:0;}
+  .a-row .monto-wrap span{font-size:12px; color:var(--muted); font-weight:700;}
+  .a-row .monto-wrap input{border:none; padding:7px 0; font-size:13px; width:100%; outline:none; text-align:right; color:var(--navy-900);}
+  .a-row .quitar{background:none; border:none; color:#a11d1d; cursor:pointer; font-size:15px; padding:2px 4px; line-height:1; flex-shrink:0;}
+  .a-vacio{font-size:11.5px; color:var(--muted); font-style:italic; padding:4px 0;}
+  @media (max-width:560px){.a-row .nom{flex-basis:100%;}}
+  /* ---- Barra fija de "Resumen en vivo" + acciones (Registro) ---- */
+  .reg-bar-espaciador{height:88px;}
+  .reg-bar-fija{position:fixed; left:0; right:0; bottom:0; background:linear-gradient(100deg, var(--navy-700), var(--navy-900)); box-shadow:0 -8px 24px rgba(11,22,40,.18); z-index:60;}
+  .reg-bar-fija .inner{max-width:1080px; margin:0 auto; padding:14px 26px; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;}
+  .reg-bar-left{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .reg-bar-total .lbl{font-size:9px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:var(--teal); margin:0;}
+  .reg-bar-total .val{font-family:'Bricolage Grotesque',sans-serif; font-size:26px; font-weight:800; color:#fff; line-height:1.15;}
+  .reg-bar-info{border-left:1px solid rgba(255,255,255,.15); padding-left:18px;}
+  .reg-bar-name{font-size:13px; font-weight:700; color:#fff;}
+  .reg-bar-meta{font-size:11px; color:rgba(255,255,255,.6); margin-top:2px;}
+  .reg-bar-actions{display:flex; gap:10px; align-items:center;}
+  .reg-bar-fija .btn{padding:12px 20px; font-size:13.5px;}
+  .reg-bar-fija .btn-bar-secundario{background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.2);}
+  @media (max-width:640px){.reg-bar-fija .inner{padding:12px 16px; gap:12px;} .reg-bar-total .val{font-size:21px;} .reg-bar-info{border-left:none; padding-left:0;} .reg-bar-espaciador{height:150px;}}
   .toggle-link{color:var(--teal-dark); font-size:12.5px; font-weight:600; cursor:pointer; display:inline-block; margin:4px 0 10px;}
   .summary-box{background:var(--navy-700); color:#fff; border-radius:12px; padding:14px 16px; font-size:13px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
   .summary-box .lab{opacity:.6; font-size:10.5px; text-transform:uppercase;}
@@ -283,7 +307,6 @@
 
     /* Grids → una sola columna */
     .reg-grid, .grid2, .grid3, .cfg-grid{grid-template-columns:1fr;}
-    .resumen-live{grid-column:1; grid-row:auto;}
 
     /* KPIs y resumen → 2 columnas en vez de 4 */
     .kpi-row, .summary-box{grid-template-columns:1fr 1fr;}
@@ -416,27 +439,18 @@
             <label>Teléfono</label>
             <input type="text" id="r-telefono" placeholder="10 dígitos">
           </div>
-          <div class="resumen-live">
-            <div class="rl-label">Resumen en vivo</div>
-            <div class="rl-name" id="rl-name">—</div>
-            <div class="rl-meta" id="rl-meta">—</div>
-            <div class="rl-amount" id="rl-amount">$0.00</div>
-          </div>
 
           <div class="field-wrap" id="serviciosWrap" style="grid-column:1 / -1;">
-            <label>Servicios de la consulta (agrega uno o varios — cada uno con su propio responsable y precio)</label>
-            <input type="text" id="r-servicio-buscar" placeholder="Buscar consulta, procedimiento o producto de farmacia…" autocomplete="off"
-                   oninput="onServicioInput()" onfocus="onServicioInput()" onblur="ocultarDropdownServicioConRetraso()">
-            <!-- Barra desplegable agrupada por categoría: al hacer foco muestra consultas/procedimientos
-                 completos + top de farmacia alfabético; al escribir, filtra por coincidencia en las 3
-                 categorías. Clic en un renglón agrega el servicio al carrito. -->
-            <div class="farmacia-dropdown" id="r-servicio-dropdown" style="display:none;"></div>
-            <div style="margin-top:10px;">
-              <table class="data-table" id="r-servicios-carrito-tabla" style="display:none;"></table>
-              <div class="empty-state" id="r-servicios-carrito-empty" style="padding:14px;">Aún no agregas servicios — búscalos arriba y haz clic para sumarlos.</div>
+            <label>Servicios <span class="req-badge">al menos uno</span></label>
+            <div class="a-box">
+              <input class="a-search" type="text" id="r-servicio-buscar" placeholder="🔎 Buscar consulta, procedimiento o producto de farmacia..." autocomplete="off" oninput="renderSelectorServicios()">
+              <div class="a-grid" id="r-servicio-grid"></div>
+              <div class="a-seleccion">
+                <div class="a-seleccion-titulo">Seleccionados y su valor cobrado</div>
+                <div id="r-servicio-sel"></div>
+              </div>
             </div>
           </div>
-          <div class="field-wrap" id="r-monto-wrap"><label>Monto</label><input type="number" id="r-monto" placeholder="$0.00" readonly></div>
 
           <div class="field-wrap" id="r-mediopago-wrap"><label>Medio de pago</label>
             <select id="r-mediopago"><option value="" selected disabled>Selecciona…</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
@@ -446,7 +460,7 @@
         </div>
 
         <div id="r-pago2-wrap" class="reg-grid" style="display:none; margin-top:6px;">
-          <div class="field-wrap"><label>Monto 2do pago</label><input type="number" id="r-monto2" placeholder="$0.00"></div>
+          <div class="field-wrap"><label>Monto 2do pago</label><input type="number" id="r-monto2" placeholder="$0.00" oninput="actualizarResumenLive()"></div>
           <div class="field-wrap"><label>Medio de pago 2</label>
             <select id="r-mediopago2"><option value="" selected disabled>Selecciona…</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option></select>
           </div>
@@ -458,9 +472,24 @@
           <div class="nv-help">Se guarda para que aparezca en PRM/CRM y le des seguimiento — no cuenta como ingreso ni aparece en Historial normal. Si el paciente viene después, la marca desaparece sola.</div>
         </div>
 
-        <div style="margin-top:14px; display:flex; gap:10px;">
-          <button class="btn btn-teal" id="r-btn-guardar" onclick="guardarConsulta()">Guardar consulta</button>
-          <button class="btn btn-navy" onclick="limpiarFormRegistro()">Limpiar</button>
+        <div class="reg-bar-espaciador"></div>
+        <div class="reg-bar-fija">
+          <div class="inner">
+            <div class="reg-bar-left">
+              <div class="reg-bar-total">
+                <div class="lbl">Resumen en vivo</div>
+                <div class="val" id="rl-amount">$0.00</div>
+              </div>
+              <div class="reg-bar-info">
+                <div class="reg-bar-name" id="rl-name">—</div>
+                <div class="reg-bar-meta" id="rl-meta">—</div>
+              </div>
+            </div>
+            <div class="reg-bar-actions">
+              <button class="btn btn-bar-secundario" onclick="limpiarFormRegistro()">Limpiar</button>
+              <button class="btn btn-teal" id="r-btn-guardar" onclick="guardarConsulta()">Guardar consulta</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -766,11 +795,12 @@
   let FARMACIA_CATALOGO_CACHE = []; // catálogo de farmacia (activo=true), cargado una vez y ordenado alfabéticamente
   let CATALOGO_CACHE = []; // catálogo de consultas/procedimientos (catalogo_servicios)
   let PERSONAL_CACHE = []; // { id, nombre, comisionSoloPropios } — doctoras/cosmetólogas, para los selects "Atendido por"
-  let SERVICIOS_CATALOGO_CACHE = []; // catálogo unificado (consultas + procedimientos + farmacia) para el buscador del panel de Servicios
-  let SERVICIOS_CARRITO = []; // { id, nombre, precio, categoria, doctorId, pacientePropio } — uno o varios servicios de la consulta actual
+  let SERVICIOS_CATALOGO_CACHE = []; // catálogo unificado (consultas + procedimientos + farmacia) para el selector del panel de Servicios
+  const SERVICIOS_SEL = new Map(); // id del catálogo -> { doctorId, pacientePropio, monto } — servicios elegidos para la consulta actual
 
   // ---- Helpers ----
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function normalizar(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); } // para buscar sin importar acentos
   function money(n){ return '$' + Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function moneyRound(n){ return '$' + Math.round(Number(n||0)).toLocaleString('es-MX'); }
   function isoLocal(d){ const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); return `${d.getFullYear()}-${mm}-${dd}`; }
@@ -928,7 +958,7 @@
     const opts = (data||[]).map(d=>`<option value="${d.id}">${esc(d.nombre)}</option>`).join('');
     document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
     document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas</option>' + opts;
-    renderCarritoServicios(); // refresca los selects "Atendido por" del carrito por si ya había líneas
+    renderSelectorServicios(); // refresca los selects "Atendido por" de la selección por si ya había líneas
   }
 
   // ---- Catálogo de servicios (precios) — usado en Registro y en Configuración ----
@@ -937,6 +967,7 @@
     if(error){ console.error('[Clinderm] Error cargando catálogo:', error); return; }
     CATALOGO_CACHE = data || [];
     reconstruirServiciosCatalogoUnificado();
+    renderSelectorServicios(); // por si esta fuente termina de cargar después que la de farmacia
   }
 
   // ---- Catálogo unificado de Servicios (Consulta + Procedimientos + Farmacia) ----
@@ -967,144 +998,133 @@
     if(error){ console.error('[Clinderm] Error cargando catálogo de farmacia:', error); return; }
     FARMACIA_CATALOGO_CACHE = data || [];
     reconstruirServiciosCatalogoUnificado();
+    renderSelectorServicios(); // por si esta fuente termina de cargar después que la de catalogo_servicios
   }
 
-  // ---- Buscador/carrito unificado de Servicios (Consulta + Procedimientos + Farmacia) ----
-  const SERVICIO_DROPDOWN_LIMITE = 60;
-  const SERVICIO_ORDEN_CATEGORIAS = ['Consulta','Procedimiento','Farmacia'];
-  function onServicioInput(){
-    const q = document.getElementById('r-servicio-buscar').value.trim().toLowerCase();
-    const dropdown = document.getElementById('r-servicio-dropdown');
-    if(SERVICIOS_CATALOGO_CACHE.length === 0){
-      dropdown.innerHTML = '<div class="fd-empty">Cargando catálogo…</div>';
-      dropdown.style.display = 'block';
-      return;
+  // ---- Selector de Servicios (Consulta + Procedimientos + Farmacia): buscador + cuadrícula de
+  // chips + lista de seleccionados, cada uno con su propio "Atendido por" y precio cobrado ----
+  const SERVICIO_GRID_LIMITE_SIN_TEXTO = 60; // límite solo para Farmacia cuando no hay texto de búsqueda (catálogo de ~623 productos)
+
+  function obtenerAtendidoPorDefectoServicio(){
+    // Hoy nadie con rol "doctor" inicia sesión directamente (son solo entradas de atribución,
+    // "sin acceso"), así que esto no se activa en la práctica — queda listo por si eso cambia.
+    return (MI_PERFIL && MI_PERFIL.rol === 'doctor') ? MI_PERFIL.id : '';
+  }
+
+  function renderSelectorServicios(){
+    renderServicioGrid();
+    renderServicioSel();
+  }
+
+  function renderServicioGrid(){
+    const grid = document.getElementById('r-servicio-grid');
+    const filtro = normalizar(document.getElementById('r-servicio-buscar').value);
+    if(SERVICIOS_CATALOGO_CACHE.length === 0){ grid.innerHTML = '<div class="a-empty">Cargando catálogo…</div>'; return; }
+
+    // Farmacia solo aparece en el selector para quien tiene permiso de registrar ventas de farmacia
+    let visibles = SERVICIOS_CATALOGO_CACHE.filter(it => puedeAgregarFarmacia() || it.categoria !== 'Farmacia');
+    if(filtro) visibles = visibles.filter(it => normalizar(it.nombre).includes(filtro));
+    visibles = visibles.slice().sort((a,b)=> a.nombre.localeCompare(b.nombre, 'es'));
+
+    // Sin texto de búsqueda, Farmacia se limita a los primeros N en orden alfabético — escribir
+    // para buscar sí muestra todas las coincidencias, sin límite.
+    if(!filtro){
+      let restanteFarmacia = SERVICIO_GRID_LIMITE_SIN_TEXTO;
+      visibles = visibles.filter(it=>{
+        if(it.categoria !== 'Farmacia') return true;
+        if(restanteFarmacia <= 0) return false;
+        restanteFarmacia--; return true;
+      });
     }
-    // Farmacia solo aparece en el buscador para quien tiene permiso de registrar ventas de farmacia
-    let pool = SERVICIOS_CATALOGO_CACHE.filter(it => puedeAgregarFarmacia() || it.categoria !== 'Farmacia');
-    if(q.length > 0) pool = pool.filter(it => it.nombre.toLowerCase().includes(q));
-    if(pool.length === 0){
-      dropdown.innerHTML = `<div class="fd-empty">Sin resultados para "${esc(q)}".</div>`;
-      dropdown.style.display = 'block';
-      return;
-    }
-    // Agrupa por categoría (Consulta / Procedimiento / Farmacia), cada grupo con su propio
-    // encabezado. Sin texto, Farmacia se limita a los primeros N en orden alfabético — escribir filtra.
-    const porCategoria = {};
-    pool.forEach(it => { (porCategoria[it.categoria] = porCategoria[it.categoria] || []).push(it); });
-    let restante = SERVICIO_DROPDOWN_LIMITE;
-    let html = '';
-    const resultadosPlanos = [];
-    SERVICIO_ORDEN_CATEGORIAS.forEach(cat=>{
-      const items = porCategoria[cat];
-      if(!items || !items.length || restante <= 0) return;
-      const mostrar = items.slice(0, restante);
-      restante -= mostrar.length;
-      const hint = (cat === 'Farmacia' && q.length === 0 && items.length > mostrar.length)
-        ? `${cat.toUpperCase()} — A–Z, escribe para buscar en las ${items.length}`
-        : cat.toUpperCase();
-      html += `<div class="fd-hint">${esc(hint)}</div>`;
-      mostrar.forEach(it=>{
-        const idx = resultadosPlanos.length;
-        resultadosPlanos.push(it);
-        html += `<div class="fd-item" data-idx="${idx}"><span>${esc(it.nombre)}</span><span class="fd-price">${money(it.precio)}</span></div>`;
+
+    if(!visibles.length){ grid.innerHTML = '<div class="a-empty">Sin resultados</div>'; return; }
+    grid.innerHTML = visibles.map(it => `
+      <label class="a-chip ${SERVICIOS_SEL.has(it.id)?'on':''}" data-id="${esc(it.id)}">
+        <input type="checkbox" ${SERVICIOS_SEL.has(it.id)?'checked':''}>
+        <div><div class="nom">${esc(it.nombre)}</div><div class="ref">${esc(it.categoria)} · ${money(it.precio)}</div></div>
+      </label>`).join('');
+    grid.querySelectorAll('.a-chip').forEach(chip=>{
+      const id = chip.dataset.id;
+      chip.querySelector('input').addEventListener('change', e=>{
+        if(e.target.checked) SERVICIOS_SEL.set(id, { doctorId: obtenerAtendidoPorDefectoServicio(), pacientePropio: null, monto: '' });
+        else SERVICIOS_SEL.delete(id);
+        renderSelectorServicios();
       });
     });
-    window._servicioDropdownCache = resultadosPlanos;
-    dropdown.innerHTML = html;
-    dropdown.querySelectorAll('.fd-item').forEach(item=>{
-      // mousedown (no click) + preventDefault: agrega el servicio sin que el input pierda el foco primero
-      item.addEventListener('mousedown', (e)=>{
-        e.preventDefault();
-        const it = window._servicioDropdownCache[Number(item.dataset.idx)];
-        agregarServicio(it);
+  }
+
+  function renderServicioSel(){
+    const cont = document.getElementById('r-servicio-sel');
+    if(!SERVICIOS_SEL.size){ cont.innerHTML = '<div class="a-vacio">Todavía no has seleccionado ningún servicio.</div>'; actualizarResumenLive(); return; }
+    const opcionesPersona = (seleccionado) => '<option value="">Seleccionar...</option>' +
+      PERSONAL_CACHE.map(d=>`<option value="${d.id}" ${d.id===seleccionado?'selected':''}>${esc(d.nombre)}</option>`).join('');
+    cont.innerHTML = [...SERVICIOS_SEL.keys()].map(id=>{
+      const it = SERVICIOS_CATALOGO_CACHE.find(x => x.id === id);
+      const nombre = it ? esc(it.nombre) : '(servicio ya no disponible)';
+      const ref = it ? ` <span class="ref">${esc(it.categoria)} · ${money(it.precio)}</span>` : '';
+      const val = SERVICIOS_SEL.get(id) || {};
+      const persona = PERSONAL_CACHE.find(d => d.id === val.doctorId);
+      const aplicaPropios = !!(persona && persona.comisionSoloPropios);
+      // Opción B: el mini-select "Clínica/Propio" solo se activa cuando la persona elegida tiene
+      // ese esquema de comisión (ej. Dra. Laura); en el resto de las filas simplemente no aparece.
+      const celdaPaciente = aplicaPropios
+        ? `<select class="sel-paciente-propio" title="¿Paciente propio o de la clínica?">
+             <option value="clinica" ${val.pacientePropio!==true?'selected':''}>Clínica</option>
+             <option value="propio" ${val.pacientePropio===true?'selected':''}>Propio</option>
+           </select>`
+        : '';
+      return `<div class="a-row" data-id="${esc(id)}">
+        <div class="nom">${nombre}${ref}</div>
+        <select class="atendido-select" title="¿Quién atendió este servicio?">${opcionesPersona(val.doctorId)}</select>
+        ${celdaPaciente}
+        <div class="monto-wrap"><span>$</span><input type="number" min="0" step="0.01" placeholder="0.00" value="${esc(val.monto ?? '')}"></div>
+        <button class="quitar" type="button" title="Quitar">✕</button>
+      </div>`;
+    }).join('');
+    cont.querySelectorAll('.a-row').forEach(row=>{
+      const id = row.dataset.id;
+      row.querySelector('.monto-wrap input').addEventListener('input', e=>{
+        const prev = SERVICIOS_SEL.get(id) || {};
+        SERVICIOS_SEL.set(id, { ...prev, monto: e.target.value });
+        actualizarResumenLive(); // sin volver a pintar la lista: no se pierde el foco mientras se escribe
       });
+      row.querySelector('.atendido-select').addEventListener('change', e=>{
+        const prev = SERVICIOS_SEL.get(id) || {};
+        const nuevaPersona = PERSONAL_CACHE.find(d => d.id === e.target.value);
+        const siguePropios = nuevaPersona && nuevaPersona.comisionSoloPropios;
+        SERVICIOS_SEL.set(id, { ...prev, doctorId: e.target.value, pacientePropio: siguePropios ? (prev.pacientePropio ?? false) : null });
+        renderSelectorServicios();
+      });
+      const selPropio = row.querySelector('.sel-paciente-propio');
+      if(selPropio) selPropio.addEventListener('change', e=>{
+        const prev = SERVICIOS_SEL.get(id) || {};
+        SERVICIOS_SEL.set(id, { ...prev, pacientePropio: (e.target.value === 'propio') });
+        actualizarResumenLive();
+      });
+      row.querySelector('.quitar').addEventListener('click', ()=>{ SERVICIOS_SEL.delete(id); renderSelectorServicios(); });
     });
-    dropdown.style.display = 'block';
-  }
-  function ocultarDropdownServicioConRetraso(){
-    // Retraso corto para que un clic en un renglón del dropdown alcance a registrarse antes de ocultarlo
-    setTimeout(()=>{ document.getElementById('r-servicio-dropdown').style.display = 'none'; }, 150);
-  }
-  function agregarServicio(it){
-    SERVICIOS_CARRITO.push({ id: it.id, nombre: it.nombre, precio: Number(it.precio) || 0, categoria: it.categoria, doctorId: '', pacientePropio: null });
-    document.getElementById('r-servicio-buscar').value = '';
-    document.getElementById('r-servicio-dropdown').style.display = 'none';
-    renderCarritoServicios();
-  }
-  function quitarServicio(idx){
-    SERVICIOS_CARRITO.splice(idx, 1);
-    renderCarritoServicios();
-  }
-  function actualizarPrecioServicio(idx, valor){
-    SERVICIOS_CARRITO[idx].precio = parseFloat(valor) || 0;
-    renderCarritoServicios();
-  }
-  function actualizarDoctorServicio(idx, doctorId){
-    SERVICIOS_CARRITO[idx].doctorId = doctorId;
-    const persona = PERSONAL_CACHE.find(d => d.id === doctorId);
-    // El check de "paciente propio" solo aplica a personas con ese esquema de comisión (ej. Dra. Laura);
-    // si cambian a alguien sin ese esquema, se limpia para que no quede un true/false huérfano.
-    if(!persona || !persona.comisionSoloPropios) SERVICIOS_CARRITO[idx].pacientePropio = null;
-    else if(SERVICIOS_CARRITO[idx].pacientePropio === null) SERVICIOS_CARRITO[idx].pacientePropio = false;
-    renderCarritoServicios();
-  }
-  function actualizarPacientePropioServicio(idx, valor){
-    SERVICIOS_CARRITO[idx].pacientePropio = (valor === 'propio');
-    renderCarritoServicios();
-  }
-  function renderCarritoServicios(){
-    const tabla = document.getElementById('r-servicios-carrito-tabla');
-    const empty = document.getElementById('r-servicios-carrito-empty');
-    if(SERVICIOS_CARRITO.length === 0){
-      tabla.style.display = 'none';
-      empty.style.display = 'block';
-    } else {
-      const opcionesPersona = (seleccionado) => '<option value="">Selecciona…</option>' +
-        PERSONAL_CACHE.map(d=>`<option value="${d.id}" ${d.id===seleccionado?'selected':''}>${esc(d.nombre)}</option>`).join('');
-      tabla.innerHTML = '<tr><th>Servicio</th><th style="width:190px;">Atendido por</th><th style="width:130px;">Paciente</th><th style="width:100px;">Precio</th><th></th></tr>' +
-        SERVICIOS_CARRITO.map((item,idx)=>{
-          const persona = PERSONAL_CACHE.find(d => d.id === item.doctorId);
-          const aplicaPropios = !!(persona && persona.comisionSoloPropios);
-          const celdaPaciente = aplicaPropios
-            ? `<select onchange="actualizarPacientePropioServicio(${idx}, this.value)">
-                 <option value="clinica" ${item.pacientePropio!==true?'selected':''}>Clínica</option>
-                 <option value="propio" ${item.pacientePropio===true?'selected':''}>Propio</option>
-               </select>`
-            : `<span style="color:var(--muted);">—</span>`;
-          return `
-            <tr>
-              <td>${esc(item.nombre)}</td>
-              <td><select onchange="actualizarDoctorServicio(${idx}, this.value)">${opcionesPersona(item.doctorId)}</select></td>
-              <td>${celdaPaciente}</td>
-              <td><input type="number" value="${item.precio}" style="width:90px;" onchange="actualizarPrecioServicio(${idx}, this.value)"></td>
-              <td><span class="toggle-link" onclick="quitarServicio(${idx})">Quitar</span></td>
-            </tr>`;
-        }).join('') +
-        `<tr style="border-top:2px solid var(--navy-900);"><td colspan="3"><b>Total (${SERVICIOS_CARRITO.length} servicio${SERVICIOS_CARRITO.length===1?'':'s'})</b></td><td colspan="2"><b>${money(SERVICIOS_CARRITO.reduce((a,i)=>a+i.precio,0))}</b></td></tr>`;
-      tabla.style.display = 'table';
-      empty.style.display = 'none';
-    }
-    document.getElementById('r-monto').value = SERVICIOS_CARRITO.length ? SERVICIOS_CARRITO.reduce((a,i)=>a+i.precio,0) : '';
     actualizarResumenLive();
   }
+
   function limpiarSeleccionServicios(){
-    SERVICIOS_CARRITO = [];
+    SERVICIOS_SEL.clear();
     document.getElementById('r-servicio-buscar').value = '';
-    document.getElementById('r-servicio-dropdown').style.display = 'none';
-    renderCarritoServicios();
+    renderSelectorServicios();
   }
 
   function actualizarResumenLive(){
     const paciente = document.getElementById('r-paciente').value.trim() || '—';
-    const monto = SERVICIOS_CARRITO.reduce((a,i)=>a+i.precio,0);
+    const valores = [...SERVICIOS_SEL.values()];
+    const monto = valores.reduce((a,v)=> a + (Number(v.monto)||0), 0);
 
     let tipoLabel;
-    if(SERVICIOS_CARRITO.length === 0) tipoLabel = '—';
-    else if(SERVICIOS_CARRITO.length === 1) tipoLabel = SERVICIOS_CARRITO[0].nombre;
-    else tipoLabel = `${SERVICIOS_CARRITO.length} servicios`;
+    if(SERVICIOS_SEL.size === 0) tipoLabel = 'sin servicios seleccionados';
+    else if(SERVICIOS_SEL.size === 1){
+      const it = SERVICIOS_CATALOGO_CACHE.find(x => x.id === [...SERVICIOS_SEL.keys()][0]);
+      tipoLabel = it ? it.nombre : '1 servicio seleccionado';
+    } else tipoLabel = `${SERVICIOS_SEL.size} servicios seleccionados`;
 
-    const personasUnicas = [...new Set(SERVICIOS_CARRITO.map(i=>i.doctorId).filter(Boolean))];
+    const personasUnicas = [...new Set(valores.map(v=>v.doctorId).filter(Boolean))];
     let personaNombre;
     if(personasUnicas.length === 0) personaNombre = '—';
     else if(personasUnicas.length === 1){
@@ -1173,14 +1193,25 @@
     const monto2 = pago2Visible ? (parseFloat(document.getElementById('r-monto2').value) || 0) : null;
     const medioPago2 = pago2Visible ? document.getElementById('r-mediopago2').value : null;
 
+    // Se resuelve cada renglón del Map de servicios seleccionados contra el catálogo (nombre/categoría)
+    // y el propio valor guardado en el Map (a quién se atendió, precio cobrado, paciente propio).
+    const itemsCarrito = [...SERVICIOS_SEL.entries()].map(([id, val])=>{
+      const it = SERVICIOS_CATALOGO_CACHE.find(x => x.id === id);
+      return {
+        id, nombre: it ? it.nombre : '(servicio ya no disponible)', categoria: it ? it.categoria : null,
+        doctorId: val.doctorId, pacientePropio: val.pacientePropio, precio: parseFloat(val.monto) || 0
+      };
+    });
+
     if(!fecha){ toast('⚠️ Falta la fecha'); return; }
     if(!nombrePaciente){ toast('⚠️ Falta el nombre del paciente'); return; }
     if(!telefono){ toast('⚠️ Falta el teléfono'); return; }
-    if(SERVICIOS_CARRITO.length === 0){ toast('⚠️ Agrega al menos un servicio (consulta, procedimiento o farmacia)'); return; }
-    if(SERVICIOS_CARRITO.some(i => !i.doctorId)){ toast('⚠️ Selecciona quién atendió cada servicio'); return; }
+    if(itemsCarrito.length === 0){ toast('⚠️ Agrega al menos un servicio (consulta, procedimiento o farmacia)'); return; }
+    if(itemsCarrito.some(i => !i.doctorId)){ toast('⚠️ Selecciona quién atendió cada servicio'); return; }
+    if(!noVino && itemsCarrito.some(i => i.precio <= 0)){ toast('⚠️ Ingresa el precio cobrado de cada servicio'); return; }
     if(!noVino && !medioPago){ toast('⚠️ Selecciona el medio de pago'); return; }
     if(pago2Visible && !medioPago2){ toast('⚠️ Selecciona el medio de pago del 2do pago'); return; }
-    const totalCarrito = SERVICIOS_CARRITO.reduce((a,i)=>a+i.precio,0);
+    const totalCarrito = itemsCarrito.reduce((a,i)=>a+i.precio,0);
     if(pago2Visible && monto2 > totalCarrito){ toast('⚠️ El 2do pago no puede ser mayor al total de la consulta'); return; }
 
     const btn = document.getElementById('r-btn-guardar');
@@ -1203,7 +1234,7 @@
       if(noVino){
         // El paciente no vino: no hubo servicio, así que se guarda un solo renglón de referencia
         // (con quién tenía la cita) en $0, sin medio de pago — solo para que aparezca en PRM/CRM.
-        const primero = SERVICIOS_CARRITO[0];
+        const primero = itemsCarrito[0];
         filas = [{
           fecha, paciente_id: pacienteId, doctor_id: primero.doctorId, tipo_consulta: primero.nombre,
           monto: 0, medio_pago: null, monto_2: null, medio_pago_2: null,
@@ -1220,8 +1251,8 @@
         // en Cierre/Dashboard/Comisiones.
         let restantePago2 = pago2Visible ? (monto2 || 0) : 0;
         filas = [];
-        for(let idx = SERVICIOS_CARRITO.length - 1; idx >= 0; idx--){
-          const item = SERVICIOS_CARRITO[idx];
+        for(let idx = itemsCarrito.length - 1; idx >= 0; idx--){
+          const item = itemsCarrito[idx];
           const usar2 = Math.min(restantePago2, item.precio);
           restantePago2 -= usar2;
           filas.unshift({
