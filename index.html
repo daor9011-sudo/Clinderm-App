@@ -1005,6 +1005,16 @@
   // chips + lista de seleccionados, cada uno con su propio "Atendido por" y precio cobrado ----
   const SERVICIO_GRID_LIMITE_SIN_TEXTO = 60; // límite solo para Farmacia cuando no hay texto de búsqueda (catálogo de ~623 productos)
 
+  // Regla de negocio de Clinderm: la consulta (de primera vez o subsecuente) solo la dan la Dra.
+  // Laura Galván y la Dra. Tania de la Vega — las cosmetólogas solo atienden Procedimientos/Farmacia.
+  // La tabla "personal" no distingue doctora de cosmetóloga (ambas tienen rol='doctor'), así que se
+  // filtra por nombre; si cambia quién da consulta, actualizar esta lista.
+  const DOCTORAS_CONSULTA = ['laura galvan', 'tania de la vega'];
+  function puedeDarConsulta(persona){
+    const n = normalizar(persona.nombre);
+    return DOCTORAS_CONSULTA.some(d => n.includes(d));
+  }
+
   function obtenerAtendidoPorDefectoServicio(){
     // Hoy nadie con rol "doctor" inicia sesión directamente (son solo entradas de atribución,
     // "sin acceso"), así que esto no se activa en la práctica — queda listo por si eso cambia.
@@ -1056,8 +1066,8 @@
   function renderServicioSel(){
     const cont = document.getElementById('r-servicio-sel');
     if(!SERVICIOS_SEL.size){ cont.innerHTML = '<div class="a-vacio">Todavía no has seleccionado ningún servicio.</div>'; actualizarResumenLive(); return; }
-    const opcionesPersona = (seleccionado) => '<option value="">Seleccionar...</option>' +
-      PERSONAL_CACHE.map(d=>`<option value="${d.id}" ${d.id===seleccionado?'selected':''}>${esc(d.nombre)}</option>`).join('');
+    const opcionesPersona = (seleccionado, lista) => '<option value="">Seleccionar...</option>' +
+      lista.map(d=>`<option value="${d.id}" ${d.id===seleccionado?'selected':''}>${esc(d.nombre)}</option>`).join('');
     cont.innerHTML = [...SERVICIOS_SEL.keys()].map(id=>{
       const it = SERVICIOS_CATALOGO_CACHE.find(x => x.id === id);
       const nombre = it ? esc(it.nombre) : '(servicio ya no disponible)';
@@ -1073,9 +1083,17 @@
              <option value="propio" ${val.pacientePropio===true?'selected':''}>Propio</option>
            </select>`
         : '';
+      // Para servicios de tipo Consulta, "Atendido por" se limita a quien da consulta (Laura/Tania);
+      // si la persona ya asignada no calificara (dato previo/inconsistente) se conserva en la lista
+      // para no perder visualmente la selección ya hecha.
+      let listaPersonas = PERSONAL_CACHE;
+      if(it && it.categoria === 'Consulta'){
+        listaPersonas = PERSONAL_CACHE.filter(puedeDarConsulta);
+        if(val.doctorId && !listaPersonas.some(p => p.id === val.doctorId) && persona) listaPersonas = [...listaPersonas, persona];
+      }
       return `<div class="a-row" data-id="${esc(id)}">
         <div class="nom">${nombre}${ref}</div>
-        <select class="atendido-select" title="¿Quién atendió este servicio?">${opcionesPersona(val.doctorId)}</select>
+        <select class="atendido-select" title="¿Quién atendió este servicio?">${opcionesPersona(val.doctorId, listaPersonas)}</select>
         ${celdaPaciente}
         <div class="monto-wrap"><span>$</span><input type="number" min="0" step="0.01" placeholder="0.00" value="${esc(val.monto ?? '')}"></div>
         <button class="quitar" type="button" title="Quitar">✕</button>
