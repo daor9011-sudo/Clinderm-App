@@ -1900,7 +1900,7 @@
     const teal='#2ABFBF';
 
     if(CHARTS.trend) CHARTS.trend.destroy();
-    CHARTS.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:labelsDias.length?labelsDias:['—'], datasets:[{data:dataDias.length?dataDias:[0], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35, pointRadius:2}]}, options:{plugins:{legend:{display:false}, datalabels:{display:false}}, scales:{y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-MX')}}}}});
+    CHARTS.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:labelsDias.length?labelsDias:['—'], datasets:[{data:dataDias.length?dataDias:[0], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35, pointRadius:2}]}, options:{plugins:{legend:{display:false}, datalabels:{display:false}, tooltip:{callbacks:{label: ctx => ' ' + moneyRound(ctx.parsed.y)}}}, scales:{y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-MX')}}}}});
 
     // Barra horizontal con el monto directamente sobre cada barra (estilo Skin Fabric) — la altura
     // crece con la cantidad de doctoras para que ninguna etiqueta se encime o se oculte.
@@ -1916,14 +1916,16 @@
         layout:{ padding:{ right:44 } },
         plugins:{
           legend:{display:false},
+          tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } },
           datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => moneyRound(v) }
         },
         scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } }, y:{ ticks:{ font:{size:10.5}, autoSkip:false } } }
       }
     });
 
-    // Doughnut de medios de pago con el mismo color por medio que las tarjetas de Cierre, y el
-    // porcentaje de cada uno escrito directamente sobre su rebanada.
+    // Doughnut de medios de pago con el mismo color por medio que las tarjetas de Cierre. Sin leyenda
+    // fija: el nombre completo, monto y % aparecen en la ventana emergente (tooltip) al pasar el mouse
+    // o tocar la rebanada — el % ya viene escrito directamente sobre cada rebanada como referencia rápida.
     if(CHARTS.pay) CHARTS.pay.destroy();
     const payEntries = Object.entries(porPago).sort((a,b)=>b[1]-a[1]);
     CHARTS.pay = new Chart(document.getElementById('chPay'), {
@@ -1931,7 +1933,16 @@
       data:{ labels: payEntries.length?payEntries.map(e=>e[0]):['Sin datos'], datasets:[{ data: payEntries.length?payEntries.map(e=>e[1]):[1], backgroundColor: payEntries.length?payEntries.map(e=>colorMedioPago(e[0])):['#E2E8F4'] }] },
       options:{
         plugins:{
-          legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:10} } },
+          legend:{ display:false },
+          tooltip:{
+            callbacks:{
+              label: (ctx) => {
+                const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b, 0);
+                const pct = total ? Math.round(ctx.parsed/total*100) : 0;
+                return ` ${ctx.label}: ${moneyRound(ctx.parsed)} (${pct}%)`;
+              }
+            }
+          },
           datalabels: payEntries.length ? { color:'#fff', font:{size:10, weight:'700'}, formatter:(v,ctx)=>{ const t = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return t ? Math.round(v/t*100)+'%' : ''; } } : { display:false }
         }
       }
@@ -1942,7 +1953,7 @@
     CHARTS.tipo = new Chart(document.getElementById('chTipo'), {
       type:'bar',
       data:{ labels: catKeys.map(k=>CATEGORIA_DASH_LABEL[k]), datasets:[{ data: catKeys.map(k=>porCategoria[k]), backgroundColor: teal, borderRadius:6 }] },
-      options:{ indexAxis:'y', layout:{padding:{right:44}}, plugins:{ legend:{display:false}, datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => v>0 ? moneyRound(v) : '' } }, scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } } } }
+      options:{ indexAxis:'y', layout:{padding:{right:44}}, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } }, datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => v>0 ? moneyRound(v) : '' } }, scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } } } }
     });
   }
 
