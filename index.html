@@ -434,6 +434,19 @@
             <label>Procedimiento específico</label>
             <select id="r-procedimiento" onchange="onProcedimientoChange()"><option value="">Selecciona un procedimiento…</option></select>
           </div>
+          <div class="field-wrap" id="farmaciaWrap" style="display:none;">
+            <label>Producto de farmacia</label>
+            <input type="text" id="r-farmacia-buscar" placeholder="Buscar producto (mínimo 3 letras)..." autocomplete="off" oninput="onFarmaciaInput()">
+            <input type="hidden" id="r-farmacia-producto-id">
+            <div class="sugeridos-box" id="r-farmacia-sugeridos-box" style="display:none;">
+              <div class="sugeridos-head">💊 Productos encontrados — clic para usar:</div>
+              <div class="chips" id="r-farmacia-sugeridos-chips"></div>
+            </div>
+          </div>
+          <div class="field-wrap" id="r-farmgenpor-wrap" style="display:none;">
+            <label>¿Quién genera la venta?</label>
+            <select id="r-farmgenpor"><option value="">Selecciona…</option></select>
+          </div>
           <div class="field-wrap"><label>Monto</label><input type="number" id="r-monto" value="0" onchange="actualizarResumenLive()"></div>
 
           <div class="field-wrap" id="r-mediopago-wrap"><label>Medio de pago</label>
@@ -628,7 +641,7 @@
           <h3>➕ Crear usuario</h3>
           <div class="row-check"><input type="checkbox" id="np-con-acceso" onchange="document.getElementById('np-acceso-wrap').style.display = this.checked ? 'block' : 'none';"> ¿Con acceso al sistema?</div>
           <div class="field-wrap"><label>Nombre</label><input id="np-nombre" placeholder="Nombre completo"></div>
-          <div class="field-wrap"><label>Rol</label><select id="np-rol"><option value="recepcion">recepcion</option><option value="doctor">doctor</option><option value="admin">admin</option></select></div>
+          <div class="field-wrap"><label>Rol</label><select id="np-rol"><option value="recepcion">recepcion</option><option value="doctor">doctor</option><option value="farmacia">farmacia</option><option value="admin">admin</option></select></div>
           <div id="np-acceso-wrap" style="display:none;">
             <div class="field-wrap"><label>Correo</label><input type="email" id="np-email" placeholder="correo@clinderm.mx"></div>
             <div class="field-wrap"><label>Contraseña temporal</label><input type="text" id="np-password" placeholder="Mínimo 8 caracteres"></div>
@@ -652,6 +665,24 @@
               <div class="field-wrap"><label>Precio</label><input type="number" id="cs-precio" placeholder="0.00"></div>
             </div>
             <button class="btn btn-teal" style="margin-top:6px;" onclick="crearServicio()">Agregar servicio</button>
+          </div>
+        </div>
+        <div class="card" style="grid-column:1 / -1;">
+          <h3>💊 Catálogo de farmacia</h3>
+          <div class="field-wrap"><label>Buscar producto</label><input type="text" id="cfg-farmacia-buscar" placeholder="Escribe al menos 3 letras para buscar (catálogo de ~1,500 productos)…" oninput="onCfgFarmaciaBuscar()"></div>
+          <table id="cfg-tabla-farmacia" class="data-table" style="display:none;">
+            <tr><th>Nombre</th><th>Precio</th><th>Activo</th><th></th></tr>
+          </table>
+          <div class="empty-state" id="cfg-farmacia-empty">Escribe arriba para buscar un producto. Por el tamaño del catálogo, los resultados se cargan por búsqueda en vez de mostrarse todos de golpe.</div>
+
+          <div style="margin-top:18px; padding-top:16px; border-top:1px solid var(--border);">
+            <h3 style="margin-bottom:10px;">➕ Agregar producto de farmacia</h3>
+            <div class="reg-grid">
+              <div class="field-wrap"><label>Nombre</label><input type="text" id="fp-nombre" placeholder="Ej. Paracetamol 500mg"></div>
+              <div class="field-wrap"><label>Precio</label><input type="number" id="fp-precio" placeholder="0.00"></div>
+            </div>
+            <button class="btn btn-teal" style="margin-top:6px;" onclick="crearProductoFarmacia()">Agregar producto</button>
+            <div style="margin-top:10px; font-size:12px; color:var(--muted);">Para cargar el catálogo completo de golpe (~1,500 productos), comparte el archivo para hacer la importación masiva.</div>
           </div>
         </div>
         <div class="card">
@@ -743,6 +774,7 @@
   let CIERRE_MODO = 'dia';
   let CHARTS = {};
   let PACIENTE_SELECCIONADO = null;
+  let FARMACIA_PRODUCTO_SELECCIONADO = null;
   let CATALOGO_CACHE = [];
 
   // ---- Helpers ----
@@ -868,9 +900,22 @@
     document.querySelectorAll('[data-admin]').forEach(el=> el.style.display = perfil.rol === 'admin' ? 'inline-flex' : 'none');
     document.querySelectorAll('[data-doc]').forEach(el=> el.style.display = perfil.rol !== 'recepcion' ? 'inline-flex' : 'none');
     document.getElementById('r-fecha').value = isoLocal(new Date());
+    configurarTipoConsultaPorRol();
     cargarDoctores();
     cargarCatalogoServicios();
     showScreen('registro', document.querySelector('#mainNav button'));
+  }
+
+  // Farmacia, admin y recepción (por si falta la persona de farmacia) ven la opción "Farmacia" en Tipo de Consulta
+  function configurarTipoConsultaPorRol(){
+    const sel = document.getElementById('r-tipo');
+    const yaExiste = Array.from(sel.options).some(o => o.value === 'Farmacia');
+    if((MI_PERFIL.rol === 'farmacia' || MI_PERFIL.rol === 'admin' || MI_PERFIL.rol === 'recepcion') && !yaExiste){
+      const opt = document.createElement('option');
+      opt.value = 'Farmacia';
+      opt.textContent = 'Farmacia';
+      sel.appendChild(opt);
+    }
   }
 
   // ---- Navegación de pantallas ----
@@ -899,6 +944,7 @@
     rDoctor.innerHTML = optsConPropios || '<option value="">Sin doctoras registradas</option>';
     document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
     document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas</option>' + opts;
+    document.getElementById('r-farmgenpor').innerHTML = '<option value="">Selecciona…</option>' + opts;
     onDoctorChange();
   }
 
@@ -922,16 +968,30 @@
   function onTipoConsultaChange(){
     const tipo = document.getElementById('r-tipo').value;
     const procWrap = document.getElementById('procWrap');
+    const farmaciaWrap = document.getElementById('farmaciaWrap');
+    const farmGenPorWrap = document.getElementById('r-farmgenpor-wrap');
     document.getElementById('r-monto').value = 0;
     if(tipo === 'Procedimientos'){
       procWrap.style.display = 'block';
+      farmaciaWrap.style.display = 'none';
+      farmGenPorWrap.style.display = 'none';
+      limpiarSeleccionFarmacia();
       const sel = document.getElementById('r-procedimiento');
       const procedimientos = CATALOGO_CACHE.filter(c => c.motivo === 'PROCEDIMIENTOS');
       sel.innerHTML = '<option value="">Selecciona un procedimiento…</option>' +
         procedimientos.map(p=>`<option value="${p.id}" data-precio="${p.precio}">${esc(p.tipo_consulta)} — ${money(p.precio)}</option>`).join('');
       onProcedimientoChange();
+    } else if(tipo === 'Farmacia'){
+      procWrap.style.display = 'none';
+      farmaciaWrap.style.display = 'block';
+      farmGenPorWrap.style.display = 'block';
+      limpiarSeleccionFarmacia();
+      actualizarResumenLive();
     } else {
       procWrap.style.display = 'none';
+      farmaciaWrap.style.display = 'none';
+      farmGenPorWrap.style.display = 'none';
+      limpiarSeleccionFarmacia();
       // Autocompleta el monto sugerido según el catálogo de consultas (editable después)
       const match = CATALOGO_CACHE.find(c => c.motivo === 'CONSULTAS' &&
         ((tipo === 'Consulta de primera vez' && /PRIMERA/i.test(c.tipo_consulta)) ||
@@ -950,6 +1010,45 @@
     actualizarResumenLive();
   }
 
+  // ---- Búsqueda de productos de farmacia (autocompletado, catálogo grande ~1500 items) ----
+  let farmaciaSearchTimer = null;
+  function onFarmaciaInput(){
+    FARMACIA_PRODUCTO_SELECCIONADO = null;
+    document.getElementById('r-farmacia-producto-id').value = '';
+    actualizarResumenLive();
+    const q = document.getElementById('r-farmacia-buscar').value.trim();
+    clearTimeout(farmaciaSearchTimer);
+    if(q.length < 3){ document.getElementById('r-farmacia-sugeridos-box').style.display = 'none'; return; }
+    farmaciaSearchTimer = setTimeout(async ()=>{
+      const { data, error } = await sb.from('farmacia_productos').select('id, nombre, precio').eq('activo', true).ilike('nombre', '%'+q+'%').limit(8);
+      if(error || !data || data.length===0){ document.getElementById('r-farmacia-sugeridos-box').style.display = 'none'; return; }
+      window._farmaciaSugeridosCache = data;
+      document.getElementById('r-farmacia-sugeridos-chips').innerHTML = data.map((p,i)=>`<span class="chip" data-idx="${i}">${esc(p.nombre)} · ${money(p.precio)}</span>`).join('');
+      document.querySelectorAll('#r-farmacia-sugeridos-chips .chip').forEach(chip=>{
+        chip.addEventListener('click', ()=>{
+          const p = window._farmaciaSugeridosCache[Number(chip.dataset.idx)];
+          elegirFarmaciaSugerido(p);
+        });
+      });
+      document.getElementById('r-farmacia-sugeridos-box').style.display = 'block';
+    }, 350);
+  }
+  function elegirFarmaciaSugerido(p){
+    FARMACIA_PRODUCTO_SELECCIONADO = p;
+    document.getElementById('r-farmacia-buscar').value = p.nombre;
+    document.getElementById('r-farmacia-producto-id').value = p.id;
+    document.getElementById('r-monto').value = p.precio;
+    document.getElementById('r-farmacia-sugeridos-box').style.display = 'none';
+    actualizarResumenLive();
+  }
+  function limpiarSeleccionFarmacia(){
+    FARMACIA_PRODUCTO_SELECCIONADO = null;
+    document.getElementById('r-farmacia-buscar').value = '';
+    document.getElementById('r-farmacia-producto-id').value = '';
+    document.getElementById('r-farmacia-sugeridos-box').style.display = 'none';
+    document.getElementById('r-farmgenpor').value = '';
+  }
+
   function actualizarResumenLive(){
     const doctorSel = document.getElementById('r-doctor');
     const doctorNombre = (doctorSel.options[doctorSel.selectedIndex] && doctorSel.value) ? doctorSel.options[doctorSel.selectedIndex].text : '—';
@@ -959,6 +1058,9 @@
       const procSel = document.getElementById('r-procedimiento');
       const procOpt = procSel.options[procSel.selectedIndex];
       if(procOpt && procOpt.value) tipoLabel = procOpt.textContent.split(' — ')[0];
+    } else if(tipo === 'Farmacia'){
+      const buscar = document.getElementById('r-farmacia-buscar').value.trim();
+      tipoLabel = buscar ? ('Farmacia: ' + buscar) : 'Farmacia';
     }
     const paciente = document.getElementById('r-paciente').value.trim() || '—';
     const monto = parseFloat(document.getElementById('r-monto').value) || 0;
@@ -1038,6 +1140,16 @@
       if(!procOpt || !procOpt.value){ toast('⚠️ Selecciona el procedimiento específico'); return; }
       tipo = procOpt.textContent.split(' — ')[0];
     }
+    let farmaciaGeneradoPor = null;
+    if(tipo === 'Farmacia'){
+      // Guarda el nombre específico del producto de farmacia en vez del genérico "Farmacia"
+      const prodId = document.getElementById('r-farmacia-producto-id').value;
+      const prodNombre = document.getElementById('r-farmacia-buscar').value.trim();
+      if(!prodId){ toast('⚠️ Busca y selecciona un producto de farmacia'); return; }
+      farmaciaGeneradoPor = document.getElementById('r-farmgenpor').value;
+      if(!farmaciaGeneradoPor){ toast('⚠️ Selecciona quién genera la venta (para la comisión)'); return; }
+      tipo = prodNombre;
+    }
 
     const btn = document.getElementById('r-btn-guardar');
     btn.disabled = true; btn.textContent = 'Guardando...';
@@ -1060,6 +1172,7 @@
         monto, medio_pago: medioPago, monto_2: monto2, medio_pago_2: medioPago2,
         factura, num_factura: numFactura, no_vino: noVino, notas,
         paciente_propio: pacientePropio,
+        farmacia_generado_por: farmaciaGeneradoPor,
         created_by: MI_PERFIL.id
       };
       const { error: errInsert } = await sb.from('consultas').insert(payload);
@@ -1091,6 +1204,7 @@
     document.getElementById('r-sugeridos-box').style.display = 'none';
     PACIENTE_SELECCIONADO = null;
     document.getElementById('r-tipopaciente').value = 'clinica'; // por seguridad, cada consulta nueva empieza como "de la clínica"
+    limpiarSeleccionFarmacia();
     onTipoConsultaChange(); // re-aplica el precio sugerido del catálogo y limpia el monto si no hay match
     actualizarResumenLive();
   }
@@ -1360,6 +1474,12 @@
       .gte('fecha', desde).lte('fecha', hasta);
     if(errConsultas){ console.error('[Clinderm] Error cargando consultas para comisiones:', errConsultas); return; }
 
+    const { data: ventasFarmacia, error: errFarmacia } = await sb.from('consultas')
+      .select('farmacia_generado_por, monto, monto_2')
+      .eq('deleted', false).eq('no_vino', false).not('farmacia_generado_por', 'is', null)
+      .gte('fecha', desde).lte('fecha', hasta);
+    if(errFarmacia){ console.error('[Clinderm] Error cargando ventas de farmacia para comisiones:', errFarmacia); }
+
     const cont = document.getElementById('com-cards');
     if(personas.length === 0){ cont.innerHTML = '<div class="empty-state">No hay doctoras/cosmetólogas activas.</div>'; return; }
 
@@ -1375,6 +1495,7 @@
       const isrPct = (p.permisos && p.permisos.comision_isr_pct != null) ? Number(p.permisos.comision_isr_pct) : 0;
 
       let cuerpo;
+      let netoClinica = null;
       if(pct === null){
         cuerpo = `
           <div class="empty-state">⚠️ Esquema de comisión pendiente de definir para ${esc(p.nombre)}.<br>Productividad del período (informativa): <b>${money(totalGeneral)}</b></div>
@@ -1388,6 +1509,7 @@
         const comisionBruta = base * (pct/100);
         const isr = comisionBruta * (isrPct/100);
         const neto = comisionBruta - isr;
+        netoClinica = neto;
         cuerpo = `
           <table style="width:100%; margin-top:6px;">
             ${soloPropios ? `
@@ -1412,7 +1534,57 @@
           </div>`;
       }
 
-      return `<div class="card"><h3>${esc(p.nombre)}</h3>${cuerpo}</div>`;
+      // ── Comisión por venta de farmacia (5% de lo que esa persona generó como "quién receta", sin ISR) ──
+      const misVentasFarmacia = (ventasFarmacia||[]).filter(v => v.farmacia_generado_por === p.id);
+      const totalFarmacia = misVentasFarmacia.reduce((a,v)=> a + Number(v.monto||0) + Number(v.monto_2||0), 0);
+      const farmaciaPct = (p.permisos && p.permisos.comision_farmacia_pct != null) ? Number(p.permisos.comision_farmacia_pct) : null;
+
+      let bloqueFarmacia = '';
+      let netoFarmacia = null;
+      if(totalFarmacia > 0 || farmaciaPct !== null){
+        if(farmaciaPct === null){
+          bloqueFarmacia = `
+            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
+              <div class="empty-state">💊 Generó ${money(totalFarmacia)} en ventas de farmacia, pero no tiene % de comisión configurado.</div>
+              <div style="margin-top:8px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field-wrap" style="margin:0;"><label>% Comisión farmacia</label><input type="number" id="com-farm-pct-${p.id}" style="width:90px;" placeholder="Ej. 5"></div>
+                <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComisionFarmacia('${p.id}')">Guardar</button>
+              </div>
+            </div>`;
+        } else {
+          const comisionFarmacia = totalFarmacia * (farmaciaPct/100);
+          netoFarmacia = comisionFarmacia;
+          bloqueFarmacia = `
+            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
+              <div style="font-weight:600; font-size:13px; color:var(--muted); margin-bottom:4px;">💊 Comisión por venta de farmacia (¿quién receta / genera la venta?)</div>
+              <table style="width:100%;">
+                <tr><td>Ventas de farmacia generadas</td><td style="text-align:right;">${money(totalFarmacia)}</td></tr>
+                <tr><td>Comisión (${farmaciaPct}%, sin ISR)</td><td style="text-align:right;">${money(comisionFarmacia)}</td></tr>
+                <tr style="border-top:2px solid var(--navy-900);"><td><b>Neto a pagar (farmacia)</b></td><td style="text-align:right; font-size:15px;"><b>${money(comisionFarmacia)}</b></td></tr>
+              </table>
+              <div style="margin-top:8px; text-align:right;">
+                <span class="toggle-link" onclick="mostrarEditorComisionFarmacia('${p.id}')">Editar % de farmacia</span>
+              </div>
+              <div id="com-farm-editor-${p.id}" style="display:none; margin-top:8px; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field-wrap" style="margin:0;"><label>% Comisión farmacia</label><input type="number" id="com-farm-pct-${p.id}" style="width:90px;" value="${farmaciaPct}"></div>
+                <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComisionFarmacia('${p.id}')">Guardar</button>
+              </div>
+            </div>`;
+        }
+      }
+
+      // ── Total combinado (clínica + farmacia) cuando ambos esquemas ya están configurados ──
+      let bloqueTotal = '';
+      if(netoClinica !== null && netoFarmacia !== null){
+        const totalCombinado = netoClinica + netoFarmacia;
+        bloqueTotal = `
+          <div style="margin-top:12px; padding-top:10px; border-top:2px solid var(--navy-900); display:flex; justify-content:space-between; align-items:center;">
+            <b>Total a pagar (clínica + farmacia)</b>
+            <b style="font-size:17px;">${money(totalCombinado)}</b>
+          </div>`;
+      }
+
+      return `<div class="card"><h3>${esc(p.nombre)}</h3>${cuerpo}${bloqueFarmacia}${bloqueTotal}</div>`;
     }).join('');
   }
 
@@ -1436,6 +1608,25 @@
     const { error } = await sb.from('personal').update({ permisos: nuevosPermisos }).eq('id', id);
     if(error){ toast('⚠️ ' + error.message); return; }
     toast('✅ Esquema de comisión guardado');
+    cargarComisiones();
+  }
+
+  function mostrarEditorComisionFarmacia(id){
+    const el = document.getElementById('com-farm-editor-'+id);
+    el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+  }
+
+  async function guardarConfigComisionFarmacia(id){
+    const pctInput = document.getElementById('com-farm-pct-'+id);
+    const pct = parseFloat(pctInput.value);
+    if(isNaN(pct)){ toast('⚠️ Ingresa el % de comisión de farmacia'); return; }
+
+    const { data: actual, error: errGet } = await sb.from('personal').select('permisos').eq('id', id).single();
+    if(errGet){ toast('⚠️ ' + errGet.message); return; }
+    const nuevosPermisos = Object.assign({}, actual.permisos, { comision_farmacia_pct: pct });
+    const { error } = await sb.from('personal').update({ permisos: nuevosPermisos }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('✅ % de comisión de farmacia guardado');
     cargarComisiones();
   }
 
@@ -1673,6 +1864,63 @@
     toast('✅ Servicio agregado');
     cargarConfigCatalogo();
     cargarCatalogoServicios();
+  }
+
+  // ---- Catálogo de farmacia (Configuración) — búsqueda, no tabla completa (catálogo grande) ----
+  let cfgFarmaciaSearchTimer = null;
+  function onCfgFarmaciaBuscar(){
+    const q = document.getElementById('cfg-farmacia-buscar').value.trim();
+    clearTimeout(cfgFarmaciaSearchTimer);
+    if(q.length < 3){
+      document.getElementById('cfg-tabla-farmacia').style.display = 'none';
+      document.getElementById('cfg-farmacia-empty').style.display = 'block';
+      document.getElementById('cfg-farmacia-empty').textContent = 'Escribe arriba para buscar un producto. Por el tamaño del catálogo, los resultados se cargan por búsqueda en vez de mostrarse todos de golpe.';
+      return;
+    }
+    cfgFarmaciaSearchTimer = setTimeout(async ()=>{
+      const { data, error } = await sb.from('farmacia_productos').select('id, nombre, precio, activo').ilike('nombre', '%'+q+'%').order('nombre').limit(30);
+      if(error){ console.error('[Clinderm] Error buscando catálogo de farmacia:', error); return; }
+      const tabla = document.getElementById('cfg-tabla-farmacia');
+      const empty = document.getElementById('cfg-farmacia-empty');
+      if(!data || data.length === 0){
+        tabla.style.display = 'none';
+        empty.style.display = 'block';
+        empty.textContent = 'Sin resultados para "' + q + '".';
+        return;
+      }
+      tabla.innerHTML = '<tr><th>Nombre</th><th>Precio</th><th>Activo</th><th></th></tr>' + data.map(p=>`
+        <tr>
+          <td>${esc(p.nombre)}</td>
+          <td><input type="number" value="${p.precio}" style="width:100px;" onchange="guardarPrecioProductoFarmacia('${p.id}', this.value)"></td>
+          <td><input type="checkbox" ${p.activo?'checked':''} onchange="toggleProductoFarmaciaActivo('${p.id}', this.checked)"></td>
+          <td></td>
+        </tr>`).join('') + (data.length === 30 ? '<tr><td colspan="4" style="color:var(--muted); font-size:12px;">Mostrando los primeros 30 resultados — afina la búsqueda para ver más.</td></tr>' : '');
+      tabla.style.display = 'table';
+      empty.style.display = 'none';
+    }, 350);
+  }
+
+  async function guardarPrecioProductoFarmacia(id, precio){
+    const { error } = await sb.from('farmacia_productos').update({ precio: parseFloat(precio) || 0 }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    toast('✅ Precio actualizado');
+  }
+
+  async function toggleProductoFarmaciaActivo(id, activo){
+    const { error } = await sb.from('farmacia_productos').update({ activo }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); onCfgFarmaciaBuscar(); return; }
+    toast(activo ? '✅ Activado' : '⏸️ Desactivado');
+  }
+
+  async function crearProductoFarmacia(){
+    const nombre = document.getElementById('fp-nombre').value.trim();
+    const precio = parseFloat(document.getElementById('fp-precio').value) || 0;
+    if(!nombre){ toast('⚠️ Falta el nombre del producto'); return; }
+    const { error } = await sb.from('farmacia_productos').insert({ nombre, precio, activo: true });
+    if(error){ toast('⚠️ ' + error.message); return; }
+    document.getElementById('fp-nombre').value = '';
+    document.getElementById('fp-precio').value = '';
+    toast('✅ Producto agregado al catálogo de farmacia');
   }
 
   async function llamarPersonalAdmin(payload){
