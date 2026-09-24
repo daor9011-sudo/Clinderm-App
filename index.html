@@ -392,7 +392,7 @@
 
         <div class="reg-grid">
           <div class="field-wrap"><label>Fecha</label><input type="date" id="r-fecha" onchange="actualizarResumenLive()"></div>
-          <div class="field-wrap"><label>Atendido por</label>
+          <div class="field-wrap" id="r-doctor-wrap"><label>Atendido por</label>
             <select id="r-doctor" onchange="onDoctorChange()"><option value="">Cargando…</option></select>
           </div>
           <div class="field-wrap" id="r-tipopaciente-wrap" style="display:none;">
@@ -445,7 +445,7 @@
           </div>
           <div class="field-wrap" id="r-farmgenpor-wrap" style="display:none;">
             <label>¿Quién genera la venta?</label>
-            <select id="r-farmgenpor"><option value="">Selecciona…</option></select>
+            <select id="r-farmgenpor" onchange="actualizarResumenLive()"><option value="">Selecciona…</option></select>
           </div>
           <div class="field-wrap"><label>Monto</label><input type="number" id="r-monto" value="0" onchange="actualizarResumenLive()"></div>
 
@@ -970,8 +970,10 @@
     const procWrap = document.getElementById('procWrap');
     const farmaciaWrap = document.getElementById('farmaciaWrap');
     const farmGenPorWrap = document.getElementById('r-farmgenpor-wrap');
+    const doctorWrap = document.getElementById('r-doctor-wrap');
     document.getElementById('r-monto').value = 0;
     if(tipo === 'Procedimientos'){
+      doctorWrap.style.display = 'block';
       procWrap.style.display = 'block';
       farmaciaWrap.style.display = 'none';
       farmGenPorWrap.style.display = 'none';
@@ -982,12 +984,17 @@
         procedimientos.map(p=>`<option value="${p.id}" data-precio="${p.precio}">${esc(p.tipo_consulta)} — ${money(p.precio)}</option>`).join('');
       onProcedimientoChange();
     } else if(tipo === 'Farmacia'){
+      // "Atendido por" y "paciente propio/clínica" no aplican para farmacia: la persona que
+      // genera la venta (abajo) ya cubre esa atribución.
+      doctorWrap.style.display = 'none';
+      document.getElementById('r-tipopaciente-wrap').style.display = 'none';
       procWrap.style.display = 'none';
       farmaciaWrap.style.display = 'block';
       farmGenPorWrap.style.display = 'block';
       limpiarSeleccionFarmacia();
       actualizarResumenLive();
     } else {
+      doctorWrap.style.display = 'block';
       procWrap.style.display = 'none';
       farmaciaWrap.style.display = 'none';
       farmGenPorWrap.style.display = 'none';
@@ -1050,22 +1057,28 @@
   }
 
   function actualizarResumenLive(){
-    const doctorSel = document.getElementById('r-doctor');
-    const doctorNombre = (doctorSel.options[doctorSel.selectedIndex] && doctorSel.value) ? doctorSel.options[doctorSel.selectedIndex].text : '—';
     const tipo = document.getElementById('r-tipo').value;
     let tipoLabel = tipo;
+    let personaNombre;
     if(tipo === 'Procedimientos'){
+      const doctorSel = document.getElementById('r-doctor');
+      personaNombre = (doctorSel.options[doctorSel.selectedIndex] && doctorSel.value) ? doctorSel.options[doctorSel.selectedIndex].text : '—';
       const procSel = document.getElementById('r-procedimiento');
       const procOpt = procSel.options[procSel.selectedIndex];
       if(procOpt && procOpt.value) tipoLabel = procOpt.textContent.split(' — ')[0];
     } else if(tipo === 'Farmacia'){
+      const genSel = document.getElementById('r-farmgenpor');
+      personaNombre = (genSel.options[genSel.selectedIndex] && genSel.value) ? genSel.options[genSel.selectedIndex].text : '—';
       const buscar = document.getElementById('r-farmacia-buscar').value.trim();
       tipoLabel = buscar ? ('Farmacia: ' + buscar) : 'Farmacia';
+    } else {
+      const doctorSel = document.getElementById('r-doctor');
+      personaNombre = (doctorSel.options[doctorSel.selectedIndex] && doctorSel.value) ? doctorSel.options[doctorSel.selectedIndex].text : '—';
     }
     const paciente = document.getElementById('r-paciente').value.trim() || '—';
     const monto = parseFloat(document.getElementById('r-monto').value) || 0;
     document.getElementById('rl-name').textContent = paciente;
-    document.getElementById('rl-meta').textContent = doctorNombre + ' · ' + tipoLabel;
+    document.getElementById('rl-meta').textContent = personaNombre + ' · ' + tipoLabel;
     document.getElementById('rl-amount').textContent = money(monto);
   }
 
@@ -1113,7 +1126,7 @@
 
   async function guardarConsulta(){
     const fecha = document.getElementById('r-fecha').value;
-    const doctorId = document.getElementById('r-doctor').value;
+    let doctorId = document.getElementById('r-doctor').value;
     let tipo = document.getElementById('r-tipo').value;
     const nombrePaciente = document.getElementById('r-paciente').value.trim();
     const telefono = document.getElementById('r-telefono').value.trim();
@@ -1130,7 +1143,7 @@
     const pacientePropio = tipoPacienteWrapVisible ? (document.getElementById('r-tipopaciente').value === 'propio') : null;
 
     if(!fecha){ toast('⚠️ Falta la fecha'); return; }
-    if(!doctorId){ toast('⚠️ Selecciona quién atiende'); return; }
+    if(tipo !== 'Farmacia' && !doctorId){ toast('⚠️ Selecciona quién atiende'); return; }
     if(!nombrePaciente){ toast('⚠️ Falta el nombre del paciente'); return; }
     if(!telefono){ toast('⚠️ Falta el teléfono'); return; }
     if(tipo === 'Procedimientos'){
@@ -1148,6 +1161,7 @@
       if(!prodId){ toast('⚠️ Busca y selecciona un producto de farmacia'); return; }
       farmaciaGeneradoPor = document.getElementById('r-farmgenpor').value;
       if(!farmaciaGeneradoPor){ toast('⚠️ Selecciona quién genera la venta (para la comisión)'); return; }
+      doctorId = farmaciaGeneradoPor; // sin "Atendido por" en farmacia: se usa a quien generó la venta
       tipo = prodNombre;
     }
 
