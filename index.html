@@ -640,7 +640,7 @@
         <div class="hist-kpi-chips" id="h-kpi-chips"></div>
         <div style="display:flex; gap:8px; margin-bottom:12px;">
           <button class="btn btn-ghost" id="h-btn-papelera" onclick="togglePapelera()">🗑️ Papelera</button>
-          <button class="btn btn-ghost" onclick="exportarHistorialCSV()">⬇️ Exportar</button>
+          <button class="btn btn-ghost" data-doc style="display:none;" onclick="exportarHistorialCSV()">⬇️ Exportar</button>
         </div>
         <table class="data-table">
           <tr><th>Fecha</th><th>Paciente</th><th>Doctora</th><th>Tipo de Consulta</th><th style="text-align:right;">Monto</th><th>Pago</th><th>N° Factura</th><th>N° Recibo</th><th style="width:36px;"></th></tr>
@@ -988,6 +988,7 @@
   let FARMACIA_CATALOGO_CACHE = []; // catálogo de farmacia (activo=true), cargado una vez y ordenado alfabéticamente
   let CATALOGO_CACHE = []; // catálogo de consultas/procedimientos (catalogo_servicios)
   let PERSONAL_CACHE = []; // { id, nombre, comisionSoloPropios } — doctoras/cosmetólogas, para los selects "Atendido por"
+  let PERSONAL_COMISIONES_CACHE = []; // { id, nombre, permisos } — solo se llena si quien entró es admin (viene de fn_comisiones_admin)
   let SERVICIOS_CATALOGO_CACHE = []; // catálogo unificado (consultas + procedimientos + farmacia) para el selector del panel de Servicios
   const SERVICIOS_SEL = new Map(); // id del catálogo -> { doctorId, pacientePropio, monto } — servicios elegidos para la consulta actual
 
@@ -1076,10 +1077,10 @@
       toast('⚠️ Correo o contraseña incorrectos');
       return;
     }
-    const { data: perfil, error: perfilErr } = await sb.from('personal')
-      .select('id, nombre, rol, activo, permisos')
-      .eq('auth_user_id', data.user.id)
-      .single();
+    // Se usa fn_mi_perfil() (RPC) en vez de leer la tabla directo: la columna "permisos" ya no es
+    // legible con un select normal (ver refuerzo de seguridad de Comisiones), así que hasta para leer
+    // tu propio perfil hace falta esta función.
+    const { data: perfil, error: perfilErr } = await sb.rpc('fn_mi_perfil').single();
     document.getElementById('loadingScreen').classList.remove('show');
     if(perfilErr || !perfil || !perfil.activo){
       console.error('[Clinderm] Error consultando personal:', perfilErr);
@@ -1098,10 +1099,7 @@
   // Si ya hay sesión activa (recargó la página), entra directo
   sb.auth.getSession().then(async ({data:{session}})=>{
     if(!session) return;
-    const { data: perfil, error } = await sb.from('personal')
-      .select('id, nombre, rol, activo, permisos')
-      .eq('auth_user_id', session.user.id)
-      .single();
+    const { data: perfil, error } = await sb.rpc('fn_mi_perfil').single();
     if(error){ console.error('[Clinderm] Error consultando personal (sesión existente):', error); return; }
     if(perfil && perfil.activo) entrarAlShell(perfil);
   });
@@ -1145,9 +1143,12 @@
   // REGISTRO
   // ============================================================
   async function cargarDoctores(){
-    const { data, error } = await sb.from('personal').select('id, nombre, permisos').eq('rol','doctor').eq('activo', true).order('nombre');
+    // Se usa fn_doctores_registro() (RPC) en vez de leer "permisos" directo de la tabla: cualquier
+    // rol (incluida recepción) necesita este listado para el selector "Atendido por", pero la función
+    // solo expone la bandera "solo_propios", nunca los porcentajes de comisión de nadie.
+    const { data, error } = await sb.rpc('fn_doctores_registro');
     if(error){ console.error('[Clinderm] Error cargando doctores:', error); return; }
-    PERSONAL_CACHE = (data||[]).map(d=>({ id: d.id, nombre: d.nombre, comisionSoloPropios: !!(d.permisos && d.permisos.comision_solo_propios) }));
+    PERSONAL_CACHE = (data||[]).map(d=>({ id: d.id, nombre: d.nombre, comisionSoloPropios: !!d.solo_propios }));
     const opts = (data||[]).map(d=>`<option value="${d.id}">${esc(d.nombre)}</option>`).join('');
     document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
     document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
@@ -1820,9 +1821,12 @@
     const personaFiltro = document.getElementById('com-persona').value;
     const { desde, hasta } = rangoComisiones(periodo);
 
-    const { data: personal, error: errPersonal } = await sb.from('personal')
-      .select('id, nombre, permisos').eq('rol','doctor').eq('activo', true).order('nombre');
+    // fn_comisiones_admin() (RPC) en vez de leer "permisos" directo: esta función devuelve el detalle
+    // solo si quien la llama es admin -- si alguien más la invoca (por ejemplo forzándolo desde la
+    // consola del navegador) recibe una lista vacía en vez de los porcentajes de comisión de todos.
+    const { data: personal, error: errPersonal } = await sb.rpc('fn_comisiones_admin');
     if(errPersonal){ console.error('[Clinderm] Error cargando personal para comisiones:', errPersonal); return; }
+    PERSONAL_COMISIONES_CACHE = personal || [];
 
     const personalConComision = (personal||[]).filter(p => !PERSONAL_SIN_COMISION.some(n => normalizar(p.nombre).includes(n)));
 
@@ -1985,8 +1989,11 @@
     const isrPct = parseFloat(isrInput.value) || 0;
     const soloPropios = propiosInput.checked;
 
-    const { data: actual, error: errGet } = await sb.from('personal').select('permisos').eq('id', id).single();
-    if(errGet){ toast('⚠️ ' + errGet.message); return; }
+    // El detalle de permisos ya está en memoria (vino de fn_comisiones_admin, que solo devuelve datos
+    // si quien entró es admin) -- no hace falta un select aparte, que además ya no se puede hacer
+    // directo a la tabla desde que se restringió la columna "permisos".
+    const actual = PERSONAL_COMISIONES_CACHE.find(p => p.id === id);
+    if(!actual){ toast('⚠️ No se encontró el detalle de esa persona, recarga la pestaña'); return; }
     const nuevosPermisos = Object.assign({}, actual.permisos, { comision_pct: pct, comision_isr_pct: isrPct, comision_solo_propios: soloPropios });
     const { error } = await sb.from('personal').update({ permisos: nuevosPermisos }).eq('id', id);
     if(error){ toast('⚠️ ' + error.message); return; }
@@ -2004,8 +2011,8 @@
     const pct = parseFloat(pctInput.value);
     if(isNaN(pct)){ toast('⚠️ Ingresa el % de comisión de farmacia'); return; }
 
-    const { data: actual, error: errGet } = await sb.from('personal').select('permisos').eq('id', id).single();
-    if(errGet){ toast('⚠️ ' + errGet.message); return; }
+    const actual = PERSONAL_COMISIONES_CACHE.find(p => p.id === id);
+    if(!actual){ toast('⚠️ No se encontró el detalle de esa persona, recarga la pestaña'); return; }
     const nuevosPermisos = Object.assign({}, actual.permisos, { comision_farmacia_pct: pct });
     const { error } = await sb.from('personal').update({ permisos: nuevosPermisos }).eq('id', id);
     if(error){ toast('⚠️ ' + error.message); return; }
