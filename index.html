@@ -247,7 +247,7 @@
 
   /* ---- Comisiones: tarjetas compactas en una sola línea ---- */
   .comisiones-grid{display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; align-items:stretch;}
-  .comision-card{flex:1 1 300px; min-width:270px; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; position:relative; overflow:hidden;}
+  .comision-card{flex:1 1 300px; min-width:270px; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; position:relative; overflow:hidden; display:flex; flex-direction:column;}
   .comision-card::before{content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, var(--teal), var(--navy-600));}
   .comision-head{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
   .comision-avatar{width:36px; height:36px; border-radius:50%; background:var(--navy-700); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-family:'Bricolage Grotesque',sans-serif; font-size:13px; flex:none;}
@@ -258,7 +258,7 @@
   .comision-row span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted);}
   .comision-row b{color:var(--navy-900);}
   .comision-sub{display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:12.5px;}
-  .comision-neto{display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:2px solid var(--navy-900);}
+  .comision-neto{display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; border-top:2px solid var(--navy-900);}
   .comision-neto b:last-child{font-family:'Bricolage Grotesque',sans-serif; font-size:18px; color:var(--navy-900);}
   @media (max-width:900px){.comisiones-grid{flex-wrap:wrap; overflow-x:visible;} .comision-card{flex:1 1 100%;}}
 
