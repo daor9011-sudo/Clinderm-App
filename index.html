@@ -245,6 +245,23 @@
   .kpi-card .v{font-family:'Bricolage Grotesque',sans-serif; font-size:19px; font-weight:800; color:var(--navy-900);}
   #chDoc-wrap{position:relative; width:100%;}
 
+  /* ---- Comisiones: tarjetas compactas en una sola línea ---- */
+  .comisiones-grid{display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; align-items:stretch;}
+  .comision-card{flex:1 1 300px; min-width:270px; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; position:relative; overflow:hidden;}
+  .comision-card::before{content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, var(--teal), var(--navy-600));}
+  .comision-head{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+  .comision-avatar{width:36px; height:36px; border-radius:50%; background:var(--navy-700); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-family:'Bricolage Grotesque',sans-serif; font-size:13px; flex:none;}
+  .comision-nombre-linea{font-size:13.5px; line-height:1.3;}
+  .comision-nombre-linea b{color:var(--navy-900); font-weight:700;}
+  .comision-nombre-linea .meta{color:var(--muted); font-size:11.5px; font-weight:500;}
+  .comision-row{display:flex; justify-content:space-between; gap:10px; font-size:12px; padding:4px 0; border-bottom:1px solid #EEF1F6; white-space:nowrap;}
+  .comision-row span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted);}
+  .comision-row b{color:var(--navy-900);}
+  .comision-sub{display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:12.5px;}
+  .comision-neto{display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:2px solid var(--navy-900);}
+  .comision-neto b:last-child{font-family:'Bricolage Grotesque',sans-serif; font-size:18px; color:var(--navy-900);}
+  @media (max-width:900px){.comisiones-grid{flex-wrap:wrap; overflow-x:visible;} .comision-card{flex:1 1 100%;}}
+
   /* ---- Tarjetas de resumen (KPI chips) del Historial, estilo Skin Fabric ---- */
   .hist-kpi-chips{display:flex; gap:10px; flex-wrap:wrap; margin:-2px 0 16px;}
   .hist-chip{background:#fff; border:1px solid var(--border); border-radius:11px; padding:8px 16px 8px 8px; display:flex; align-items:center; gap:10px; box-shadow:0 1px 2px rgba(11,22,40,.04);}
@@ -625,7 +642,8 @@
           <div class="fitem"><label>Persona</label><select id="com-persona" onchange="cargarComisiones()"><option value="">Todas</option></select></div>
         </div>
       </div>
-      <div id="com-cards"><div class="empty-state">Cargando…</div></div>
+      <div class="kpi-cards" id="com-kpis"></div>
+      <div class="comisiones-grid" id="com-cards"><div class="empty-state">Cargando…</div></div>
     </section>
 
     <!-- DASHBOARD -->
@@ -1066,6 +1084,7 @@
   // La tabla "personal" no distingue doctora de cosmetóloga (ambas tienen rol='doctor'), así que se
   // filtra por nombre; si cambia quién da consulta, actualizar esta lista.
   const DOCTORAS_CONSULTA = ['laura galvan', 'tania de la vega'];
+  const PERSONAL_SIN_COMISION = ['tania de la vega']; // la Dra. Tania no aparece en la pestaña Comisiones (es la dueña)
   function puedeDarConsulta(persona){
     const n = normalizar(persona.nombre);
     return DOCTORAS_CONSULTA.some(d => n.includes(d));
@@ -1679,12 +1698,14 @@
       .select('id, nombre, permisos').eq('rol','doctor').eq('activo', true).order('nombre');
     if(errPersonal){ console.error('[Clinderm] Error cargando personal para comisiones:', errPersonal); return; }
 
+    const personalConComision = (personal||[]).filter(p => !PERSONAL_SIN_COMISION.some(n => normalizar(p.nombre).includes(n)));
+
     const selPersona = document.getElementById('com-persona');
     const seleccionActual = selPersona.value;
-    selPersona.innerHTML = '<option value="">Todas</option>' + (personal||[]).map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
+    selPersona.innerHTML = '<option value="">Todas</option>' + personalConComision.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
     selPersona.value = seleccionActual;
 
-    const personas = (personal||[]).filter(p => !personaFiltro || p.id === personaFiltro);
+    const personas = personalConComision.filter(p => !personaFiltro || p.id === personaFiltro);
 
     const { data: consultas, error: errConsultas } = await sb.from('consultas')
       .select('doctor_id, monto, monto_2, paciente_propio')
@@ -1699,7 +1720,10 @@
     if(errFarmacia){ console.error('[Clinderm] Error cargando ventas de farmacia para comisiones:', errFarmacia); }
 
     const cont = document.getElementById('com-cards');
-    if(personas.length === 0){ cont.innerHTML = '<div class="empty-state">No hay doctoras/cosmetólogas activas.</div>'; return; }
+    const kpiCont = document.getElementById('com-kpis');
+    if(personas.length === 0){ cont.innerHTML = '<div class="empty-state">No hay doctoras/cosmetólogas activas.</div>'; kpiCont.innerHTML=''; return; }
+
+    let kpiNetoTotal = 0, kpiProductividad = 0, kpiFarmacia = 0, kpiPendientes = 0;
 
     cont.innerHTML = personas.map(p=>{
       const misConsultas = (consultas||[]).filter(c => c.doctor_id === p.id);
@@ -1712,11 +1736,14 @@
       const pct = (p.permisos && p.permisos.comision_pct != null) ? Number(p.permisos.comision_pct) : null;
       const isrPct = (p.permisos && p.permisos.comision_isr_pct != null) ? Number(p.permisos.comision_isr_pct) : 0;
 
+      kpiProductividad += totalGeneral;
+
       let cuerpo;
       let netoClinica = null;
       if(pct === null){
+        kpiPendientes++;
         cuerpo = `
-          <div class="empty-state">⚠️ Esquema de comisión pendiente de definir para ${esc(p.nombre)}.<br>Productividad del período (informativa): <b>${money(totalGeneral)}</b></div>
+          <div class="empty-state">⚠️ Esquema de comisión pendiente de definir.<br>Productividad del período (informativa): <b>${money(totalGeneral)}</b></div>
           <div style="margin-top:10px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
             <div class="field-wrap" style="margin:0;"><label>% Comisión</label><input type="number" id="com-pct-${p.id}" style="width:90px;" placeholder="Ej. 30"></div>
             <div class="field-wrap" style="margin:0;"><label>% ISR / descuento</label><input type="number" id="com-isr-${p.id}" style="width:90px;" value="0"></div>
@@ -1729,30 +1756,22 @@
         const neto = comisionBruta - isr;
         netoClinica = neto;
         cuerpo = `
-          <table style="width:100%; margin-top:6px;">
-            ${soloPropios ? `
-            <tr><td>Productividad total (todas sus consultas)</td><td style="text-align:right;">${money(totalGeneral)}</td></tr>
-            <tr><td>Pacientes de la clínica (no aplica comisión)</td><td style="text-align:right; color:var(--muted);">− ${money(totalClinica)}</td></tr>
-            <tr style="border-top:1px solid var(--border);"><td><b>Base de comisión (pacientes propios)</b></td><td style="text-align:right;"><b>${money(base)}</b></td></tr>
-            ` : `
-            <tr style="border-top:1px solid var(--border);"><td><b>Base de comisión (productividad total)</b></td><td style="text-align:right;"><b>${money(base)}</b></td></tr>
-            `}
-            <tr><td>Comisión (${pct}%)</td><td style="text-align:right;">${money(comisionBruta)}</td></tr>
-            <tr><td>ISR / descuento (${isrPct}%)</td><td style="text-align:right; color:var(--muted);">− ${money(isr)}</td></tr>
-            <tr style="border-top:2px solid var(--navy-900);"><td><b>Neto a pagar</b></td><td style="text-align:right; font-size:16px;"><b>${money(neto)}</b></td></tr>
-          </table>
-          <div style="margin-top:10px; text-align:right;">
-            <span class="toggle-link" onclick="mostrarEditorComision('${p.id}')">Editar esquema de comisión</span>
+          <div class="comision-row"><span>${soloPropios ? 'Base (propios)' : 'Base (productividad total)'}</span><b>${money(base)}</b></div>
+          <div class="comision-row"><span>Comisión (${pct}%)</span><span>${money(comisionBruta)}</span></div>
+          ${isrPct > 0 ? `<div class="comision-row"><span>ISR (${isrPct}%)</span><span style="color:var(--muted);">− ${money(isr)}</span></div>` : ''}
+          <div class="comision-sub"><b>Subtotal productividad</b><b>${money(neto)}</b></div>
+          <div style="margin-top:6px; text-align:right;">
+            <span class="toggle-link" style="font-size:11px; margin:0;" onclick="mostrarEditorComision('${p.id}')">Editar esquema</span>
           </div>
-          <div id="com-editor-${p.id}" style="display:none; margin-top:10px; gap:8px; align-items:flex-end; flex-wrap:wrap;">
-            <div class="field-wrap" style="margin:0;"><label>% Comisión</label><input type="number" id="com-pct-${p.id}" style="width:90px;" value="${pct}"></div>
-            <div class="field-wrap" style="margin:0;"><label>% ISR / descuento</label><input type="number" id="com-isr-${p.id}" style="width:90px;" value="${isrPct}"></div>
-            <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;"><input type="checkbox" id="com-propios-${p.id}" ${soloPropios?'checked':''}> Solo pacientes propios</label>
-            <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComision('${p.id}')">Guardar</button>
+          <div id="com-editor-${p.id}" style="display:none; margin-top:8px; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+            <div class="field-wrap" style="margin:0;"><label>% Comisión</label><input type="number" id="com-pct-${p.id}" style="width:80px;" value="${pct}"></div>
+            <div class="field-wrap" style="margin:0;"><label>% ISR</label><input type="number" id="com-isr-${p.id}" style="width:70px;" value="${isrPct}"></div>
+            <label style="display:flex; align-items:center; gap:5px; font-size:11.5px;"><input type="checkbox" id="com-propios-${p.id}" ${soloPropios?'checked':''}> Solo propios</label>
+            <button class="btn btn-teal" style="width:auto; padding:7px 12px; font-size:12px;" onclick="guardarConfigComision('${p.id}')">Guardar</button>
           </div>`;
       }
 
-      // ── Comisión por venta de farmacia (5% de lo que esa persona generó como "quién receta", sin ISR) ──
+      // ── Comisión por venta de farmacia (¿quién receta / genera la venta?, sin ISR) ──
       const misVentasFarmacia = (ventasFarmacia||[]).filter(v => v.farmacia_generado_por === p.id);
       const totalFarmacia = misVentasFarmacia.reduce((a,v)=> a + Number(v.monto||0) + Number(v.monto_2||0), 0);
       const farmaciaPct = (p.permisos && p.permisos.comision_farmacia_pct != null) ? Number(p.permisos.comision_farmacia_pct) : null;
@@ -1761,49 +1780,69 @@
       let netoFarmacia = null;
       if(totalFarmacia > 0 || farmaciaPct !== null){
         if(farmaciaPct === null){
+          kpiPendientes++;
           bloqueFarmacia = `
-            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-              <div class="empty-state">💊 Generó ${money(totalFarmacia)} en ventas de farmacia, pero no tiene % de comisión configurado.</div>
-              <div style="margin-top:8px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
-                <div class="field-wrap" style="margin:0;"><label>% Comisión farmacia</label><input type="number" id="com-farm-pct-${p.id}" style="width:90px;" placeholder="Ej. 5"></div>
-                <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComisionFarmacia('${p.id}')">Guardar</button>
+            <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border);">
+              <div class="empty-state" style="font-size:11.5px; padding:8px;">💊 Generó ${money(totalFarmacia)} en farmacia, sin % configurado.</div>
+              <div style="margin-top:6px; display:flex; gap:6px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field-wrap" style="margin:0;"><label>% Farmacia</label><input type="number" id="com-farm-pct-${p.id}" style="width:70px;" placeholder="Ej. 5"></div>
+                <button class="btn btn-teal" style="width:auto; padding:7px 12px; font-size:12px;" onclick="guardarConfigComisionFarmacia('${p.id}')">Guardar</button>
               </div>
             </div>`;
         } else {
           const comisionFarmacia = totalFarmacia * (farmaciaPct/100);
           netoFarmacia = comisionFarmacia;
+          kpiFarmacia += comisionFarmacia;
           bloqueFarmacia = `
-            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-              <div style="font-weight:600; font-size:13px; color:var(--muted); margin-bottom:4px;">💊 Comisión por venta de farmacia (¿quién receta / genera la venta?)</div>
-              <table style="width:100%;">
-                <tr><td>Ventas de farmacia generadas</td><td style="text-align:right;">${money(totalFarmacia)}</td></tr>
-                <tr><td>Comisión (${farmaciaPct}%, sin ISR)</td><td style="text-align:right;">${money(comisionFarmacia)}</td></tr>
-                <tr style="border-top:2px solid var(--navy-900);"><td><b>Neto a pagar (farmacia)</b></td><td style="text-align:right; font-size:15px;"><b>${money(comisionFarmacia)}</b></td></tr>
-              </table>
-              <div style="margin-top:8px; text-align:right;">
-                <span class="toggle-link" onclick="mostrarEditorComisionFarmacia('${p.id}')">Editar % de farmacia</span>
+            <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border);">
+              <div class="comision-row"><span>💊 Farmacia generada</span><span>${money(totalFarmacia)}</span></div>
+              <div class="comision-row"><span>Comisión (${farmaciaPct}%, sin ISR)</span><span>${money(comisionFarmacia)}</span></div>
+              <div class="comision-sub"><b>Subtotal farmacia</b><b>${money(comisionFarmacia)}</b></div>
+              <div style="margin-top:6px; text-align:right;">
+                <span class="toggle-link" style="font-size:11px; margin:0;" onclick="mostrarEditorComisionFarmacia('${p.id}')">Editar % farmacia</span>
               </div>
-              <div id="com-farm-editor-${p.id}" style="display:none; margin-top:8px; gap:8px; align-items:flex-end; flex-wrap:wrap;">
-                <div class="field-wrap" style="margin:0;"><label>% Comisión farmacia</label><input type="number" id="com-farm-pct-${p.id}" style="width:90px;" value="${farmaciaPct}"></div>
-                <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComisionFarmacia('${p.id}')">Guardar</button>
+              <div id="com-farm-editor-${p.id}" style="display:none; margin-top:6px; gap:6px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="field-wrap" style="margin:0;"><label>% Farmacia</label><input type="number" id="com-farm-pct-${p.id}" style="width:70px;" value="${farmaciaPct}"></div>
+                <button class="btn btn-teal" style="width:auto; padding:7px 12px; font-size:12px;" onclick="guardarConfigComisionFarmacia('${p.id}')">Guardar</button>
               </div>
             </div>`;
         }
       }
 
-      // ── Total combinado (clínica + farmacia) cuando ambos esquemas ya están configurados ──
+      // ── Neto a pagar = subtotal productividad + subtotal farmacia (aunque farmacia sea $0 en el período) ──
       let bloqueTotal = '';
-      if(netoClinica !== null && netoFarmacia !== null){
-        const totalCombinado = netoClinica + netoFarmacia;
+      if(netoClinica !== null){
+        const netoFinal = netoClinica + (netoFarmacia || 0);
+        kpiNetoTotal += netoFinal;
         bloqueTotal = `
-          <div style="margin-top:12px; padding-top:10px; border-top:2px solid var(--navy-900); display:flex; justify-content:space-between; align-items:center;">
-            <b>Total a pagar (clínica + farmacia)</b>
-            <b style="font-size:17px;">${money(totalCombinado)}</b>
+          <div class="comision-neto">
+            <b>Neto a pagar</b>
+            <b>${money(netoFinal)}</b>
           </div>`;
       }
 
-      return `<div class="card"><h3>${esc(p.nombre)}</h3>${cuerpo}${bloqueFarmacia}${bloqueTotal}</div>`;
+      const metaTxt = pct === null ? 'Esquema pendiente' : (soloPropios ? `Solo propios · ${pct}% comisión` : `Productividad total · ${pct}% comisión`);
+      return `<div class="comision-card">
+        <div class="comision-head">
+          <div class="comision-avatar">${esc(inicialesPersona(p.nombre))}</div>
+          <div class="comision-nombre-linea"><b>${esc(p.nombre)}</b> <span class="meta">· ${esc(metaTxt)}</span></div>
+        </div>
+        ${cuerpo}${bloqueFarmacia}${bloqueTotal}
+      </div>`;
     }).join('');
+
+    kpiCont.innerHTML = `
+      <div class="kpi-card"><div class="ico">💰</div><div class="l">Neto total a pagar</div><div class="v">${money(kpiNetoTotal)}</div></div>
+      <div class="kpi-card"><div class="ico">🩺</div><div class="l">Productividad del período</div><div class="v">${money(kpiProductividad)}</div></div>
+      <div class="kpi-card"><div class="ico">💊</div><div class="l">Comisión farmacia</div><div class="v">${money(kpiFarmacia)}</div></div>
+      <div class="kpi-card"><div class="ico">⚠️</div><div class="l">Esquemas pendientes</div><div class="v">${kpiPendientes}</div></div>
+    `;
+  }
+
+  function inicialesPersona(nombre){
+    const limpio = (nombre||'').replace(/^(dra\.?|dr\.?|lic\.?)\s+/i, '').trim();
+    const partes = limpio.split(/\s+/).filter(Boolean);
+    return partes.slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
   }
 
   function mostrarEditorComision(id){
