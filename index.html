@@ -216,6 +216,13 @@
   table{width:100%; border-collapse:collapse; font-size:12.8px;}
   th{text-align:left; color:var(--muted); font-size:11px; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border);}
   td{padding:9px 10px; border-bottom:1px solid #EEF1F6;}
+  /* ---- Tabla de datos con formato, estilo Skin Fabric (encabezado sólido, cebra, hover) ---- */
+  table.data-table{border-collapse:separate; border-spacing:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff;}
+  .data-table th{background:#EAF6F6; color:var(--navy-700); font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; padding:12px 14px; border-bottom:2px solid rgba(42,191,191,.45); white-space:nowrap;}
+  .data-table td{padding:11px 14px; border-bottom:1px solid #EEF1F6; font-size:13px; color:var(--ink); vertical-align:middle;}
+  .data-table tbody tr:nth-child(even){background:#F7F9FC;}
+  .data-table tbody tr:hover{background:rgba(42,191,191,.08);}
+  .data-table tbody tr:last-child td{border-bottom:none;}
   .badge{padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;}
   .badge-ghost{background:#EEF1F6; color:var(--muted);}
   .badge-warn{background:#FDF3E0; color:var(--warn);}
@@ -545,7 +552,7 @@
           <button class="btn btn-ghost" onclick="exportarHistorialCSV()">⬇️ Exportar</button>
         </div>
         <table class="data-table">
-          <tr><th>Fecha</th><th>Paciente</th><th>Doctora</th><th>Tipo de Consulta</th><th>Monto</th><th>Pago</th><th>N° Factura</th><th>N° Recibo</th><th></th></tr>
+          <tr><th>Fecha</th><th>Paciente</th><th>Doctora</th><th>Tipo de Consulta</th><th style="text-align:right;">Monto</th><th>Pago</th><th>N° Factura</th><th>N° Recibo</th><th style="width:36px;"></th></tr>
           <tbody id="h-tbody"><tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">Cargando…</td></tr></tbody>
         </table>
       </div>
@@ -1448,25 +1455,30 @@
       return;
     }
 
+    const pagoPill = (medio)=>{
+      const info = MEDIOS_INFO[medio] || {cls:'efectivo', icon:'💰'};
+      return `<span class="doc-pill ${info.cls}">${info.icon} ${esc(medio)}</span>`;
+    };
+
     tbody.innerHTML = rows.map(r=>{
       const pacienteNombre = r.pacientes ? esc(r.pacientes.nombre) : '—';
       const noVinoBadge = r.no_vino ? ' <span class="badge badge-ghost">👻</span>' : '';
       const doctorNombre = r.personal ? esc(r.personal.nombre) : '—';
-      const montoTxt = r.no_vino ? '$0.00' : money(r.monto) + (r.monto_2 ? `<div style="color:var(--muted); font-size:10.5px;">+ ${money(r.monto_2)}</div>` : '');
-      const pagoTxt = r.no_vino ? '—' : esc(r.medio_pago||'—') + (r.medio_pago_2 ? `<div style="color:var(--muted); font-size:10.5px;">+ ${esc(r.medio_pago_2)}</div>` : '');
+      const montoTxt = r.no_vino ? '$0.00' : money(r.monto) + (r.monto_2 ? `<div style="color:var(--muted); font-size:10.5px; font-weight:400;">+ ${money(r.monto_2)}</div>` : '');
+      const pagoTxt = r.no_vino ? '—' : pagoPill(r.medio_pago||'—') + (r.medio_pago_2 ? `<div style="margin-top:4px;">${pagoPill(r.medio_pago_2)}</div>` : '');
       const accion = MOSTRANDO_PAPELERA
         ? `<button class="btn btn-ghost" style="padding:4px 8px; font-size:11px;" onclick="restaurarConsulta('${r.id}')">♻️ Restaurar</button>`
         : `<span style="cursor:pointer;" onclick="abrirEditarConsulta('${r.id}')">✏️</span>`;
       return `<tr>
-        <td>${fechaCorta(r.fecha)}</td>
-        <td>${pacienteNombre}${noVinoBadge}</td>
+        <td style="color:var(--muted); white-space:nowrap;">${fechaCorta(r.fecha)}</td>
+        <td style="font-weight:700; color:var(--navy-900);">${pacienteNombre}${noVinoBadge}</td>
         <td>${doctorNombre}</td>
         <td>${esc(r.tipo_consulta)}</td>
-        <td>${montoTxt}</td>
+        <td style="text-align:right; font-weight:700; color:var(--navy-900); white-space:nowrap;">${montoTxt}</td>
         <td>${pagoTxt}</td>
         <td>${esc(r.num_factura || '—')}</td>
         <td>${esc(r.numero_recibo || '—')}</td>
-        <td>${accion}</td>
+        <td style="text-align:center;">${accion}</td>
       </tr>`;
     }).join('');
   }
