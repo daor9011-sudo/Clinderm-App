@@ -407,6 +407,10 @@
   .modal-icon{width:44px; height:44px; border-radius:50%; background:#EAF7F7; color:var(--teal-dark); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:10px;}
   .modal-actions{display:flex; justify-content:center; gap:10px; margin-top:18px;}
   .app-toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--navy-900); color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; box-shadow:0 12px 30px -8px rgba(0,0,0,.4); opacity:0; pointer-events:none; transition:.25s; z-index:999;}
+  /* Marca de versión, discreta, esquina inferior derecha — sirve para confirmar de un vistazo si el
+     navegador ya trae el archivo más reciente. Va por debajo de la barra fija de Registro (z-index 60)
+     a propósito: si esa barra está visible, la marca queda oculta y no estorba el flujo de cobro. */
+  #app-version-badge{position:fixed; right:10px; bottom:8px; font-size:10px; color:var(--muted); opacity:.55; z-index:5; pointer-events:none; letter-spacing:.02em; user-select:none;}
   .app-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
   .banner-note{background:#EAF0FA; border:1px solid #CFE0F5; color:var(--navy-600); font-size:12px; padding:8px 12px; border-radius:9px; margin-bottom:14px;}
@@ -906,6 +910,7 @@
 </div>
 
 <div id="toast" class="app-toast"></div>
+<div id="app-version-badge"></div>
 
 <!-- Modal genérico de confirmación (reemplaza confirm() nativo) -->
 <div class="modal-bg" id="confirmModal">
@@ -969,6 +974,14 @@
   // ============================================================
   // SUPABASE — Clinderm App
   // ============================================================
+  // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
+  // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
+  const APP_VERSION = 'v1.0 · 2026-09-25';
+  document.addEventListener('DOMContentLoaded', () => {
+    const badge = document.getElementById('app-version-badge');
+    if(badge) badge.textContent = APP_VERSION;
+  });
+
   const SUPABASE_URL = 'https://lgkgludqezqoklcyxiuz.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxna2dsdWRxZXpxb2tsY3l4aXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMjM2MzgsImV4cCI6MjEwNTU5OTYzOH0.7V7p5GwWYhpNAgKDDs5mfI5R4GzOR3g9hO4FNQscdQE';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
