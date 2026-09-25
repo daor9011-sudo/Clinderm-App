@@ -274,6 +274,50 @@
   .cat-tile .dot.farmacia{background:#7D3C98;}
   .cat-tile .amt{font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:800; color:var(--navy-900); margin-top:4px; font-variant-numeric:tabular-nums;}
   .cat-tile .pct{font-size:9.5px; color:var(--muted); font-weight:600;}
+  .chart-empty-msg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:11px; text-align:center; padding:0 14px;}
+
+  /* ---- Dashboard: filtros compactos y tarjeta "cara a cara" estilo Skin Fabric ---- */
+  .filter-bar{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+  .filter-bar select{padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--ink); font-family:inherit; outline:none;}
+  .filter-bar select:focus{border-color:var(--teal);}
+  .prod-card{background:#fff; border-radius:11px; padding:14px 16px 16px; border:1.5px solid var(--teal); position:relative; overflow:hidden; margin-bottom:14px;}
+  .prod-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--teal), var(--navy-600));}
+  .prod-head{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:2px;}
+  .prod-title{font-family:'Bricolage Grotesque',sans-serif; font-size:13.5px; font-weight:800; color:var(--navy-900);}
+  .prod-period{font-size:9.5px; color:var(--muted); background:var(--bg); border-radius:6px; padding:3px 8px; font-weight:700; white-space:nowrap;}
+  .prod-sub{font-size:10.5px; color:var(--muted); margin:2px 0 14px;}
+  .scoreboard{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; margin-bottom:16px;}
+  .doc-side{display:flex; flex-direction:column; gap:4px; min-width:0;}
+  .doc-side.right{align-items:flex-end; text-align:right;}
+  .doc-chip{display:flex; align-items:center; gap:7px; min-width:0; overflow:hidden;}
+  .doc-chip>div{min-width:0;}
+  .doc-side.right .doc-chip{flex-direction:row-reverse;}
+  .doc-avatar{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-size:10.5px; font-weight:800; color:#fff; flex:none;}
+  .doc-avatar.a{background:var(--teal-dark);}
+  .doc-avatar.b{background:var(--navy-600);}
+  .doc-name{display:block; font-size:11.5px; font-weight:700; color:var(--navy-900); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:170px;}
+  .doc-total-label{font-size:8.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--muted);}
+  .doc-total{font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .doc-total.a{color:var(--teal-dark);}
+  .doc-total.b{color:var(--navy-600);}
+  .vs-badge{font-family:'Bricolage Grotesque',sans-serif; font-size:11px; font-weight:800; color:#94A3B8; width:26px; height:26px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; background:var(--bg); flex:none;}
+  .metric-row{margin-bottom:12px;}
+  .metric-row:last-child{margin-bottom:0;}
+  .metric-label{text-align:center; font-size:8.8px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;}
+  .tug{display:grid; grid-template-columns:1fr 2px 1fr; align-items:center; height:16px;}
+  .tug .side{height:9px; border-radius:5px; background:var(--bg); position:relative; overflow:hidden;}
+  .tug .side.left{display:flex; justify-content:flex-end;}
+  .tug .fill{height:100%; border-radius:5px;}
+  .tug .fill.a{background:var(--teal-dark);}
+  .tug .fill.b{background:var(--navy-600);}
+  .tug .mid{background:var(--border); height:100%;}
+  .tug-vals{display:grid; grid-template-columns:1fr 2px 1fr; margin-top:3px;}
+  .tug-vals .val{font-size:10.5px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--navy-900);}
+  .tug-vals .val.left{text-align:right; padding-right:2px;}
+  .tug-vals .val.right{text-align:left; padding-left:2px;}
+  .tug-vals .val.win{font-weight:800;}
+  .tug-vals .val.a.win{color:var(--teal-dark);}
+  .tug-vals .val.b.win{color:var(--navy-600);}
 
   /* ---- Comisiones: tarjetas compactas en una sola línea ---- */
   .comisiones-grid{display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; align-items:stretch;}
@@ -679,10 +723,10 @@
     <!-- DASHBOARD -->
     <section class="screen" id="screen-dashboard">
       <div class="card">
-        <div class="filters">
-          <div class="fitem"><label>Período</label><select id="dash-periodo" onchange="cargarDashboard()"><option value="30">30 días</option><option value="mes">Este mes</option><option value="90">90 días</option><option value="365">Año</option></select></div>
-          <div class="fitem"><label>Doctora</label><select id="dash-doctor-filtro" onchange="cargarDashboard()"><option value="">Todas</option></select></div>
-          <div class="fitem"><label>Tipo de consulta</label><select id="dash-tipo-filtro" onchange="cargarDashboard()"><option value="">Todos</option><option value="primera">Primera vez</option><option value="subsecuente">Subsecuente</option><option value="procedimiento">Procedimientos</option><option value="farmacia">Farmacia</option></select></div>
+        <div class="filter-bar">
+          <select id="dash-periodo" onchange="cargarDashboard()"><option value="30">30 días</option><option value="mes">Este mes</option><option value="90">90 días</option><option value="365">Año</option></select>
+          <select id="dash-doctor-filtro" onchange="cargarDashboard()"><option value="">Todas las doctoras</option></select>
+          <select id="dash-tipo-filtro" onchange="cargarDashboard()"><option value="">Todos los tipos</option><option value="primera">Primera vez</option><option value="subsecuente">Subsecuente</option><option value="procedimiento">Procedimientos</option><option value="farmacia">Farmacia</option></select>
         </div>
         <div class="kpi-cards">
           <div class="kpi-card"><div class="ico">💰</div><div class="l">Ingreso total</div><div class="v" id="dash-kpi-total">$0</div></div>
@@ -691,10 +735,42 @@
           <div class="kpi-card"><div class="ico">🏆</div><div class="l">Doctora top</div><div class="v" id="dash-kpi-top" style="font-size:14px;">—</div></div>
         </div>
         <div id="dash-chart-warning" style="display:none; background:#FFF4E5; border:1px solid #F5A623; color:#8A5A00; border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:13px;">⚠️ No se pudieron cargar las gráficas — revisa tu conexión a internet y recarga la página. Los totales de arriba sí son correctos.</div>
-        <div class="cat-card">
-          <div class="chart-title"><span>🗂️ Ingreso por categoría</span></div>
-          <div class="seg-bar" id="dash-cat-segbar"></div>
-          <div class="cat-tiles" id="dash-cat-tiles"></div>
+        <div id="dash-productividad" style="display:none;">
+          <div class="prod-card" id="dash-prod-cara-a-cara">
+            <div class="prod-head">
+              <div class="prod-title">⚖️ Productividad — cara a cara</div>
+              <div class="prod-period" id="dash-prod-periodo">Últimos 30 días</div>
+            </div>
+            <div class="prod-sub">Comparación directa entre Dra. Tania de la Vega y Dra. Laura Galván (no incluye cosmetólogas)</div>
+            <div id="dash-prod-scoreboard"></div>
+          </div>
+          <div class="cat-card">
+            <div class="prod-head">
+              <div class="prod-title" style="font-size:13px;">🗂️ Ingresos por categoría</div>
+              <div class="prod-period" id="dash-cat-periodo">Últimos 30 días</div>
+            </div>
+            <div class="prod-sub">Todo el ingreso de la clínica: doctoras y cosmetólogas</div>
+            <div class="seg-bar" id="dash-cat-segbar"></div>
+            <div class="cat-tiles" id="dash-cat-tiles"></div>
+          </div>
+          <div class="fac2" style="margin-bottom:14px;">
+            <div class="chart-title"><span>📈 Tendencia por categoría</span></div>
+            <div style="height:190px;"><canvas id="chTendCat"></canvas></div>
+          </div>
+          <div class="fac2" style="margin-bottom:14px;">
+            <div class="chart-title"><span>🧴 Productividad por cosmetóloga</span></div>
+            <div id="chCosmeto-wrap" style="height:150px; position:relative;">
+              <canvas id="chCosmeto"></canvas>
+              <div id="chCosmeto-empty" class="chart-empty-msg" style="display:none;">Sin datos de cosmetólogas en este periodo.</div>
+            </div>
+          </div>
+          <div class="fac2">
+            <div class="chart-title"><span>🛠️ Productividad por servicio</span></div>
+            <div id="chServicio-wrap" style="height:220px; position:relative;">
+              <canvas id="chServicio"></canvas>
+              <div id="chServicio-empty" class="chart-empty-msg" style="display:none;">Sin servicios registrados en este periodo.</div>
+            </div>
+          </div>
         </div>
         <div class="chart-grid wide">
           <div class="fac2">
@@ -1074,7 +1150,7 @@
     PERSONAL_CACHE = (data||[]).map(d=>({ id: d.id, nombre: d.nombre, comisionSoloPropios: !!(d.permisos && d.permisos.comision_solo_propios) }));
     const opts = (data||[]).map(d=>`<option value="${d.id}">${esc(d.nombre)}</option>`).join('');
     document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
-    document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas</option>' + opts;
+    document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
     renderSelectorServicios(); // refresca los selects "Atendido por" de la selección por si ya había líneas
   }
 
@@ -1994,9 +2070,10 @@
     const porCategoria = { primera:0, subsecuente:0, procedimiento:0, farmacia:0 };
     rows.forEach(r=>{ porCategoria[categoriaFilaDashboard(r)] += Number(r.monto||0) + Number(r.monto_2||0); });
 
-    // "Ingreso por categoría" ya no es una gráfica de Chart.js: es la barra segmentada + tarjetas
-    // estilo Skin Fabric, así que se ve bien de inmediato sin depender de que la librería externa cargue.
-    renderCategoriaDash(porCategoria, total);
+    // Panel "Productividad" (estilo Skin Fabric): comparación cara a cara entre las 2 doctoras +
+    // desglose de ingreso por categoría. Solo tiene sentido con "Todas las doctoras" seleccionado,
+    // igual que en Skin Fabric — se oculta por completo si se filtra a una sola persona.
+    actualizarPanelProductividadDash(porDoc, porCategoria, total);
 
     // Si el CDN de Chart.js no cargó (sin internet, bloqueado, etc.) evitamos que la app truene:
     // mostramos un aviso claro y dejamos los KPIs y la sección de categoría (que no usan Chart.js) intactos.
@@ -2066,6 +2143,90 @@
     }catch(e){ console.error('[Clinderm] Error dibujando gráfica de medios de pago:', e); }
   }
 
+  // Panel "Productividad" del Dashboard — igual que en Skin Fabric: solo se muestra con "Todas las
+  // doctoras" seleccionado (una comparación cara a cara no tiene sentido si ya filtraste a una persona).
+  function actualizarPanelProductividadDash(porDoc, porCategoria, total){
+    const panel = document.getElementById('dash-productividad');
+    if(!panel) return;
+    const doctorFiltro = document.getElementById('dash-doctor-filtro').value;
+    if(doctorFiltro){ panel.style.display = 'none'; return; }
+    panel.style.display = '';
+
+    const periodoTxt = document.getElementById('dash-periodo').selectedOptions[0]?.textContent || '';
+    const elPeriodo = document.getElementById('dash-prod-periodo');
+    const elPeriodo2 = document.getElementById('dash-cat-periodo');
+    if(elPeriodo) elPeriodo.textContent = periodoTxt;
+    if(elPeriodo2) elPeriodo2.textContent = periodoTxt;
+
+    // ---- Cara a cara entre las 2 doctoras reales (no cosmetólogas) ----
+    const cardCara = document.getElementById('dash-prod-cara-a-cara');
+    const doctoras = (PERSONAL_CACHE||[]).filter(p => puedeDarConsulta(p));
+    if(doctoras.length === 2 && cardCara){
+      cardCara.style.display = '';
+      const [dA, dB] = doctoras;
+      const statsPorId = {};
+      [dA, dB].forEach(d => statsPorId[d.id] = { consultas:0, sumaTotal:0, primeraVez:0 });
+      DASH_ROWS.forEach(r=>{
+        const st = statsPorId[r.personal ? r.personal.id : null];
+        if(!st) return;
+        st.consultas++;
+        st.sumaTotal += Number(r.monto||0) + Number(r.monto_2||0);
+        if(categoriaFilaDashboard(r) === 'primera') st.primeraVez++;
+      });
+      const statA = statsPorId[dA.id], statB = statsPorId[dB.id];
+      const ingA = porDoc[dA.nombre] || 0, ingB = porDoc[dB.nombre] || 0;
+      const ticketA = statA.consultas ? statA.sumaTotal/statA.consultas : 0;
+      const ticketB = statB.consultas ? statB.sumaTotal/statB.consultas : 0;
+      document.getElementById('dash-prod-scoreboard').innerHTML = `
+        <div class="scoreboard">
+          <div class="doc-side">
+            <div class="doc-chip"><div class="doc-avatar a">${esc(inicialesPersona(dA.nombre))}</div><div><div class="doc-name">${esc(dA.nombre)}</div></div></div>
+            <div class="doc-total-label">Ingresos del periodo</div>
+            <div class="doc-total a">${moneyRound(ingA)}</div>
+          </div>
+          <div class="vs-badge">vs</div>
+          <div class="doc-side right">
+            <div class="doc-chip"><div class="doc-avatar b">${esc(inicialesPersona(dB.nombre))}</div><div><div class="doc-name">${esc(dB.nombre)}</div></div></div>
+            <div class="doc-total-label">Ingresos del periodo</div>
+            <div class="doc-total b">${moneyRound(ingB)}</div>
+          </div>
+        </div>
+        ${tugRow('Consultas atendidas', statA.consultas, statB.consultas, v=>String(v))}
+        ${tugRow('Ticket promedio', ticketA, ticketB, moneyRound)}
+        ${tugRow('Pacientes de primera vez', statA.primeraVez, statB.primeraVez, v=>String(v))}
+      `;
+    } else if(cardCara){
+      // La comparación "cara a cara" solo tiene sentido con exactamente 2 doctoras activas.
+      cardCara.style.display = 'none';
+    }
+
+    renderCategoriaDash(porCategoria, total);
+    renderChartTendCatDash();
+    renderChartCosmetoDash();
+    renderChartServicioDash();
+  }
+
+  // Barra de "tira y afloja" (tug of war) para comparar dos valores cara a cara — misma pieza visual
+  // que usa Skin Fabric en su panel de Productividad.
+  function tugRow(label, valA, valB, fmt){
+    const max = Math.max(valA, valB, 1);
+    const wA = Math.max(6, Math.round(valA/max*100));
+    const wB = Math.max(6, Math.round(valB/max*100));
+    const winA = valA > valB, winB = valB > valA;
+    return `<div class="metric-row">
+      <div class="metric-label">${esc(label)}</div>
+      <div class="tug">
+        <div class="side left"><div class="fill a" style="width:${wA}%"></div></div>
+        <div class="mid"></div>
+        <div class="side right"><div class="fill b" style="width:${wB}%"></div></div>
+      </div>
+      <div class="tug-vals">
+        <div class="val left a${winA?' win':''}">${fmt(valA)}</div><div></div>
+        <div class="val right b${winB?' win':''}">${fmt(valB)}</div>
+      </div>
+    </div>`;
+  }
+
   // Barra segmentada + tarjetas por categoría (estilo "Ingresos por categoría" de Skin Fabric) — no usa
   // Chart.js, así que siempre se ve aunque la librería externa no haya cargado.
   function renderCategoriaDash(porCategoria, total){
@@ -2120,6 +2281,127 @@
     if(btnDia){ btnDia.classList.toggle('on', modo==='dia'); btnDia.classList.toggle('off', modo!=='dia'); }
     if(btnMes){ btnMes.classList.toggle('on', modo==='mes'); btnMes.classList.toggle('off', modo!=='mes'); }
     renderChartTendDash();
+    // La tendencia por categoría vive dentro del panel de Productividad — solo se redibuja si está visible.
+    const panel = document.getElementById('dash-productividad');
+    if(panel && panel.style.display !== 'none') renderChartTendCatDash();
+  }
+
+  // Cada fila de "consultas" en Clinderm ya es un renglón por servicio (no hace falta una tabla aparte
+  // de detalle): el mismo tipo_consulta puede venir en distinta capitalización según cuándo se cargó
+  // (histórico en MAYÚSCULAS vs. catálogo ya normalizado), así que se agrupa por versión normalizada
+  // para que "SUBSECUENTE" y "Subsecuente" caigan en la misma barra en vez de duplicarse.
+  function tituloServicio(s){
+    const n = normalizar(s || '');
+    return n ? n.charAt(0).toUpperCase() + n.slice(1) : '(sin nombre)';
+  }
+
+  // Línea de tendencia por categoría (estilo Skin Fabric), usando las mismas 4 categorías de negocio
+  // que ya se usan en el resto del Dashboard (categoriaFilaDashboard). Vive dentro del panel de
+  // Productividad, así que solo se dibuja cuando ese panel está visible (sin filtro de doctora).
+  function renderChartTendCatDash(){
+    const canvas = document.getElementById('chTendCat');
+    if(!canvas || typeof Chart === 'undefined') return;
+    const catKeys = ['primera','subsecuente','procedimiento','farmacia'];
+    const colores = { primera:'#22a8a8', subsecuente:'#1B3A6B', procedimiento:'#E0A426', farmacia:'#7D3C98' };
+    const porFecha = {};
+    DASH_ROWS.forEach(r=>{
+      const key = DASH_TEND_MODO === 'dia' ? r.fecha : r.fecha.slice(0,7);
+      if(!porFecha[key]) porFecha[key] = { primera:0, subsecuente:0, procedimiento:0, farmacia:0 };
+      porFecha[key][categoriaFilaDashboard(r)] += Number(r.monto||0) + Number(r.monto_2||0);
+    });
+    const keys = Object.keys(porFecha).sort();
+    const labels = keys.map(k => DASH_TEND_MODO === 'dia' ? (()=>{ const [,m,dd]=k.split('-'); return dd+'/'+m; })() : mesLabel(k));
+    try{
+      if(CHARTS.tendCat) CHARTS.tendCat.destroy();
+      CHARTS.tendCat = new Chart(canvas, {
+        type:'line',
+        data:{
+          labels: labels.length?labels:['—'],
+          datasets: catKeys.map(k=>({
+            label: (CATEGORIA_DASH_LABEL[k]||k).replace(/^\S+\s/, ''),
+            data: keys.length ? keys.map(kk=>porFecha[kk][k]) : [0],
+            borderColor: colores[k], backgroundColor: colores[k], fill:false, tension:.3, pointRadius:0, borderWidth:2
+          }))
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+          plugins:{ legend:{ position:'bottom', labels:{ boxWidth:8, font:{size:9.5} } }, datalabels:{ display:false }, tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ' + moneyRound(ctx.parsed.y) } } },
+          scales:{ y:{ ticks:{ callback:v=>'$'+Number(v).toLocaleString('es-MX') } } }
+        }
+      });
+    }catch(e){ console.error('[Clinderm] Error dibujando gráfica de tendencia por categoría:', e); }
+  }
+
+  // Ingreso generado por cada cosmetóloga (cualquier personal con rol='doctor' que NO esté en
+  // DOCTORAS_CONSULTA) — antes esta vista no existía porque asumíamos que hacía falta una tabla de
+  // detalle por servicio, pero cada fila de "consultas" ya es un servicio individual con su propio
+  // doctor_id, así que basta con agrupar por persona excluyendo a las 2 doctoras reales.
+  function renderChartCosmetoDash(){
+    const canvas = document.getElementById('chCosmeto');
+    const empty = document.getElementById('chCosmeto-empty');
+    const wrap = document.getElementById('chCosmeto-wrap');
+    if(!canvas || typeof Chart === 'undefined') return;
+    const map = {};
+    DASH_ROWS.forEach(r=>{
+      if(!r.personal || puedeDarConsulta(r.personal)) return;
+      map[r.personal.nombre] = (map[r.personal.nombre]||0) + Number(r.monto||0) + Number(r.monto_2||0);
+    });
+    const entries = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    if(wrap) wrap.style.height = Math.max(150, entries.length * 40) + 'px';
+    try{
+      if(CHARTS.cosmeto) CHARTS.cosmeto.destroy();
+      if(!entries.length){
+        canvas.style.display = 'none';
+        if(empty) empty.style.display = 'flex';
+        return;
+      }
+      canvas.style.display = '';
+      if(empty) empty.style.display = 'none';
+      CHARTS.cosmeto = new Chart(canvas, {
+        type:'bar',
+        data:{ labels: entries.map(e=>e[0]), datasets:[{ data: entries.map(e=>e[1]), backgroundColor:'#7D3C98', borderRadius:6 }] },
+        options:{
+          indexAxis:'y', responsive:true, maintainAspectRatio:false, layout:{ padding:{ right:46 } },
+          plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } }, datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => moneyRound(v) } },
+          scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } }, y:{ ticks:{ font:{size:10.5}, autoSkip:false } } }
+        }
+      });
+    }catch(e){ console.error('[Clinderm] Error dibujando gráfica por cosmetóloga:', e); }
+  }
+
+  // Ingreso por servicio (tipo_consulta) — igual que "por cosmetóloga", ya se puede armar directo
+  // porque cada renglón de "consultas" es un solo servicio con su propio nombre y monto.
+  function renderChartServicioDash(){
+    const canvas = document.getElementById('chServicio');
+    const empty = document.getElementById('chServicio-empty');
+    const wrap = document.getElementById('chServicio-wrap');
+    if(!canvas || typeof Chart === 'undefined') return;
+    const map = {};
+    DASH_ROWS.forEach(r=>{
+      const nombre = tituloServicio(r.tipo_consulta);
+      map[nombre] = (map[nombre]||0) + Number(r.monto||0) + Number(r.monto_2||0);
+    });
+    const entries = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    if(wrap) wrap.style.height = Math.max(220, entries.length * 36) + 'px';
+    try{
+      if(CHARTS.servicio) CHARTS.servicio.destroy();
+      if(!entries.length){
+        canvas.style.display = 'none';
+        if(empty) empty.style.display = 'flex';
+        return;
+      }
+      canvas.style.display = '';
+      if(empty) empty.style.display = 'none';
+      CHARTS.servicio = new Chart(canvas, {
+        type:'bar',
+        data:{ labels: entries.map(e=>e[0]), datasets:[{ data: entries.map(e=>e[1]), backgroundColor:'#1B3A6B', borderRadius:6 }] },
+        options:{
+          indexAxis:'y', responsive:true, maintainAspectRatio:false, layout:{ padding:{ right:50 } },
+          plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } }, datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:9.5, weight:'700'}, formatter: v => moneyRound(v) } },
+          scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } }, y:{ ticks:{ font:{size:9.5}, autoSkip:false } } }
+        }
+      });
+    }catch(e){ console.error('[Clinderm] Error dibujando gráfica por servicio:', e); }
   }
 
   // ============================================================
