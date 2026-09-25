@@ -660,6 +660,7 @@
           <div class="kpi-card"><div class="ico">🎟️</div><div class="l">Ticket promedio</div><div class="v" id="dash-kpi-ticket">$0</div></div>
           <div class="kpi-card"><div class="ico">🏆</div><div class="l">Doctora top</div><div class="v" id="dash-kpi-top" style="font-size:14px;">—</div></div>
         </div>
+        <div id="dash-chart-warning" style="display:none; background:#FFF4E5; border:1px solid #F5A623; color:#8A5A00; border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:13px;">⚠️ No se pudieron cargar las gráficas — revisa tu conexión a internet y recarga la página. Los totales de arriba sí son correctos.</div>
         <div class="grid2">
           <div class="card" style="margin:0;"><h3>📈 Tendencia de ingresos</h3><canvas id="chTrend" height="160"></canvas></div>
           <div class="card" style="margin:0;"><h3>🩺 Ingreso por doctora</h3><div id="chDoc-wrap"><canvas id="chDoc"></canvas></div></div>
@@ -839,8 +840,18 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" onerror="
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
+  s.onload=function(){ try{ if(document.getElementById('screen-dashboard').classList.contains('active')) cargarDashboard(); }catch(e){} };
+  document.head.appendChild(s);
+"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js" onerror="
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
+  s.onload=function(){ try{ if(window.Chart && window.ChartDataLabels) Chart.register(ChartDataLabels); if(document.getElementById('screen-dashboard').classList.contains('active')) cargarDashboard(); }catch(e){} };
+  document.head.appendChild(s);
+"></script>
 <script>
   // ============================================================
   // SUPABASE — Clinderm App
@@ -1951,62 +1962,80 @@
 
     const teal='#2ABFBF';
 
-    if(CHARTS.trend) CHARTS.trend.destroy();
-    CHARTS.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:labelsDias.length?labelsDias:['—'], datasets:[{data:dataDias.length?dataDias:[0], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35, pointRadius:2}]}, options:{plugins:{legend:{display:false}, datalabels:{display:false}, tooltip:{callbacks:{label: ctx => ' ' + moneyRound(ctx.parsed.y)}}}, scales:{y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-MX')}}}}});
+    // Si el CDN de Chart.js no cargó (sin internet, bloqueado, etc.) evitamos que la app truene:
+    // mostramos un aviso claro y dejamos los KPIs de arriba (que ya se calcularon) intactos.
+    const warnEl = document.getElementById('dash-chart-warning');
+    if(typeof Chart === 'undefined'){
+      if(warnEl) warnEl.style.display = '';
+      console.error('[Clinderm] Chart.js no está disponible — no se pueden dibujar las gráficas del Dashboard.');
+      return;
+    }
+    if(warnEl) warnEl.style.display = 'none';
+
+    try{
+      if(CHARTS.trend) CHARTS.trend.destroy();
+      CHARTS.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:labelsDias.length?labelsDias:['—'], datasets:[{data:dataDias.length?dataDias:[0], borderColor:teal, backgroundColor:'rgba(42,191,191,.15)', fill:true, tension:.35, pointRadius:2}]}, options:{plugins:{legend:{display:false}, datalabels:{display:false}, tooltip:{callbacks:{label: ctx => ' ' + moneyRound(ctx.parsed.y)}}}, scales:{y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-MX')}}}}});
+    }catch(e){ console.error('[Clinderm] Error dibujando gráfica de tendencia:', e); }
 
     // Barra horizontal con el monto directamente sobre cada barra (estilo Skin Fabric) — la altura
     // crece con la cantidad de doctoras para que ninguna etiqueta se encime o se oculte.
-    if(CHARTS.doc) CHARTS.doc.destroy();
-    const docEntries = Object.entries(porDoc).sort((a,b)=>b[1]-a[1]);
-    const docWrap = document.getElementById('chDoc-wrap');
-    if(docWrap) docWrap.style.height = Math.max(160, docEntries.length * 42) + 'px';
-    CHARTS.doc = new Chart(document.getElementById('chDoc'), {
-      type:'bar',
-      data:{ labels: docEntries.length?docEntries.map(e=>e[0]):['—'], datasets:[{ data: docEntries.length?docEntries.map(e=>e[1]):[0], backgroundColor: teal, borderRadius:6 }] },
-      options:{
-        indexAxis:'y', responsive:true, maintainAspectRatio:false,
-        layout:{ padding:{ right:44 } },
-        plugins:{
-          legend:{display:false},
-          tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } },
-          datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => moneyRound(v) }
-        },
-        scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } }, y:{ ticks:{ font:{size:10.5}, autoSkip:false } } }
-      }
-    });
+    try{
+      if(CHARTS.doc) CHARTS.doc.destroy();
+      const docEntries = Object.entries(porDoc).sort((a,b)=>b[1]-a[1]);
+      const docWrap = document.getElementById('chDoc-wrap');
+      if(docWrap) docWrap.style.height = Math.max(160, docEntries.length * 42) + 'px';
+      CHARTS.doc = new Chart(document.getElementById('chDoc'), {
+        type:'bar',
+        data:{ labels: docEntries.length?docEntries.map(e=>e[0]):['—'], datasets:[{ data: docEntries.length?docEntries.map(e=>e[1]):[0], backgroundColor: teal, borderRadius:6 }] },
+        options:{
+          indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          layout:{ padding:{ right:44 } },
+          plugins:{
+            legend:{display:false},
+            tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } },
+            datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => moneyRound(v) }
+          },
+          scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } }, y:{ ticks:{ font:{size:10.5}, autoSkip:false } } }
+        }
+      });
+    }catch(e){ console.error('[Clinderm] Error dibujando gráfica por doctora:', e); }
 
     // Doughnut de medios de pago con el mismo color por medio que las tarjetas de Cierre. Sin leyenda
     // fija: el nombre completo, monto y % aparecen en la ventana emergente (tooltip) al pasar el mouse
     // o tocar la rebanada — el % ya viene escrito directamente sobre cada rebanada como referencia rápida.
-    if(CHARTS.pay) CHARTS.pay.destroy();
-    const payEntries = Object.entries(porPago).sort((a,b)=>b[1]-a[1]);
-    CHARTS.pay = new Chart(document.getElementById('chPay'), {
-      type:'doughnut',
-      data:{ labels: payEntries.length?payEntries.map(e=>e[0]):['Sin datos'], datasets:[{ data: payEntries.length?payEntries.map(e=>e[1]):[1], backgroundColor: payEntries.length?payEntries.map(e=>colorMedioPago(e[0])):['#E2E8F4'] }] },
-      options:{
-        plugins:{
-          legend:{ display:false },
-          tooltip:{
-            callbacks:{
-              label: (ctx) => {
-                const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b, 0);
-                const pct = total ? Math.round(ctx.parsed/total*100) : 0;
-                return ` ${ctx.label}: ${moneyRound(ctx.parsed)} (${pct}%)`;
+    try{
+      if(CHARTS.pay) CHARTS.pay.destroy();
+      const payEntries = Object.entries(porPago).sort((a,b)=>b[1]-a[1]);
+      CHARTS.pay = new Chart(document.getElementById('chPay'), {
+        type:'doughnut',
+        data:{ labels: payEntries.length?payEntries.map(e=>e[0]):['Sin datos'], datasets:[{ data: payEntries.length?payEntries.map(e=>e[1]):[1], backgroundColor: payEntries.length?payEntries.map(e=>colorMedioPago(e[0])):['#E2E8F4'] }] },
+        options:{
+          plugins:{
+            legend:{ display:false },
+            tooltip:{
+              callbacks:{
+                label: (ctx) => {
+                  const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b, 0);
+                  const pct = total ? Math.round(ctx.parsed/total*100) : 0;
+                  return ` ${ctx.label}: ${moneyRound(ctx.parsed)} (${pct}%)`;
+                }
               }
-            }
-          },
-          datalabels: payEntries.length ? { color:'#fff', font:{size:10, weight:'700'}, formatter:(v,ctx)=>{ const t = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return t ? Math.round(v/t*100)+'%' : ''; } } : { display:false }
+            },
+            datalabels: payEntries.length ? { color:'#fff', font:{size:10, weight:'700'}, formatter:(v,ctx)=>{ const t = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return t ? Math.round(v/t*100)+'%' : ''; } } : { display:false }
+          }
         }
-      }
-    });
+      });
+    }catch(e){ console.error('[Clinderm] Error dibujando gráfica de medios de pago:', e); }
 
-    if(CHARTS.tipo) CHARTS.tipo.destroy();
-    const catKeys = ['primera','subsecuente','procedimiento','farmacia'];
-    CHARTS.tipo = new Chart(document.getElementById('chTipo'), {
-      type:'bar',
-      data:{ labels: catKeys.map(k=>CATEGORIA_DASH_LABEL[k]), datasets:[{ data: catKeys.map(k=>porCategoria[k]), backgroundColor: teal, borderRadius:6 }] },
-      options:{ indexAxis:'y', layout:{padding:{right:44}}, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } }, datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => v>0 ? moneyRound(v) : '' } }, scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } } } }
-    });
+    try{
+      if(CHARTS.tipo) CHARTS.tipo.destroy();
+      const catKeys = ['primera','subsecuente','procedimiento','farmacia'];
+      CHARTS.tipo = new Chart(document.getElementById('chTipo'), {
+        type:'bar',
+        data:{ labels: catKeys.map(k=>CATEGORIA_DASH_LABEL[k]), datasets:[{ data: catKeys.map(k=>porCategoria[k]), backgroundColor: teal, borderRadius:6 }] },
+        options:{ indexAxis:'y', layout:{padding:{right:44}}, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + moneyRound(ctx.parsed.x) } }, datalabels:{ anchor:'end', align:'right', clamp:true, color:'#0B2A4D', font:{size:10, weight:'700'}, formatter: v => v>0 ? moneyRound(v) : '' } }, scales:{ x:{ ticks:{ maxTicksLimit:4, font:{size:9.5}, callback:v=>'$'+Number(v).toLocaleString('es-MX') } } } }
+      });
+    }catch(e){ console.error('[Clinderm] Error dibujando gráfica por categoría:', e); }
   }
 
   // ============================================================
