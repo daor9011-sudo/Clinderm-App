@@ -1019,7 +1019,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.1 · 2026-10-01';
+  const APP_VERSION = 'v1.2 · 2026-10-01';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1092,10 +1092,10 @@
     const input = document.getElementById('prompt-input');
     input.type = opts.tipo || 'text';
     input.placeholder = opts.placeholder || '';
-    input.value = '';
+    input.value = opts.valor || ''; // permite venir precargado (ej. editar un nombre ya existente)
     promptCallback = callback;
     document.getElementById('promptModal').classList.add('show');
-    setTimeout(()=>input.focus(), 60);
+    setTimeout(()=>{ input.focus(); input.select(); }, 60);
   }
   document.getElementById('prompt-input').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('prompt-btn-ok').click(); });
   document.getElementById('prompt-btn-ok').addEventListener('click', ()=>{
@@ -2812,6 +2812,7 @@
         <td>${esc(p.nombre)}</td><td>${esc(p.rol)}</td>
         <td><input type="checkbox" ${p.activo?'checked':''} onchange="togglePersonalActivo('${p.id}', this.checked)"></td>
         <td>
+          <span style="cursor:pointer;" title="Editar nombre" onclick="abrirEditarNombrePersonal('${p.id}','${esc(p.nombre).replace(/'/g,"\\'")}')">✏️</span> ·
           <span style="cursor:pointer;" title="Restablecer contraseña" onclick="abrirResetPassword('${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">🔑</span> ·
           <span style="cursor:pointer;" title="Cambiar correo" onclick="abrirCambiarCorreo('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">✉️</span>${puedeEliminar ? ` ·
           <span style="cursor:pointer;" title="Eliminar" onclick="confirmarEliminarPersonal('${p.id}','${p.auth_user_id}','${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>` : ''}
@@ -2825,6 +2826,7 @@
         <td>${esc(p.nombre)}</td>
         <td><input type="checkbox" ${p.activo?'checked':''} onchange="togglePersonalActivo('${p.id}', this.checked)"></td>
         <td>
+          <span style="cursor:pointer;" title="Editar nombre" onclick="abrirEditarNombrePersonal('${p.id}','${esc(p.nombre).replace(/'/g,"\\'")}')">✏️</span> ·
           <span style="cursor:pointer; color:var(--teal-dark); font-weight:700;" onclick="abrirDarAcceso('${p.id}','${esc(p.nombre).replace(/'/g,"\\'")}')">Dar acceso</span>${puedeEliminar ? ` ·
           <span style="cursor:pointer;" onclick="confirmarEliminarPersonal('${p.id}', null, '${esc(p.nombre).replace(/'/g,"\\'")}')">🗑️</span>` : ''}
         </td>
@@ -2836,6 +2838,30 @@
     document.getElementById('cfg-actividad').innerHTML = (audit && audit.length)
       ? audit.map(a=>`${esc(nombresAccion[a.accion]||a.accion)} · ${new Date(a.created_at).toLocaleDateString('es-MX')}`).join('<br>')
       : 'Sin actividad reciente';
+  }
+
+  // Renombrar a alguien de "personal" (ej. poner el nombre real en vez de "Cosmetóloga 1"). Si el
+  // nombre actual es uno de los que están hardcodeados en DOCTORAS_CONSULTA/PERSONAL_SIN_COMISION
+  // (las reglas de quién cuenta como doctora real para comisiones/PRM), se avisa antes de cambiarlo
+  // por completo, porque esas listas comparan por nombre y no se actualizan solas.
+  function abrirEditarNombrePersonal(id, nombreActual){
+    const esNombreCritico = DOCTORAS_CONSULTA.some(d=>normalizar(nombreActual).includes(d)) || PERSONAL_SIN_COMISION.some(d=>normalizar(nombreActual).includes(d));
+    mostrarPrompt({
+      titulo:'Editar nombre',
+      mensaje: esNombreCritico
+        ? `Nuevo nombre para <b>${esc(nombreActual)}</b>:<br><span style="color:var(--warn); font-size:11.5px;">⚠️ Este nombre está ligado a reglas internas de comisiones/PRM — si lo cambias por completo (no solo corriges una letra), avísame para actualizar esas reglas también.</span>`
+        : `Nuevo nombre para <b>${esc(nombreActual)}</b>:`,
+      tipo:'text', placeholder:'Nombre completo', icono:'✏️', valor: nombreActual
+    }, async (nuevoNombre)=>{
+      nuevoNombre = (nuevoNombre||'').trim();
+      if(!nuevoNombre){ toast('⚠️ El nombre no puede quedar vacío'); return; }
+      if(nuevoNombre === nombreActual) return;
+      const { error } = await sb.from('personal').update({ nombre: nuevoNombre }).eq('id', id);
+      if(error){ toast('⚠️ ' + error.message); return; }
+      toast('✅ Nombre actualizado');
+      cargarConfigUsuarios();
+      cargarDoctores();
+    });
   }
 
   async function togglePersonalActivo(id, activo){
