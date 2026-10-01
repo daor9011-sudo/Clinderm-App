@@ -226,6 +226,7 @@
   .badge{padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;}
   .badge-ghost{background:#EEF1F6; color:var(--muted);}
   .badge-warn{background:#FDF3E0; color:var(--warn);}
+  .badge-bad{background:#FDEDEC; color:var(--bad);}
   .filters{display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-bottom:14px;}
   .filters .fitem{min-width:150px;}
   .excl-links{display:flex; gap:14px; font-size:12.5px; margin-left:auto;}
@@ -385,6 +386,27 @@
   .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; margin-right:6px;}
   .pill-teal{background:#EAF7F7; color:var(--teal-dark);}
   .pill-navy{background:#EAF0FA; color:var(--navy-600);}
+
+  /* ---- Bitácora de gestión (CRM) dentro del modal de PRM, estilo Canopy ---- */
+  .traza-resumen{background:var(--bg); border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:12.5px; color:var(--muted); line-height:1.5;}
+  .traza-visita-row{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:6px 0; border-bottom:1px solid #EEF1F6; font-size:12.5px;}
+  .traza-visita-row:last-child{border-bottom:none;}
+  .traza-visita-row .val{color:var(--teal-dark); font-weight:700; white-space:nowrap;}
+  .gestion-row{padding:8px 0; border-bottom:1px solid #EEF1F6; font-size:12.5px;}
+  .gestion-row:last-child{border-bottom:none;}
+  .gestion-row .top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .gestion-row .acciones{display:flex; gap:12px; margin-top:4px;}
+  .gestion-row .acciones span{font-size:11px; font-weight:700; cursor:pointer;}
+  .gestion-row .edit-link{color:var(--teal-dark);}
+  .gestion-row .del-link{color:var(--bad);}
+  .gestion-row .hist-link{color:var(--navy-600);}
+  .gestion-row .editada-tag{font-size:10px; color:var(--muted); font-style:italic;}
+  .gestion-hist-panel{background:var(--bg); border-radius:6px; padding:8px 10px; font-size:11px; color:var(--muted); margin-top:6px;}
+  .gestion-hist-panel div{padding:3px 0; border-bottom:1px solid var(--border);}
+  .gestion-hist-panel div:last-child{border-bottom:none;}
+  .gestion-papelera-toggle{margin-top:8px; font-size:11px; color:var(--muted); cursor:pointer; font-weight:600;}
+  .gestion-papelera-item{padding:6px 0; opacity:.6; font-size:11.5px;}
+  .gestion-edit-row{display:grid; grid-template-columns:110px 1fr; gap:6px; margin-bottom:6px;}
 
   .datefly{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
   .datefly button{border:1px solid var(--border); background:#fff; width:32px; height:32px; border-radius:8px; cursor:pointer;}
@@ -790,32 +812,52 @@
       </div>
     </section>
 
-    <!-- PRM/CRM -->
+    <!-- PRM/CRM — formato Canopy: KPIs + filtros + tabla con nivel de inactividad, y bitácora de
+         gestión (editar/eliminar/restaurar) dentro del modal de cada paciente. -->
     <section class="screen" id="screen-crm">
       <div class="card">
         <div class="crm-tabs">
           <button class="active" id="crmTabInactivos" onclick="crmTab('inactivos')">🎯 Inactivos</button>
           <button id="crmTabNoVino" onclick="crmTab('novino')">👻 No vinieron</button>
         </div>
-        <div id="crmViewInactivos"><div class="empty-state">Cargando…</div></div>
-        <div id="crmViewNoVino" style="display:none;"><div class="empty-state">Cargando…</div></div>
+
+        <div id="crmViewInactivos">
+          <div class="filters">
+            <div class="fitem" style="min-width:110px;"><label>Días sin visitar</label><input type="number" id="prm-umbral" value="60" min="1" onchange="cargarCRMInactivos()"></div>
+            <div class="fitem" id="prm-doctor-wrap" style="display:none;"><label>Atendido por</label><select id="prm-doctor-filtro" onchange="cargarCRMInactivos()"><option value="">Todas/os</option></select></div>
+            <div class="fitem"><label>Servicio</label><select id="prm-tipo-filtro" onchange="cargarCRMInactivos()"><option value="">Todos los servicios</option></select></div>
+          </div>
+          <div id="prm-aviso-rol" style="display:none; background:#EEF5FC; border:1px solid #BDD5F0; color:#1B5C9E; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12.5px; font-weight:600;"></div>
+          <div class="kpi-cards" id="prm-kpis" style="grid-template-columns:repeat(3,1fr);"></div>
+          <div id="prm-tabla-wrap"><div class="empty-state">Cargando…</div></div>
+        </div>
+
+        <div id="crmViewNoVino" style="display:none;">
+          <div id="novino-tabla-wrap"><div class="empty-state">Cargando…</div></div>
+        </div>
       </div>
     </section>
 
-    <!-- Modal gestión CRM -->
+    <!-- Modal paciente: historial de visitas + bitácora de seguimiento (CRM), formato Canopy -->
     <div class="modal-bg" id="gestionModal">
-      <div class="modal-box" style="max-width:440px; text-align:left;">
-        <h3 style="margin-bottom:4px;" id="gestion-paciente-nombre">Paciente</h3>
-        <p style="font-size:12.5px; color:var(--muted); margin-bottom:12px;" id="gestion-paciente-meta"></p>
+      <div class="modal-box" style="max-width:500px; text-align:left;">
+        <h3 style="margin-bottom:4px;" id="gestion-paciente-nombre">📖 Paciente</h3>
         <input type="hidden" id="gestion-paciente-id">
-        <div id="gestion-historial" style="max-height:180px; overflow-y:auto; margin-bottom:12px; font-size:12.5px;"></div>
-        <div class="field-wrap"><label>Tipo de gestión</label>
-          <select id="gestion-tipo"><option value="llamada">📞 Llamada</option><option value="whatsapp">💬 WhatsApp</option><option value="correo">✉️ Correo</option></select>
+        <div class="traza-resumen" id="gestion-resumen"></div>
+        <div id="gestion-visitas" style="max-height:170px; overflow-y:auto; margin-bottom:6px;"></div>
+
+        <div class="cierre-section-title" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin:14px 0 8px;">📞 Bitácora de seguimiento (CRM)</div>
+        <div id="gestion-historial" style="max-height:170px; overflow-y:auto; margin-bottom:10px;"></div>
+        <div style="display:grid; grid-template-columns:110px 1fr auto; gap:6px; align-items:end;">
+          <div class="field-wrap" style="margin:0;"><label>Canal</label>
+            <select id="gestion-tipo"><option value="llamada">📞 Llamada</option><option value="whatsapp">💬 WhatsApp</option><option value="correo">✉️ Correo</option></select>
+          </div>
+          <div class="field-wrap" style="margin:0;"><label>Resultado</label><input type="text" id="gestion-nota" placeholder="Ej: No contestó, se reagenda para el jueves"></div>
+          <button class="btn btn-teal" style="height:38px;" onclick="agregarGestion()">+ Registrar</button>
         </div>
-        <div class="field-wrap"><label>Nota</label><textarea rows="2" id="gestion-nota" placeholder="¿Qué se acordó?"></textarea></div>
-        <div class="modal-actions" style="display:flex; gap:10px; margin-top:10px;">
-          <button class="btn btn-teal" onclick="guardarGestion()">Guardar gestión</button>
-          <button class="btn btn-ghost" onclick="document.getElementById('gestionModal').classList.remove('show')">Cerrar</button>
+
+        <div class="modal-actions" style="display:flex; gap:10px; margin-top:14px;">
+          <button class="btn btn-ghost" onclick="cerrarGestionModal()">Cerrar</button>
         </div>
       </div>
     </div>
@@ -977,7 +1019,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.0 · 2026-09-25';
+  const APP_VERSION = 'v1.1 · 2026-10-01';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -2427,8 +2469,18 @@
   }
 
   // ============================================================
-  // PRM / CRM
+  // PRM / CRM — formato Canopy: KPIs + filtros + tabla con nivel de inactividad en "Inactivos",
+  // y bitácora de seguimiento (editar/eliminar/restaurar) dentro del modal de cada paciente.
   // ============================================================
+  const CANAL_ICON = {llamada:'📞', whatsapp:'💬', correo:'✉️'};
+  const CANAL_LABEL = {llamada:'Llamada', whatsapp:'WhatsApp', correo:'Correo'};
+  let gestionPacienteActual = null; // {id, nombre} — paciente actualmente abierto en el modal
+  let GESTIONES_CACHE = []; // última carga de gestiones del paciente abierto (incluye eliminadas)
+  let gestionEditandoId = null;
+  let gestionHistorialAbiertoId = null;
+  let papeleraGestionesAbierta = false;
+  let papeleraItemRevelado = null;
+
   function crmTab(which){
     document.getElementById('crmTabInactivos').classList.toggle('active', which==='inactivos');
     document.getElementById('crmTabNoVino').classList.toggle('active', which==='novino');
@@ -2437,67 +2489,310 @@
     if(which==='inactivos') cargarCRMInactivos(); else cargarCRMNoVino();
   }
 
+  // Solo se muestra el filtro/columna "Atendido por" a quien ve a todo el mundo (admin, recepción,
+  // farmacia). Alguien con rol "doctor" (hoy nadie inicia sesión así, pero queda listo) solo ve lo suyo.
+  function prmVeTodos(){
+    return !(MI_PERFIL && MI_PERFIL.rol === 'doctor');
+  }
+
+  function prmPoblarFiltroDoctor(){
+    const sel = document.getElementById('prm-doctor-filtro');
+    if(sel.dataset.init) return; // solo una vez, para no perder la selección en cada recarga
+    sel.innerHTML = '<option value="">Todas/os</option>' + PERSONAL_CACHE.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
+    sel.dataset.init = '1';
+  }
+
   async function cargarCRMInactivos(){
-    const cont = document.getElementById('crmViewInactivos');
-    cont.innerHTML = '<div class="empty-state">Cargando…</div>';
-    const { data, error } = await sb.from('consultas').select('paciente_id, fecha, tipo_consulta, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)').eq('deleted', false).eq('no_vino', false).order('fecha', {ascending:false});
-    if(error){ console.error('[Clinderm] Error CRM inactivos:', error); cont.innerHTML = '<div class="empty-state">Error cargando datos</div>'; return; }
+    const verTodos = prmVeTodos();
+    const aviso = document.getElementById('prm-aviso-rol');
+    if(verTodos){
+      aviso.style.display = 'none';
+    }else{
+      aviso.style.display = 'block';
+      aviso.textContent = `👩‍⚕️ Sesión: ${esc(MI_PERFIL?MI_PERFIL.nombre:'')} — solo se muestran tus propios pacientes inactivos.`;
+    }
+    document.getElementById('prm-doctor-wrap').style.display = verTodos ? '' : 'none';
+    if(verTodos) prmPoblarFiltroDoctor();
+
+    const wrap = document.getElementById('prm-tabla-wrap');
+    wrap.innerHTML = '<div class="empty-state">Cargando…</div>';
+
+    let q = sb.from('consultas').select('paciente_id, doctor_id, fecha, tipo_consulta, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)').eq('deleted', false).eq('no_vino', false).order('fecha', {ascending:false});
+    if(!verTodos && MI_PERFIL) q = q.eq('doctor_id', MI_PERFIL.id);
+    const { data, error } = await q;
+    if(error){ console.error('[Clinderm] Error CRM inactivos:', error); wrap.innerHTML = '<div class="empty-state">Error cargando datos</div>'; return; }
+
     const ultimaPorPaciente = {};
     (data||[]).forEach(r=>{ if(r.paciente_id && !ultimaPorPaciente[r.paciente_id]) ultimaPorPaciente[r.paciente_id] = r; });
+    let todos = Object.values(ultimaPorPaciente);
+
+    // Filtro de servicio — dinámico según lo que haya en consultas, conserva la selección previa.
+    const selServ = document.getElementById('prm-tipo-filtro');
+    const servicioPrevio = selServ.value;
+    const serviciosDisponibles = [...new Set(todos.map(r=>tituloServicio(r.tipo_consulta)))].sort();
+    selServ.innerHTML = '<option value="">Todos los servicios</option>' + serviciosDisponibles.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    if(serviciosDisponibles.includes(servicioPrevio)) selServ.value = servicioPrevio;
+
+    const filDoc = verTodos ? document.getElementById('prm-doctor-filtro').value : '';
+    const filServ = selServ.value;
+    if(filDoc) todos = todos.filter(r=>r.doctor_id === filDoc);
+    if(filServ) todos = todos.filter(r=>tituloServicio(r.tipo_consulta) === filServ);
+
+    const umbral = parseInt(document.getElementById('prm-umbral').value) || 60;
     const hoy = new Date();
-    const inactivos = Object.values(ultimaPorPaciente).map(r=>{
+    const inactivos = todos.map(r=>{
       const dias = Math.floor((hoy - new Date(r.fecha+'T00:00:00')) / 86400000);
       return Object.assign({}, r, {dias});
-    }).filter(r=>r.dias >= 60).sort((a,b)=>b.dias-a.dias);
+    }).filter(r=>r.dias >= umbral).sort((a,b)=>b.dias-a.dias);
 
-    if(inactivos.length===0){ cont.innerHTML = '<div class="empty-state">No hay pacientes inactivos (60+ días sin visita).</div>'; return; }
-    cont.innerHTML = inactivos.map(r=>`
-      <div class="doc-card">
-        <div class="hd"><strong>${esc(r.pacientes?r.pacientes.nombre:'—')}</strong><span style="color:var(--muted); font-size:12px;">Última visita: ${fechaCorta(r.fecha)} (${r.dias} días)</span></div>
-        <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">${esc(r.personal?r.personal.nombre:'—')} · ${esc(r.tipo_consulta)}</div>
-        <button class="btn btn-ghost" onclick="abrirGestion('${r.paciente_id}')">📖 Ver/gestionar</button>
-      </div>
-    `).join('');
+    document.getElementById('prm-kpis').innerHTML = `
+      <div class="kpi-card"><div class="ico">🎯</div><div class="l">Pacientes inactivos</div><div class="v">${inactivos.length}</div></div>
+      <div class="kpi-card"><div class="ico">👥</div><div class="l">Total pacientes</div><div class="v">${todos.length}</div></div>
+      <div class="kpi-card"><div class="ico">📊</div><div class="l">% inactivos</div><div class="v">${todos.length?Math.round(inactivos.length/todos.length*100):0}%</div></div>`;
+
+    if(!inactivos.length){
+      wrap.innerHTML = '<div class="empty-state"><div class="ico">🎉</div>Nadie supera el umbral — todos tus pacientes están activos</div>';
+      return;
+    }
+
+    // Última gestión (no eliminada) de cada paciente visible, para la columna de vista rápida.
+    const idsVisibles = inactivos.map(r=>r.paciente_id);
+    const { data: gest } = await sb.from('gestiones').select('paciente_id, tipo, nota, fecha').eq('eliminada', false).in('paciente_id', idsVisibles).order('fecha', {ascending:false});
+    const ultimaGestionPorPaciente = {};
+    (gest||[]).forEach(g=>{ if(!ultimaGestionPorPaciente[g.paciente_id]) ultimaGestionPorPaciente[g.paciente_id] = g; });
+
+    const rows = inactivos.map(r=>{
+      const ug = ultimaGestionPorPaciente[r.paciente_id];
+      let gestionHtml;
+      if(ug){
+        const diasG = Math.floor((hoy - new Date(ug.fecha+'T00:00:00')) / 86400000);
+        gestionHtml = `<span style="font-size:11.5px;"><strong>${CANAL_ICON[ug.tipo]||'📌'} hace ${diasG}d</strong><br><span style="color:var(--muted);">${esc(ug.nota||'')}</span></span>`;
+      }else{
+        gestionHtml = '<span style="font-size:11px; color:var(--muted); font-style:italic;">Sin gestión</span>';
+      }
+      const badgeClass = r.dias >= umbral*2 ? 'badge-bad' : 'badge-warn';
+      return `<tr>
+        <td><strong>${esc(r.pacientes?r.pacientes.nombre:'—')}</strong></td>
+        <td>${esc(r.pacientes?r.pacientes.telefono:'')||'—'}</td>
+        <td>${fechaCorta(r.fecha)}</td>
+        <td><span class="badge ${badgeClass}">${r.dias} días</span></td>
+        <td>${esc(tituloServicio(r.tipo_consulta))}</td>
+        ${verTodos ? `<td>${esc(r.personal?r.personal.nombre:'—')}</td>` : ''}
+        <td>${gestionHtml}</td>
+        <td><button class="btn btn-ghost" style="padding:6px 10px; font-size:12px;" onclick="abrirGestion('${r.paciente_id}')">📖 Ver/gestionar</button></td>
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `<table class="data-table"><tr>
+        <th>Paciente</th><th>Teléfono</th><th>Última visita</th><th>Inactividad</th><th>Último servicio</th>
+        ${verTodos ? '<th>Atendido por</th>' : ''}
+        <th>Última gestión</th><th></th>
+      </tr><tbody>${rows}</tbody></table>`;
   }
 
   async function cargarCRMNoVino(){
-    const cont = document.getElementById('crmViewNoVino');
-    cont.innerHTML = '<div class="empty-state">Cargando…</div>';
-    const { data, error } = await sb.from('consultas').select('paciente_id, fecha, tipo_consulta, pacientes(id, nombre), personal!consultas_doctor_id_fkey(nombre)').eq('deleted', false).eq('no_vino', true).order('fecha', {ascending:false});
-    if(error){ console.error('[Clinderm] Error CRM no vino:', error); cont.innerHTML = '<div class="empty-state">Error cargando datos</div>'; return; }
+    const verTodos = prmVeTodos();
+    const wrap = document.getElementById('novino-tabla-wrap');
+    wrap.innerHTML = '<div class="empty-state">Cargando…</div>';
+    let q = sb.from('consultas').select('paciente_id, fecha, tipo_consulta, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)').eq('deleted', false).eq('no_vino', true).order('fecha', {ascending:false});
+    if(!verTodos && MI_PERFIL) q = q.eq('doctor_id', MI_PERFIL.id);
+    const { data, error } = await q;
+    if(error){ console.error('[Clinderm] Error CRM no vino:', error); wrap.innerHTML = '<div class="empty-state">Error cargando datos</div>'; return; }
     const rows = data || [];
-    if(rows.length===0){ cont.innerHTML = '<div class="empty-state">Nadie marcado como "no vino" por ahora.</div>'; return; }
-    cont.innerHTML = rows.map(r=>`
-      <div class="doc-card">
-        <div class="hd"><strong>${esc(r.pacientes?r.pacientes.nombre:'—')}</strong><span style="color:var(--muted); font-size:12px;">${fechaCorta(r.fecha)}</span></div>
-        <div style="margin:8px 0; font-size:12.5px; color:var(--muted);">${esc(r.personal?r.personal.nombre:'—')} · ${esc(r.tipo_consulta)}</div>
-        <button class="btn btn-ghost" onclick="abrirGestion('${r.paciente_id}')">📖 Ver/gestionar</button>
-      </div>
-    `).join('');
+    if(rows.length===0){ wrap.innerHTML = '<div class="empty-state">Nadie marcado como "no vino" por ahora.</div>'; return; }
+    wrap.innerHTML = `<table class="data-table"><tr>
+        <th>Paciente</th><th>Teléfono</th><th>Fecha</th><th>Servicio</th>
+        ${verTodos ? '<th>Atendido por</th>' : ''}
+        <th></th>
+      </tr><tbody>${rows.map(r=>`
+        <tr>
+          <td><strong>${esc(r.pacientes?r.pacientes.nombre:'—')}</strong></td>
+          <td>${esc(r.pacientes?r.pacientes.telefono:'')||'—'}</td>
+          <td>${fechaCorta(r.fecha)}</td>
+          <td>${esc(tituloServicio(r.tipo_consulta))}</td>
+          ${verTodos ? `<td>${esc(r.personal?r.personal.nombre:'—')}</td>` : ''}
+          <td><button class="btn btn-ghost" style="padding:6px 10px; font-size:12px;" onclick="abrirGestion('${r.paciente_id}')">📖 Ver/gestionar</button></td>
+        </tr>`).join('')}</tbody></table>`;
   }
 
+  // ---- Modal del paciente: historial de visitas + bitácora de seguimiento (CRM) ----
   async function abrirGestion(pacienteId){
     if(!pacienteId) return;
     const { data: pac } = await sb.from('pacientes').select('nombre, telefono').eq('id', pacienteId).single();
+    gestionPacienteActual = { id: pacienteId, nombre: pac ? pac.nombre : 'Paciente' };
+    gestionEditandoId = null;
+    gestionHistorialAbiertoId = null;
+    papeleraGestionesAbierta = false;
+    papeleraItemRevelado = null;
     document.getElementById('gestion-paciente-id').value = pacienteId;
-    document.getElementById('gestion-paciente-nombre').textContent = pac ? pac.nombre : 'Paciente';
-    document.getElementById('gestion-paciente-meta').textContent = pac ? pac.telefono : '';
-    const { data: hist } = await sb.from('gestiones').select('tipo, nota, fecha').eq('paciente_id', pacienteId).order('fecha', {ascending:false});
-    const iconos = {llamada:'📞', whatsapp:'💬', correo:'✉️'};
-    document.getElementById('gestion-historial').innerHTML = (hist && hist.length)
-      ? hist.map(g=>`<div style="padding:4px 0; border-bottom:1px solid var(--border);">${iconos[g.tipo]||''} <strong>${fechaCorta(g.fecha)}</strong> — ${esc(g.nota||'(sin nota)')}</div>`).join('')
-      : '<div style="color:var(--muted);">Sin gestiones previas</div>';
+    document.getElementById('gestion-paciente-nombre').textContent = '📖 ' + (pac ? pac.nombre : 'Paciente');
+
+    const { data: visitas, error: errVisitas } = await sb.from('consultas').select('fecha, tipo_consulta, monto, monto_2, no_vino').eq('paciente_id', pacienteId).eq('deleted', false).order('fecha', {ascending:false});
+    if(errVisitas) console.error('[Clinderm] Error cargando visitas del paciente:', errVisitas);
+    const vis = (visitas||[]).filter(v=>!v.no_vino);
+    const total = vis.reduce((s,v)=>s+Number(v.monto||0)+Number(v.monto_2||0), 0);
+    const tel = pac && pac.telefono ? `Tel: ${esc(pac.telefono)}<br>` : '';
+    document.getElementById('gestion-resumen').innerHTML = vis.length
+      ? `<strong>${vis.length}</strong> visita(s) registrada(s) · <strong>${money(total)}</strong> en total<br>${tel}Primera visita: ${fechaCorta(vis[vis.length-1].fecha)} · Última visita: ${fechaCorta(vis[0].fecha)}`
+      : `Sin visitas pagadas registradas todavía.<br>${tel}`;
+
+    document.getElementById('gestion-visitas').innerHTML = vis.length ? vis.map(v=>`
+      <div class="traza-visita-row">
+        <span>${fechaCorta(v.fecha)} — ${esc(tituloServicio(v.tipo_consulta))}</span>
+        <span class="val">${money(Number(v.monto||0)+Number(v.monto_2||0))}</span>
+      </div>`).join('') : '';
+
+    document.getElementById('gestion-tipo').value = 'llamada';
     document.getElementById('gestion-nota').value = '';
+    await renderGestionesModal();
     document.getElementById('gestionModal').classList.add('show');
   }
-  async function guardarGestion(){
-    const pacienteId = document.getElementById('gestion-paciente-id').value;
-    const tipo = document.getElementById('gestion-tipo').value;
-    const nota = document.getElementById('gestion-nota').value.trim() || null;
-    const { error } = await sb.from('gestiones').insert({ paciente_id: pacienteId, tipo, nota, fecha: isoLocal(new Date()), creado_por: MI_PERFIL.id });
-    if(error){ toast('⚠️ ' + error.message); return; }
-    toast('✅ Gestión guardada');
+
+  function cerrarGestionModal(){
     document.getElementById('gestionModal').classList.remove('show');
+    gestionPacienteActual = null;
+    gestionEditandoId = null;
+    gestionHistorialAbiertoId = null;
+    papeleraGestionesAbierta = false;
+    papeleraItemRevelado = null;
+  }
+
+  // Refresca solo si la pestaña "Inactivos" está visible — es la única que muestra vista rápida de gestión.
+  function refrescarPRMSiVisible(){
+    const inactivosEl = document.getElementById('crmViewInactivos');
+    if(inactivosEl && inactivosEl.style.display !== 'none') cargarCRMInactivos();
+  }
+
+  async function renderGestionesModal(){
+    if(!gestionPacienteActual) return;
+    const { data: todas, error } = await sb.from('gestiones')
+      .select('id, tipo, nota, fecha, editada, historial_ediciones, eliminada, eliminada_en, personal!gestiones_creado_por_fkey(nombre), personal_elimino:personal!gestiones_eliminada_por_fkey(nombre)')
+      .eq('paciente_id', gestionPacienteActual.id)
+      .order('fecha', {ascending:false});
+    if(error){ console.error('[Clinderm] Error cargando bitácora:', error); document.getElementById('gestion-historial').innerHTML = '<div class="empty-state">Error cargando bitácora</div>'; return; }
+    GESTIONES_CACHE = todas || [];
+    const propias = GESTIONES_CACHE.filter(g=>!g.eliminada);
+    const eliminadas = GESTIONES_CACHE.filter(g=>g.eliminada);
+    const el = document.getElementById('gestion-historial');
+
+    let html = '';
+    if(!propias.length){
+      html += '<div style="font-size:12px; color:var(--muted); padding:6px 0;">Sin gestiones registradas todavía.</div>';
+    }else{
+      html += propias.map(g=>{
+        if(gestionEditandoId === g.id){
+          return `<div class="gestion-row">
+            <div class="gestion-edit-row">
+              <select id="edit-canal-${g.id}">
+                <option value="llamada" ${g.tipo==='llamada'?'selected':''}>📞 Llamada</option>
+                <option value="whatsapp" ${g.tipo==='whatsapp'?'selected':''}>💬 WhatsApp</option>
+                <option value="correo" ${g.tipo==='correo'?'selected':''}>✉️ Correo</option>
+              </select>
+              <input type="text" id="edit-resultado-${g.id}" value="${esc(g.nota||'')}">
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-teal" style="padding:5px 12px; font-size:11.5px;" onclick="guardarEdicionGestion('${g.id}')">✓ Guardar</button>
+              <button class="btn btn-ghost" style="padding:5px 12px; font-size:11.5px;" onclick="cancelarEdicionGestion()">Cancelar</button>
+            </div>
+          </div>`;
+        }
+        const nEdiciones = (g.historial_ediciones||[]).length;
+        return `<div class="gestion-row">
+          <div class="top">
+            <span>
+              <strong>${CANAL_ICON[g.tipo]||'📌'} ${esc(CANAL_LABEL[g.tipo]||g.tipo)}</strong>
+              <span style="color:var(--muted);"> — ${esc(g.nota||'(sin nota)')}</span>
+              ${g.editada ? '<span class="editada-tag"> (editado)</span>' : ''}
+            </span>
+            <span style="font-size:11px; color:var(--muted); white-space:nowrap;">${fechaCorta(g.fecha)} · ${esc(g.personal?g.personal.nombre:'Personal autorizado')}</span>
+          </div>
+          <div class="acciones">
+            <span class="edit-link" onclick="editarGestion('${g.id}')">✎ Editar</span>
+            <span class="del-link" onclick="eliminarGestion('${g.id}')">🗑 Eliminar</span>
+            ${nEdiciones ? `<span class="hist-link" onclick="toggleHistorialGestion('${g.id}')">🕓 Ver ediciones (${nEdiciones})</span>` : ''}
+          </div>
+          ${gestionHistorialAbiertoId === g.id ? `<div class="gestion-hist-panel">
+            ${(g.historial_ediciones||[]).slice().reverse().map(h=>`<div>Antes decía: <strong>${CANAL_ICON[h.canalAnterior]||''} ${esc(h.resultadoAnterior||'')}</strong> <span style="color:var(--muted);">· editado ${fechaCorta(h.editadoEn)}</span></div>`).join('')}
+          </div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    html += `<div class="gestion-papelera-toggle" onclick="togglePapeleraGestiones()">🗑 Papelera de gestiones (${eliminadas.length})</div>`;
+    if(papeleraGestionesAbierta){
+      if(!eliminadas.length){
+        html += '<div style="font-size:11.5px; color:var(--muted); padding:6px 0;">Vacía.</div>';
+      }else{
+        html += eliminadas.map(g=>`
+          <div class="gestion-papelera-item">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span><strong>${CANAL_ICON[g.tipo]||'📌'} ${esc(CANAL_LABEL[g.tipo]||g.tipo)}</strong>
+                <span style="font-size:10px; color:var(--muted);"> — eliminada ${g.eliminada_en ? new Date(g.eliminada_en).toLocaleDateString('es-MX') : ''}${g.personal_elimino ? ' por '+esc(g.personal_elimino.nombre) : ''}</span>
+              </span>
+              <span style="display:flex; gap:10px; white-space:nowrap;">
+                <span class="hist-link" style="cursor:pointer;" onclick="togglePapeleraItem('${g.id}')">${papeleraItemRevelado===g.id?'🙈 Ocultar':'👁 Ver contenido'}</span>
+                <span style="color:var(--teal-dark); font-weight:700; cursor:pointer; font-size:11px;" onclick="restaurarGestion('${g.id}')">↺ Restaurar</span>
+              </span>
+            </div>
+            ${papeleraItemRevelado===g.id ? `<div style="font-size:11.5px; color:var(--muted); background:var(--bg); border-radius:5px; padding:5px 8px; margin-top:4px;">${esc(g.nota||'(sin nota)')}</div>` : ''}
+          </div>`).join('');
+      }
+    }
+    el.innerHTML = html;
+  }
+
+  function editarGestion(id){ gestionEditandoId = id; gestionHistorialAbiertoId = null; renderGestionesModal(); }
+  function cancelarEdicionGestion(){ gestionEditandoId = null; renderGestionesModal(); }
+
+  async function guardarEdicionGestion(id){
+    const g = GESTIONES_CACHE.find(x=>x.id===id);
+    if(!g) return;
+    const nuevoTipo = document.getElementById('edit-canal-'+id).value;
+    const nuevaNota = document.getElementById('edit-resultado-'+id).value.trim();
+    if(!nuevaNota){ toast('⚠️ El resultado no puede quedar vacío'); return; }
+    const historial = Array.isArray(g.historial_ediciones) ? g.historial_ediciones.slice() : [];
+    historial.push({ canalAnterior: g.tipo, resultadoAnterior: g.nota||'', editadoEn: isoLocal(new Date()) });
+    const { error } = await sb.from('gestiones').update({ tipo: nuevoTipo, nota: nuevaNota, editada: true, historial_ediciones: historial }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    gestionEditandoId = null;
+    await renderGestionesModal();
+    toast('✅ Gestión actualizada');
+    refrescarPRMSiVisible();
+  }
+
+  function eliminarGestion(id){
+    mostrarConfirm({titulo:'¿Eliminar esta gestión?', mensaje:'Podrás restaurarla desde la papelera.', textoConfirmar:'Sí, eliminar', icono:'🗑️'}, async ()=>{
+      const { error } = await sb.from('gestiones').update({ eliminada:true, eliminada_por: MI_PERFIL.id, eliminada_en: new Date().toISOString() }).eq('id', id);
+      if(error){ toast('⚠️ ' + error.message); return; }
+      await renderGestionesModal();
+      toast('Gestión eliminada (disponible en la papelera)');
+      refrescarPRMSiVisible();
+    });
+  }
+
+  async function restaurarGestion(id){
+    const { error } = await sb.from('gestiones').update({ eliminada:false, eliminada_por:null, eliminada_en:null }).eq('id', id);
+    if(error){ toast('⚠️ ' + error.message); return; }
+    await renderGestionesModal();
+    toast('✅ Gestión restaurada');
+    refrescarPRMSiVisible();
+  }
+
+  function toggleHistorialGestion(id){ gestionHistorialAbiertoId = gestionHistorialAbiertoId===id ? null : id; renderGestionesModal(); }
+  function togglePapeleraGestiones(){ papeleraGestionesAbierta = !papeleraGestionesAbierta; renderGestionesModal(); }
+  function togglePapeleraItem(id){ papeleraItemRevelado = papeleraItemRevelado===id ? null : id; renderGestionesModal(); }
+
+  async function agregarGestion(){
+    if(!gestionPacienteActual) return;
+    const tipo = document.getElementById('gestion-tipo').value;
+    const nota = document.getElementById('gestion-nota').value.trim();
+    if(!nota){ toast('⚠️ Describe brevemente el resultado de la gestión'); return; }
+    const { error } = await sb.from('gestiones').insert({ paciente_id: gestionPacienteActual.id, tipo, nota, fecha: isoLocal(new Date()), creado_por: MI_PERFIL.id });
+    if(error){ toast('⚠️ ' + error.message); return; }
+    document.getElementById('gestion-nota').value = '';
+    await renderGestionesModal();
+    toast('✅ Gestión registrada');
+    refrescarPRMSiVisible();
   }
 
   // ============================================================
