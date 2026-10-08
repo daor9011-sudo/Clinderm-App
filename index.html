@@ -354,6 +354,32 @@
   .subtabs{display:flex; gap:8px; margin-bottom:14px;}
   .subtabs button{border:1px solid var(--border); background:#fff; padding:8px 14px; border-radius:20px; font-size:12.5px; cursor:pointer; font-weight:600; color:var(--muted);}
   .subtabs button.active{background:var(--navy-700); color:#fff; border-color:var(--navy-700);}
+  /* ===== CIERRE (mismo formato que Skin Fabric: barra de periodo, KPIs, tarjetas por doctora con acordeón) ===== */
+  .cierre-pane{box-shadow:0 1px 2px rgba(11,22,40,.04),0 12px 28px -8px rgba(11,22,40,.14); border:none;}
+  .cierre-pane::before{content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,var(--teal),var(--navy-600));}
+  .cierre-titulo{font-family:'Bricolage Grotesque',sans-serif; font-size:15.5px; font-weight:800; color:var(--navy-900); padding-bottom:9px; margin-bottom:14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:7px;}
+  .periodo-bar{display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .periodo-bar input:not([type=checkbox]):not([type=radio]),.periodo-bar select{padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--navy-900); font-family:inherit; outline:none; width:auto;}
+  .periodo-bar .date-label{font-weight:700; font-size:12.5px; min-width:150px; text-align:center; color:var(--navy-900); font-family:'Bricolage Grotesque',sans-serif;}
+  .btn-sm{padding:6px 12px; font-size:11px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:#fff; color:var(--navy-900); font-weight:700; display:inline-flex; align-items:center; gap:4px; font-family:inherit; white-space:nowrap;}
+  .btn-sm.act{background:linear-gradient(135deg,var(--teal),#22a8a8); color:var(--navy-900); border-color:rgba(42,191,191,.5); box-shadow:0 4px 10px -2px rgba(42,191,191,.5);}
+  .cierre-kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+  .prm-tabs{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .prm-tab-btn{padding:8px 16px; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer; border:1.5px solid var(--border); background:#fff; color:var(--muted); font-family:inherit;}
+  .prm-tab-btn.active{background:var(--navy-900); border-color:var(--navy-900); color:#fff;}
+  .cierre-card{background:#fff; border:1px solid var(--border); border-left:4px solid var(--teal); border-radius:10px; padding:12px 14px; margin-bottom:8px;}
+  .cierre-head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  .cierre-name{font-size:12.5px; font-weight:700; color:var(--navy-900);}
+  .cierre-total{font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:800; color:var(--teal);}
+  .cierre-meta{font-size:10.5px; color:#94a3b8; margin:2px 0 6px;}
+  .cierre-toggle{background:none; border:none; color:#0B6E6E; font-size:11px; font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:2px; padding:0; margin-top:6px; font-family:inherit;}
+  .acordeon-pac{margin-top:8px; border-top:1px dashed var(--border); padding-top:7px; display:none;}
+  .acordeon-pac.open{display:block;}
+  .pac-row-grid{display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) minmax(64px,auto); gap:10px; padding:5px 0; border-bottom:1px solid #f4f6fb; font-size:11px; align-items:center;}
+  .pac-row-grid .pac-nombre{color:var(--navy-900); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pac-row-grid .pac-detalle{color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pac-row-grid .pac-monto{color:var(--teal); font-weight:700; text-align:right;}
+  .pac-fecha{display:inline-block; min-width:44px; color:var(--muted); font-size:11px; font-weight:700;}
   .doc-card{border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px;}
   .doc-pill{display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; margin:6px 6px 0 0;}
   .doc-pill.efectivo{background:#EAF7EE; border:1px solid #A8D8B4; color:#2E7D4F;}
@@ -437,7 +463,7 @@
      navegador ya trae el archivo más reciente (incluso desde la pantalla de login, que es justo donde
      más se necesita para saber si ya cargó el archivo nuevo). z-index alto para quedar por encima de
      todo (login, barra de Registro, modales), pero pointer-events:none para no estorbar ningún clic. */
-  #app-version-badge{position:fixed; right:10px; bottom:8px; font-size:10px; color:var(--muted); opacity:.6; z-index:1000; pointer-events:none; letter-spacing:.02em; user-select:none;}
+  #app-version-badge{position:fixed; right:10px; bottom:8px; font-size:10px; font-weight:400; color:#8a93a6; transition:color .2s; z-index:1000; pointer-events:none; letter-spacing:.02em; user-select:none;}
   .app-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
   .banner-note{background:#EAF0FA; border:1px solid #CFE0F5; color:var(--navy-600); font-size:12px; padding:8px 12px; border-radius:9px; margin-bottom:14px;}
@@ -494,6 +520,14 @@
     .user-tag{font-size:11.5px;}
     .kpi-row, .summary-box, .kpi-cards{grid-template-columns:1fr 1fr;}
     .kpi .v{font-size:18px;}
+    .periodo-bar{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; align-items:stretch;}
+    .periodo-bar>*{min-width:0;}
+    #cierre-modo-dia,#cierre-modo-mes,#cierre-date-input,#cierre-btn-hoy,#cierre-fecha-label{grid-column:span 2;}
+    #cierre-btn-prev,#cierre-btn-next{grid-column:span 1;}
+    #cierre-doctor-filtro{grid-column:1 / -1; max-width:none !important; margin-left:0 !important;}
+    .periodo-bar .btn-sm{display:flex; justify-content:center; align-items:center;}
+    .periodo-bar input:not([type=checkbox]):not([type=radio]),.periodo-bar select{width:100%;}
+    .cierre-kpis>.kpi-card:last-child:nth-child(odd){grid-column:1 / -1;}
     .kpi-card .v{font-size:16px;}
     main{padding:10px;}
     .card{padding:14px 14px 16px;}
@@ -706,25 +740,28 @@
 
     <!-- CIERRE -->
     <section class="screen" id="screen-cierre">
-      <div class="card">
-        <div class="datefly">
-          <button onclick="cierreNav(-1)">‹</button>
-          <strong id="cierre-fecha-label">—</strong>
-          <button onclick="cierreNav(1)">›</button>
-          <button class="btn btn-ghost" style="width:auto; padding:6px 12px;" onclick="cierreHoy()">↻ Hoy</button>
-          <select id="cierre-modo" style="width:auto;" onchange="cargarCierre()"><option value="dia">Día</option><option value="mes">Mes</option></select>
-          <select id="cierre-doctor-filtro" style="width:auto; margin-left:auto;" onchange="cargarCierre()"><option value="">Todas las doctoras</option></select>
+      <div class="card cierre-pane">
+        <div class="cierre-titulo">🧾 Resultados Operativos</div>
+        <div class="periodo-bar">
+          <button class="btn-sm act" id="cierre-modo-dia" type="button" onclick="cierreSetModo('dia')">📋 Día</button>
+          <button class="btn-sm" id="cierre-modo-mes" type="button" onclick="cierreSetModo('mes')">📅 Mes</button>
+          <button class="btn-sm btn-outline" id="cierre-btn-prev" type="button" onclick="cierreNav(-1)">‹</button>
+          <span class="date-label" id="cierre-fecha-label">—</span>
+          <button class="btn-sm btn-outline" id="cierre-btn-next" type="button" onclick="cierreNav(1)">›</button>
+          <input type="date" id="cierre-date-input" onchange="cierreSetFecha(this.value)">
+          <button class="btn-sm btn-outline" id="cierre-btn-hoy" type="button" onclick="cierreHoy()">↻ Hoy</button>
+          <select id="cierre-doctor-filtro" style="max-width:220px; margin-left:auto;" onchange="cargarCierre()"><option value="">Todas las doctoras</option></select>
         </div>
-        <div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));">
-          <div class="kpi"><div class="v" id="cierre-kpi-total">$0</div><div class="l">Ingreso total</div></div>
-          <div class="kpi"><div class="v" id="cierre-kpi-n">0</div><div class="l">Consultas</div></div>
-          <div class="kpi"><div class="v" id="cierre-kpi-ticket">$0</div><div class="l">Ticket promedio</div></div>
-          <div class="kpi"><div class="v" id="cierre-kpi-farmacia">$0</div><div class="l">💊 Farmacia</div></div>
-          <div class="kpi"><div class="v" id="cierre-kpi-top">—</div><div class="l">Mayor ingreso</div></div>
+        <div class="kpi-cards cierre-kpis" id="cierre-kpis">
+          <div class="kpi-card"><div class="ico">💰</div><div class="l">Ingreso total</div><div class="v" id="cierre-kpi-total">$0</div></div>
+          <div class="kpi-card"><div class="ico">🧾</div><div class="l">Consultas</div><div class="v" id="cierre-kpi-n">0</div></div>
+          <div class="kpi-card"><div class="ico">🎟️</div><div class="l">Ticket promedio</div><div class="v" id="cierre-kpi-ticket">$0</div></div>
+          <div class="kpi-card"><div class="ico">💊</div><div class="l">Farmacia</div><div class="v" id="cierre-kpi-farmacia">$0</div></div>
+          <div class="kpi-card"><div class="ico">🏆</div><div class="l">Mayor ingreso</div><div class="v" id="cierre-kpi-top" style="font-size:14px;">—</div></div>
         </div>
-        <div class="subtabs">
-          <button class="active" id="cierreSubtabDoctor" onclick="cierreSubtab('doctor')">👥 Por Doctora</button>
-          <button id="cierreSubtabPago" onclick="cierreSubtab('pago')">💳 Por Medio de Pago</button>
+        <div class="prm-tabs">
+          <button type="button" class="prm-tab-btn active" id="cierreSubtabDoctor" onclick="cierreSubtab('doctor')">👥 Por Doctora</button>
+          <button type="button" class="prm-tab-btn" id="cierreSubtabPago" onclick="cierreSubtab('pago')">💳 Por Medio de Pago</button>
         </div>
         <div id="cierreViewDoctor"><div class="empty-state">Cargando…</div></div>
         <div id="cierreViewPago" style="display:none;"><div class="empty-state">Cargando…</div></div>
@@ -1025,10 +1062,35 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.5 · 2026-10-08';
+  const APP_VERSION = 'v1.6 · 2026-10-08';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
+    // El color de la marca depende de lo que tenga detrás: blanca sobre fondo azul/oscuro (login, barra
+    // de Registro) y gris sobre fondo claro. Se revisa al hacer scroll, clic o cambiar de pantalla.
+    if(!badge) return;
+    let pend = false;
+    const lum = c => { const m = c.match(/rgba?\(([^)]+)\)/); if(!m) return null; const p = m[1].split(',').map(x=>parseFloat(x)); if(p.length > 3 && p[3] < 0.5) return null; return (0.299*p[0] + 0.587*p[1] + 0.114*p[2]) / 255; };
+    const fondoBajo = (x, y) => {
+      let el = document.elementFromPoint(x, y);
+      while(el){
+        const cs = getComputedStyle(el);
+        const g = cs.backgroundImage;
+        if(g && g !== 'none' && /gradient/.test(g)){ const l = lum(g); if(l !== null) return l; }
+        const l2 = lum(cs.backgroundColor); if(l2 !== null) return l2;
+        el = el.parentElement;
+      }
+      return 1;
+    };
+    const pintar = () => {
+      pend = false;
+      const r = badge.getBoundingClientRect(); if(!r.width) return;
+      badge.style.color = fondoBajo(r.left + r.width/2, r.top + r.height/2) < 0.5 ? '#ffffff' : '#8a93a6';
+    };
+    const pedir = () => { if(!pend){ pend = true; requestAnimationFrame(pintar); } };
+    ['scroll','resize','click','touchend','keyup'].forEach(e => window.addEventListener(e, pedir, true));
+    setInterval(pedir, 600);
+    pedir();
   });
 
   const SUPABASE_URL = 'https://lgkgludqezqoklcyxiuz.supabase.co';
@@ -1793,11 +1855,23 @@
     cargarCierre();
   }
   function cierreHoy(){ CIERRE_FECHA = new Date(); cargarCierre(); }
+  function cierreSetModo(modo){ CIERRE_MODO = modo; cargarCierre(); }
+  function cierreSetFecha(v){
+    if(!v) return;
+    const [y,m,d] = v.split('-').map(Number);
+    CIERRE_FECHA = new Date(y, m-1, d);
+    cargarCierre();
+  }
   function cierreSubtab(which){
     document.getElementById('cierreSubtabDoctor').classList.toggle('active', which==='doctor');
     document.getElementById('cierreSubtabPago').classList.toggle('active', which==='pago');
     document.getElementById('cierreViewDoctor').style.display = which==='doctor' ? 'block' : 'none';
     document.getElementById('cierreViewPago').style.display = which==='pago' ? 'block' : 'none';
+  }
+  function toggleCierreAcordeon(i, btn){
+    const el = document.getElementById('cierre-acordeon-'+i);
+    const abierto = el.classList.toggle('open');
+    btn.textContent = btn.dataset.base + (abierto ? ' ▴' : ' ▾');
   }
 
   // "bar" es el mismo hex que .barra-fill/.doc-pill en CSS — se reutiliza tal cual en el doughnut
@@ -1815,26 +1889,33 @@
   function esMedioSinCobro(m){ return MEDIOS_SIN_COBRO.includes(m); }
   function colorMedioPago(nombre){ return (MEDIOS_INFO[nombre] || {}).bar || '#334155'; }
 
+  let cierreReqId = 0;
   async function cargarCierre(){
-    CIERRE_MODO = document.getElementById('cierre-modo').value;
+    const miReq = ++cierreReqId;
     const doctorFiltro = document.getElementById('cierre-doctor-filtro').value;
-    let desde, hasta, label;
-    if(CIERRE_MODO === 'dia'){
+    const mes = CIERRE_MODO === 'mes';
+    const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+    let desde, hasta;
+    if(!mes){
       desde = hasta = isoLocal(CIERRE_FECHA);
-      label = CIERRE_FECHA.toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'});
     } else {
       const y = CIERRE_FECHA.getFullYear(), m = CIERRE_FECHA.getMonth();
       desde = isoLocal(new Date(y, m, 1));
       hasta = isoLocal(new Date(y, m+1, 0));
-      label = CIERRE_FECHA.toLocaleDateString('es-MX', {month:'long', year:'numeric'});
     }
-    document.getElementById('cierre-fecha-label').textContent = label;
+    document.getElementById('cierre-fecha-label').textContent = mes
+      ? cap(CIERRE_FECHA.toLocaleDateString('es-MX', {month:'long', year:'numeric'}))
+      : cap(CIERRE_FECHA.toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'}));
+    document.getElementById('cierre-date-input').value = isoLocal(CIERRE_FECHA);
+    document.getElementById('cierre-modo-dia').classList.toggle('act', !mes);
+    document.getElementById('cierre-modo-mes').classList.toggle('act', mes);
 
-    let q = sb.from('consultas').select('monto, medio_pago, monto_2, medio_pago_2, tipo_consulta, no_vino, farmacia_generado_por, personal!consultas_doctor_id_fkey(id, nombre)')
-      .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta);
+    let q = sb.from('consultas').select('fecha, monto, medio_pago, monto_2, medio_pago_2, tipo_consulta, no_vino, farmacia_generado_por, pacientes(nombre), personal!consultas_doctor_id_fkey(id, nombre)')
+      .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta).order('fecha', {ascending:false});
     if(doctorFiltro) q = q.eq('doctor_id', doctorFiltro);
 
     const { data, error } = await q;
+    if(miReq !== cierreReqId) return; // el usuario ya cambió de día/mes/doctora mientras cargaba: se descarta
     if(error){ console.error('[Clinderm] Error cargando cierre:', error); toast('⚠️ Error cargando cierre'); return; }
     const rows = data || [];
 
@@ -1851,20 +1932,25 @@
     const porDoctor = {};
     rows.forEach(r=>{
       const doc = r.personal ? r.personal.nombre : 'Sin doctora';
-      if(!porDoctor[doc]) porDoctor[doc] = { total:0, pagos:{}, sinCobro:{} };
-      porDoctor[doc].total += Number(r.monto||0) + Number(r.monto_2||0);
-      if(r.medio_pago) porDoctor[doc].pagos[r.medio_pago] = (porDoctor[doc].pagos[r.medio_pago]||0) + Number(r.monto||0);
-      if(r.medio_pago_2) porDoctor[doc].pagos[r.medio_pago_2] = (porDoctor[doc].pagos[r.medio_pago_2]||0) + Number(r.monto_2||0);
-      if(esMedioSinCobro(r.medio_pago)) porDoctor[doc].sinCobro[r.medio_pago] = (porDoctor[doc].sinCobro[r.medio_pago]||0) + 1;
+      if(!porDoctor[doc]) porDoctor[doc] = { total:0, pagos:{}, sinCobro:{}, lineas:[], pacientes:new Set() };
+      const d = porDoctor[doc];
+      const totalFila = Number(r.monto||0) + Number(r.monto_2||0);
+      d.total += totalFila;
+      if(r.medio_pago) d.pagos[r.medio_pago] = (d.pagos[r.medio_pago]||0) + Number(r.monto||0);
+      if(r.medio_pago_2) d.pagos[r.medio_pago_2] = (d.pagos[r.medio_pago_2]||0) + Number(r.monto_2||0);
+      if(esMedioSinCobro(r.medio_pago)) d.sinCobro[r.medio_pago] = (d.sinCobro[r.medio_pago]||0) + 1;
+      const nomPac = r.pacientes ? r.pacientes.nombre : '—';
+      d.pacientes.add(nomPac);
+      d.lineas.push({ fecha:r.fecha, paciente:nomPac, detalle: r.tipo_consulta + (esMedioSinCobro(r.medio_pago) ? ' · ' + r.medio_pago : ''), monto: totalFila });
     });
     const doctorasOrdenadas = Object.entries(porDoctor).sort((a,b)=>b[1].total-a[1].total);
     document.getElementById('cierre-kpi-top').textContent = doctorasOrdenadas.length ? doctorasOrdenadas[0][0] : '—';
 
     const viewDoctor = document.getElementById('cierreViewDoctor');
     if(doctorasOrdenadas.length===0){
-      viewDoctor.innerHTML = '<div class="empty-state">Sin consultas en este período.</div>';
+      viewDoctor.innerHTML = '<div class="empty-state">Sin resultados para este periodo.</div>';
     } else {
-      viewDoctor.innerHTML = doctorasOrdenadas.map(([nombre, v])=>{
+      viewDoctor.innerHTML = doctorasOrdenadas.map(([nombre, v], i)=>{
         const pillsHtml = Object.entries(v.pagos).map(([medio,monto])=>{
           const info = MEDIOS_INFO[medio] || {cls:'efectivo', icon:'💰'};
           // En medios sin cobro (cortesía / procedimiento pagado) lo útil es cuántos fueron, no el monto
@@ -1872,26 +1958,38 @@
           const txt = (n && !(monto > 0)) ? `×${n}` : (n ? `×${n} · ${moneyRound(monto)}` : moneyRound(monto));
           return `<span class="doc-pill ${info.cls}">${info.icon} ${esc(medio)} ${txt}</span>`;
         }).join('');
-        return `<div class="doc-card"><div class="hd"><strong>${esc(nombre)}</strong><span>${money(v.total)}</span></div><div style="margin:8px 0;">${pillsHtml}</div></div>`;
+        const lineasHtml = v.lineas.map(l=>{
+          const f = l.fecha ? l.fecha.split('-').reverse().slice(0,2).join('/') : '';
+          return `<div class="pac-row-grid"><span class="pac-nombre">${mes ? `<span class="pac-fecha">${esc(f)}</span> ` : ''}${esc(l.paciente)}</span><span class="pac-detalle">${esc(l.detalle)}</span><span class="pac-monto">${money(l.monto)}</span></div>`;
+        }).join('');
+        const nPac = v.pacientes.size, nServ = v.lineas.length;
+        const base = `Ver pacientes (${nPac})`;
+        return `<div class="cierre-card">
+          <div class="cierre-head"><span class="cierre-name">${esc(nombre)}</span><span class="cierre-total">${money(v.total)}</span></div>
+          <div class="cierre-meta">${nPac} paciente(s) · ${nServ} servicio(s)</div>
+          <div>${pillsHtml}</div>
+          <button class="cierre-toggle" type="button" data-base="${base}" onclick="toggleCierreAcordeon(${i}, this)">${base} ▾</button>
+          <div class="acordeon-pac" id="cierre-acordeon-${i}">${lineasHtml}</div>
+        </div>`;
       }).join('');
     }
 
     const porPago = {};
     rows.forEach(r=>{
       const doc = r.personal ? r.personal.nombre : 'Sin doctora';
-      if(r.medio_pago){ if(!porPago[r.medio_pago]) porPago[r.medio_pago] = {total:0, doctoras:{}}; porPago[r.medio_pago].total += Number(r.monto||0); porPago[r.medio_pago].doctoras[doc] = (porPago[r.medio_pago].doctoras[doc]||0)+Number(r.monto||0); }
-      if(r.medio_pago_2){ if(!porPago[r.medio_pago_2]) porPago[r.medio_pago_2] = {total:0, doctoras:{}}; porPago[r.medio_pago_2].total += Number(r.monto_2||0); porPago[r.medio_pago_2].doctoras[doc] = (porPago[r.medio_pago_2].doctoras[doc]||0)+Number(r.monto_2||0); }
+      if(r.medio_pago){ if(!porPago[r.medio_pago]) porPago[r.medio_pago] = {total:0, count:0, doctoras:{}}; porPago[r.medio_pago].total += Number(r.monto||0); porPago[r.medio_pago].count += 1; porPago[r.medio_pago].doctoras[doc] = (porPago[r.medio_pago].doctoras[doc]||0)+Number(r.monto||0); }
+      if(r.medio_pago_2){ if(!porPago[r.medio_pago_2]) porPago[r.medio_pago_2] = {total:0, count:0, doctoras:{}}; porPago[r.medio_pago_2].total += Number(r.monto_2||0); porPago[r.medio_pago_2].count += 1; porPago[r.medio_pago_2].doctoras[doc] = (porPago[r.medio_pago_2].doctoras[doc]||0)+Number(r.monto_2||0); }
     });
     const viewPago = document.getElementById('cierreViewPago');
     const pagosActivos = Object.entries(porPago).filter(([,v])=>v.total>0);
     if(pagosActivos.length===0){
-      viewPago.innerHTML = '<div class="empty-state">Sin pagos en este período.</div>';
+      viewPago.innerHTML = '<div class="empty-state">Sin resultados para este periodo.</div>';
     } else {
       viewPago.innerHTML = '<div class="pago-cards">' + pagosActivos.sort((a,b)=>b[1].total-a[1].total).map(([medio,v])=>{
         const info = MEDIOS_INFO[medio] || {cls:'efectivo', icon:'💰'};
         const pct = totalGeneral ? Math.round(v.total/totalGeneral*100) : 0;
         const desglose = Object.entries(v.doctoras).sort((a,b)=>b[1]-a[1]).map(([doc,monto])=>`<div><span>${esc(doc)}</span><span>${money(monto)}</span></div>`).join('');
-        return `<div class="pago-card ${info.cls}"><div class="ico">${info.icon}</div><div class="nombre">${esc(medio)}</div><div class="total">${money(v.total)}</div><div class="sub">${pct}% del total</div><div class="barra-bg"><div class="barra-fill" style="width:${pct}%"></div></div><div class="pago-desglose">${desglose}</div></div>`;
+        return `<div class="pago-card ${info.cls}"><div class="ico">${info.icon}</div><div class="nombre">${esc(medio)}</div><div class="total">${money(v.total)}</div><div class="sub">${pct}% del total · ${v.count} pago(s)</div><div class="barra-bg"><div class="barra-fill" style="width:${pct}%"></div></div><div class="pago-desglose">${desglose}</div></div>`;
       }).join('') + '</div>';
     }
   }
