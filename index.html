@@ -715,10 +715,11 @@
           <select id="cierre-modo" style="width:auto;" onchange="cargarCierre()"><option value="dia">Día</option><option value="mes">Mes</option></select>
           <select id="cierre-doctor-filtro" style="width:auto; margin-left:auto;" onchange="cargarCierre()"><option value="">Todas las doctoras</option></select>
         </div>
-        <div class="kpi-row">
+        <div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));">
           <div class="kpi"><div class="v" id="cierre-kpi-total">$0</div><div class="l">Ingreso total</div></div>
           <div class="kpi"><div class="v" id="cierre-kpi-n">0</div><div class="l">Consultas</div></div>
           <div class="kpi"><div class="v" id="cierre-kpi-ticket">$0</div><div class="l">Ticket promedio</div></div>
+          <div class="kpi"><div class="v" id="cierre-kpi-farmacia">$0</div><div class="l">💊 Farmacia</div></div>
           <div class="kpi"><div class="v" id="cierre-kpi-top">—</div><div class="l">Mayor ingreso</div></div>
         </div>
         <div class="subtabs">
@@ -1024,7 +1025,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.4 · 2026-10-07';
+  const APP_VERSION = 'v1.5 · 2026-10-08';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1829,7 +1830,7 @@
     }
     document.getElementById('cierre-fecha-label').textContent = label;
 
-    let q = sb.from('consultas').select('monto, medio_pago, monto_2, medio_pago_2, tipo_consulta, no_vino, personal!consultas_doctor_id_fkey(id, nombre)')
+    let q = sb.from('consultas').select('monto, medio_pago, monto_2, medio_pago_2, tipo_consulta, no_vino, farmacia_generado_por, personal!consultas_doctor_id_fkey(id, nombre)')
       .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta);
     if(doctorFiltro) q = q.eq('doctor_id', doctorFiltro);
 
@@ -1844,6 +1845,8 @@
     document.getElementById('cierre-kpi-total').textContent = moneyRound(totalGeneral);
     document.getElementById('cierre-kpi-n').textContent = nConsultas;
     document.getElementById('cierre-kpi-ticket').textContent = moneyRound(ticketProm);
+    const totalFarmaciaCierre = rows.filter(r => r.farmacia_generado_por).reduce((a,r)=> a + Number(r.monto||0) + Number(r.monto_2||0), 0);
+    document.getElementById('cierre-kpi-farmacia').textContent = moneyRound(totalFarmaciaCierre);
 
     const porDoctor = {};
     rows.forEach(r=>{
@@ -1954,6 +1957,9 @@
     if(personas.length === 0){ cont.innerHTML = '<div class="empty-state">No hay doctoras/cosmetólogas activas.</div>'; kpiCont.innerHTML=''; return; }
 
     let kpiNetoTotal = 0, kpiProductividad = 0, kpiFarmacia = 0, kpiPendientes = 0;
+    // Total vendido en farmacia del período: suma TODAS las ventas (no solo las de quienes tienen tarjeta
+    // de comisión), así incluye también lo que genera la Dra. Tania, que no aparece en esta pestaña.
+    const totalFarmaciaPeriodo = (ventasFarmacia||[]).reduce((a,v)=> a + Number(v.monto||0) + Number(v.monto_2||0), 0);
 
     cont.innerHTML = personas.map(p=>{
       const misConsultas = (consultas||[]).filter(c => c.doctor_id === p.id);
@@ -2064,7 +2070,7 @@
     kpiCont.innerHTML = `
       <div class="kpi-card"><div class="ico">💰</div><div class="l">Neto total a pagar</div><div class="v">${money(kpiNetoTotal)}</div></div>
       <div class="kpi-card"><div class="ico">🩺</div><div class="l">Productividad del período</div><div class="v">${money(kpiProductividad)}</div></div>
-      <div class="kpi-card"><div class="ico">💊</div><div class="l">Comisión farmacia</div><div class="v">${money(kpiFarmacia)}</div></div>
+      <div class="kpi-card"><div class="ico">💊</div><div class="l">Farmacia vendida · comisión ${money(kpiFarmacia)}</div><div class="v">${money(totalFarmaciaPeriodo)}</div></div>
       <div class="kpi-card"><div class="ico">⚠️</div><div class="l">Esquemas pendientes</div><div class="v">${kpiPendientes}</div></div>
     `;
   }
