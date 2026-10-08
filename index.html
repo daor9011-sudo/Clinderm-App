@@ -627,7 +627,7 @@
         </div>
 
         <div id="r-pago2-wrap" class="reg-grid" style="display:none; margin-top:6px;">
-          <div class="field-wrap"><label>Monto 2do pago</label><input type="number" id="r-monto2" placeholder="$0.00" oninput="actualizarResumenLive()"></div>
+          <div class="field-wrap"><label>Monto 2do pago <span style="font-weight:400; color:var(--muted);">(se suma al total)</span></label><input type="number" id="r-monto2" placeholder="$0.00" oninput="actualizarResumenLive()"></div>
           <div class="field-wrap"><label>Medio de pago 2</label>
             <select id="r-mediopago2"><option value="" selected disabled>Selecciona…</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option><option>Procedimiento pagado</option></select>
           </div>
@@ -1024,7 +1024,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.3 · 2026-10-05';
+  const APP_VERSION = 'v1.4 · 2026-10-07';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1423,8 +1423,10 @@
     } else personaNombre = `${personasUnicas.length} personas`;
 
     document.getElementById('rl-name').textContent = paciente;
-    document.getElementById('rl-meta').textContent = personaNombre + ' · ' + tipoLabel;
-    document.getElementById('rl-amount').textContent = money(monto);
+    const pago2Activo = document.getElementById('r-pago2-wrap').style.display === 'grid' && !document.getElementById('r-novino-check').checked;
+    const monto2Live = pago2Activo ? (parseFloat(document.getElementById('r-monto2').value) || 0) : 0;
+    document.getElementById('rl-meta').textContent = personaNombre + ' · ' + tipoLabel + (monto2Live > 0 ? ` · ${money(monto)} + ${money(monto2Live)} (2do pago)` : '');
+    document.getElementById('rl-amount').textContent = money(monto + monto2Live);
   }
 
   let pacienteSearchTimer = null;
@@ -1461,6 +1463,7 @@
     const showing = wrap.style.display === 'grid';
     wrap.style.display = showing ? 'none' : 'grid';
     document.getElementById('r-toggle-pago2').textContent = showing ? '+ agregar 2do pago' : '– quitar 2do pago';
+    actualizarResumenLive();
   }
   function toggleNoVino(){
     const noVino = document.getElementById('r-novino-check').checked;
@@ -1521,8 +1524,7 @@
     if(!noVino && !sinCobro && itemsCarrito.some(i => i.precio <= 0)){ toast('⚠️ Ingresa el precio cobrado de cada servicio'); return; }
     if(!noVino && !medioPago){ toast('⚠️ Selecciona el medio de pago'); return; }
     if(pago2Visible && !medioPago2){ toast('⚠️ Selecciona el medio de pago del 2do pago'); return; }
-    const totalCarrito = itemsCarrito.reduce((a,i)=>a+i.precio,0);
-    if(pago2Visible && monto2 > totalCarrito){ toast('⚠️ El 2do pago no puede ser mayor al total de la consulta'); return; }
+    if(pago2Visible && !(monto2 > 0)){ toast('⚠️ Ingresa el monto del 2do pago'); return; }
 
     const btn = document.getElementById('r-btn-guardar');
     btn.disabled = true; btn.textContent = 'Guardando...';
@@ -1555,19 +1557,26 @@
       } else {
         // Un renglón por servicio del carrito — así el Historial queda detallado y la comisión
         // (que suma por doctor_id, o por farmacia_generado_por para farmacia) cuadra sola, sin
-        // necesidad de lógica extra. Si hay 2do pago, se reparte empezando por el último servicio
-        // hacia atrás, restándolo de ese mismo renglón (nunca se suma aparte), así monto + monto_2
-        // de cada fila sigue sumando exactamente el precio de su servicio y el total no se duplica
-        // en Cierre/Dashboard/Comisiones.
-        let restantePago2 = pago2Visible ? (monto2 || 0) : 0;
+        // necesidad de lógica extra. El 2do pago SE SUMA al valor cobrado (monto = lo que se capturó en
+        // cada servicio; monto_2 = lo adicional pagado con el 2do medio). Con varios servicios, el 2do
+        // pago se reparte en proporción al valor de cada uno (el último absorbe el redondeo) para que
+        // la comisión de cada persona cuadre. monto + monto_2 de todas las filas = total cobrado.
+        const pago2Total = pago2Visible ? Math.round((monto2 || 0) * 100) / 100 : 0;
+        const totalBase = itemsCarrito.reduce((a,i)=>a+i.precio,0);
+        let asignado2 = 0;
         filas = [];
-        for(let idx = itemsCarrito.length - 1; idx >= 0; idx--){
+        for(let idx = 0; idx < itemsCarrito.length; idx++){
           const item = itemsCarrito[idx];
-          const usar2 = Math.min(restantePago2, item.precio);
-          restantePago2 -= usar2;
-          filas.unshift({
+          let usar2 = 0;
+          if(pago2Total > 0){
+            usar2 = (idx === itemsCarrito.length - 1)
+              ? Math.round((pago2Total - asignado2) * 100) / 100
+              : Math.round(pago2Total * (totalBase > 0 ? item.precio / totalBase : 1 / itemsCarrito.length) * 100) / 100;
+            asignado2 += usar2;
+          }
+          filas.push({
             fecha, paciente_id: pacienteId, doctor_id: item.doctorId, tipo_consulta: item.nombre,
-            monto: item.precio - usar2, medio_pago: medioPago,
+            monto: item.precio, medio_pago: medioPago,
             monto_2: usar2 > 0 ? usar2 : null, medio_pago_2: usar2 > 0 ? medioPago2 : null,
             factura, num_factura: numFactura, no_vino: false, notas,
             paciente_propio: item.pacientePropio === true ? true : (item.pacientePropio === false ? false : null),
