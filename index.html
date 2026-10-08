@@ -595,6 +595,7 @@
       <span class="pill-role" id="roleChip">★ …</span>
       <span class="user-tag" id="userTag">👤 …</span>
       <button class="pill-btn" data-admin style="display:none;" onclick="showScreen('config', document.querySelector('[data-admin]'))">⚙️ Configuración</button>
+      <button class="pill-btn" id="btn-refresh" onclick="refrescarManual()" title="Actualizar datos">↻</button>
       <button class="pill-btn" onclick="doLogout()">⏻ Cerrar sesión</button>
     </div>
   </header>
@@ -1062,7 +1063,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.6 · 2026-10-08';
+  const APP_VERSION = 'v1.7 · 2026-10-08';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1217,8 +1218,74 @@
   }
 
   function doLogout(){
+    detenerRealtime();
     sb.auth.signOut().then(()=> window.location.reload());
   }
+
+  // ============================================================
+  // TIEMPO REAL — si alguien más guarda/edita algo, la pantalla que tengas abierta se actualiza sola
+  // (mismo comportamiento que Skin Fabric). La base solo manda los cambios que cada usuario puede ver (RLS).
+  // ============================================================
+  let RT_CHANNEL = null;
+  let RT_TIMER = null;
+  let APP_OCULTA_DESDE = 0;
+  function iniciarRealtime(){
+    detenerRealtime();
+    try{
+      RT_CHANNEL = sb.channel('cambios-clinderm')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'consultas' }, programarRefrescoRealtime)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, programarRefrescoRealtime)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'gestiones' }, programarRefrescoRealtime)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'catalogo_servicios' }, ()=>{ cargarCatalogoServicios(); programarRefrescoRealtime(); })
+        .subscribe(status => { if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[Clinderm] Tiempo real:', status); });
+    }catch(e){ console.error('[Clinderm] No se pudo iniciar el tiempo real:', e); }
+  }
+  function detenerRealtime(){
+    clearTimeout(RT_TIMER);
+    if(RT_CHANNEL){ try{ sb.removeChannel(RT_CHANNEL); }catch(e){} RT_CHANNEL = null; }
+  }
+  function programarRefrescoRealtime(){
+    // Se agrupan varios cambios seguidos (ej. una consulta con varios servicios) en un solo refresco
+    clearTimeout(RT_TIMER);
+    RT_TIMER = setTimeout(refrescarPantallaActivaPorRealtime, 500);
+  }
+  function refrescarPantallaActivaPorRealtime(){
+    if(!MI_PERFIL) return;
+    const activa = document.querySelector('.screen.active');
+    if(!activa) return;
+    switch(activa.id){
+      case 'screen-historial': cargarHistorial(); break;
+      case 'screen-cierre': cargarCierre(); break;
+      case 'screen-dashboard': cargarDashboard(); break;
+      case 'screen-comisiones':
+        // si alguien está escribiendo un % en el editor, no se le borra lo que lleva escrito
+        if(document.activeElement && document.activeElement.closest && document.activeElement.closest('#com-cards')) break;
+        cargarComisiones(); break;
+      case 'screen-crm':
+        if(document.getElementById('crmViewInactivos').style.display !== 'none') cargarCRMInactivos(); else cargarCRMNoVino();
+        break;
+    }
+    // Bitácora abierta: se actualiza (salvo que se esté editando un renglón)
+    const gm = document.getElementById('gestionModal');
+    if(gm && gm.classList.contains('show') && !gestionEditandoId) renderGestionesModal();
+  }
+  function refrescarManual(){
+    if(!MI_PERFIL) return;
+    cargarCatalogoServicios();
+    iniciarRealtime();
+    refrescarPantallaActivaPorRealtime();
+    toast('✅ Datos actualizados');
+  }
+  // iPhone/Android cortan la conexión en vivo cuando la app pasa a segundo plano o se bloquea la pantalla:
+  // al volver, se reconecta el canal y se refresca la pantalla para no quedarse con datos viejos.
+  function reanudarApp(){
+    if(!MI_PERFIL) return;
+    iniciarRealtime();
+    if(Date.now() - APP_OCULTA_DESDE > 5000) refrescarPantallaActivaPorRealtime();
+  }
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) APP_OCULTA_DESDE = Date.now(); else reanudarApp(); });
+  window.addEventListener('pageshow', e=>{ if(e.persisted){ APP_OCULTA_DESDE = 0; reanudarApp(); } });
+  window.addEventListener('online', ()=>{ APP_OCULTA_DESDE = 0; reanudarApp(); });
 
   // Si ya hay sesión activa (recargó la página), entra directo
   sb.auth.getSession().then(async ({data:{session}})=>{
@@ -1241,6 +1308,7 @@
     cargarCatalogoServicios();
     cargarCatalogoFarmacia();
     showScreen('registro', document.querySelector('#mainNav button'));
+    iniciarRealtime();
   }
 
   // ¿Puede este rol agregar productos de farmacia en el panel de Servicios? Solo farmacia, admin y
