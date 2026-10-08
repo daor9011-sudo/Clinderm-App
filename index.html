@@ -721,8 +721,8 @@
       <div class="modal-box" style="max-width:480px; text-align:left;">
         <h3 style="margin-bottom:12px;">Editar consulta</h3>
         <input type="hidden" id="ec-id">
-        <div class="field-wrap"><label>Tipo de Consulta</label>
-          <select id="ec-tipo"><option>Consulta de primera vez</option><option>Consulta subsecuente</option><option>Procedimientos</option></select>
+        <div class="field-wrap"><label>Servicio</label>
+          <input type="text" id="ec-tipo" autocomplete="off">
         </div>
         <div class="field-wrap"><label>Monto</label><input type="number" id="ec-monto"></div>
         <div class="field-wrap"><label>Medio de pago</label>
@@ -1063,7 +1063,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.7 · 2026-10-08';
+  const APP_VERSION = 'v1.8 · 2026-10-08';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1865,8 +1865,11 @@
   }
   async function guardarEdicionConsulta(){
     const id = document.getElementById('ec-id').value;
+    // El nombre del servicio es texto libre (cada procedimiento/producto tiene el suyo): si se deja vacío
+    // se conserva el original, nunca se guarda en blanco.
+    const original = (window._historialCache||[]).find(x=>x.id===id);
     const payload = {
-      tipo_consulta: document.getElementById('ec-tipo').value,
+      tipo_consulta: document.getElementById('ec-tipo').value.trim() || (original ? original.tipo_consulta : ''),
       monto: parseFloat(document.getElementById('ec-monto').value) || 0,
       medio_pago: document.getElementById('ec-mediopago').value,
       num_factura: document.getElementById('ec-factura').value.trim() || null,
