@@ -279,7 +279,10 @@
 
   /* ---- Dashboard: filtros compactos y tarjeta "cara a cara" estilo Skin Fabric ---- */
   .filter-bar{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
-  .filter-bar select{padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--ink); font-family:inherit; outline:none;}
+  .rango-inline{display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .rango-inline label{font-size:11px; font-weight:700; color:var(--muted);}
+  .rango-inline input[type=date], .filter-bar input[type=date]{width:auto; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--ink); font-family:inherit; outline:none;}
+  .filter-bar select{width:auto; min-width:150px; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--ink); font-family:inherit; outline:none;}
   .filter-bar select:focus{border-color:var(--teal);}
   .prod-card{background:#fff; border-radius:11px; padding:14px 16px 16px; border:1.5px solid var(--teal); position:relative; overflow:hidden; margin-bottom:14px;}
   .prod-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--teal), var(--navy-600));}
@@ -739,7 +742,10 @@
       <div class="card">
         <div class="filters">
           <div class="fitem"><label>Buscar paciente</label><input id="h-buscar" placeholder="Nombre..." oninput="cargarHistorialDebounced()"></div>
-          <div class="fitem"><label>Período</label><select id="h-periodo" onchange="cargarHistorial()"><option value="0">Hoy</option><option value="7">7 días</option><option value="30">30 días</option><option value="90">90 días</option><option value="365">Año</option><option value="9999">Todo</option></select></div>
+          <div class="fitem"><label>Período</label><select id="h-periodo" onchange="onPeriodoChange('h', cargarHistorial)"><option value="0">Hoy</option><option value="7">7 días</option><option value="30">30 días</option><option value="90">90 días</option><option value="365">Año</option><option value="9999">Todo</option><option value="custom">📅 Rango de fechas…</option></select></div>
+          <div class="fitem rango-item" id="h-rango" style="display:none;"><label>Desde</label><input type="date" id="h-desde" onchange="cargarHistorial()"></div>
+          <div class="fitem rango-item" id="h-rango2" style="display:none;"><label>Hasta</label><input type="date" id="h-hasta" onchange="cargarHistorial()"></div>
+          <div class="fitem"><label>Prestador</label><select id="h-doctor" onchange="cargarHistorial()"><option value="">Todos</option></select></div>
           <div class="fitem"><label>Medio de pago</label><select id="h-mediopago" onchange="cargarHistorial()"><option value="">Todos</option><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option><option>Procedimiento pagado</option></select></div>
         </div>
         <div class="hist-kpi-chips" id="h-kpi-chips"></div>
@@ -763,6 +769,10 @@
           <input type="text" id="ec-tipo" autocomplete="off">
         </div>
         <div class="field-wrap"><label>Monto</label><input type="number" id="ec-monto"></div>
+        <div class="field-wrap" id="ec-propio-wrap" style="display:none;"><label>Paciente de</label>
+          <select id="ec-propio"><option value="clinica">🏥 Clínica</option><option value="propio">⭐ Propio</option></select>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Define si esta consulta cuenta como paciente propio de la doctora (comisión sobre sus propios pacientes).</div>
+        </div>
         <div class="field-wrap"><label>Medio de pago</label>
           <select id="ec-mediopago"><option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Cortesía</option><option>Procedimiento pagado</option></select>
         </div>
@@ -789,7 +799,7 @@
           <button class="btn-sm btn-outline" id="cierre-btn-next" type="button" onclick="cierreNav(1)">›</button>
           <input type="date" id="cierre-date-input" onchange="cierreSetFecha(this.value)">
           <button class="btn-sm btn-outline" id="cierre-btn-hoy" type="button" onclick="cierreHoy()">↻ Hoy</button>
-          <select id="cierre-doctor-filtro" style="max-width:220px; margin-left:auto;" onchange="cargarCierre()"><option value="">Todas las doctoras</option></select>
+          <select id="cierre-doctor-filtro" style="max-width:220px; margin-left:auto;" onchange="cargarCierre()"><option value="">Todos los prestadores</option></select>
         </div>
         <div class="kpi-cards cierre-kpis" id="cierre-kpis">
           <div class="kpi-card"><div class="ico">💰</div><div class="l">Ingreso total</div><div class="v" id="cierre-kpi-total">$0</div><div class="ks">servicios + farmacia</div></div>
@@ -816,15 +826,18 @@
         <hr class="section-head-divider">
         <div class="filters">
           <div class="fitem"><label>Período</label>
-            <select id="com-periodo" onchange="cargarComisiones()">
+            <select id="com-periodo" onchange="onPeriodoChange('com', cargarComisiones)">
               <option value="mes">Este mes</option>
               <option value="q1">Quincena 1 (día 1–15)</option>
               <option value="q2">Quincena 2 (día 16–fin)</option>
               <option value="30">Últimos 30 días</option>
               <option value="90">Últimos 90 días</option>
+              <option value="custom">📅 Rango de fechas…</option>
             </select>
           </div>
-          <div class="fitem"><label>Persona</label><select id="com-persona" onchange="cargarComisiones()"><option value="">Todas</option></select></div>
+          <div class="fitem rango-item" id="com-rango" style="display:none;"><label>Desde</label><input type="date" id="com-desde" onchange="cargarComisiones()"></div>
+          <div class="fitem rango-item" id="com-rango2" style="display:none;"><label>Hasta</label><input type="date" id="com-hasta" onchange="cargarComisiones()"></div>
+          <div class="fitem"><label>Prestador</label><select id="com-persona" onchange="cargarComisiones()"><option value="">Todas</option></select></div>
         </div>
       </div>
       <div class="kpi-cards" id="com-kpis"></div>
@@ -835,8 +848,9 @@
     <section class="screen" id="screen-dashboard">
       <div class="card">
         <div class="filter-bar">
-          <select id="dash-periodo" onchange="cargarDashboard()"><option value="30">30 días</option><option value="mes">Este mes</option><option value="90">90 días</option><option value="365">Año</option></select>
-          <select id="dash-doctor-filtro" onchange="cargarDashboard()"><option value="">Todas las doctoras</option></select>
+          <select id="dash-periodo" onchange="onPeriodoChange('dash', cargarDashboard)"><option value="30">30 días</option><option value="mes">Este mes</option><option value="90">90 días</option><option value="365">Año</option><option value="custom">📅 Rango de fechas…</option></select>
+          <span id="dash-rango" class="rango-inline" style="display:none;"><label>Desde</label><input type="date" id="dash-desde" onchange="cargarDashboard()"><label>Hasta</label><input type="date" id="dash-hasta" onchange="cargarDashboard()"></span>
+          <select id="dash-doctor-filtro" onchange="cargarDashboard()"><option value="">Todos los prestadores</option></select>
           <select id="dash-tipo-filtro" onchange="cargarDashboard()"><option value="">Todos los tipos</option><option value="primera">Primera vez</option><option value="subsecuente">Subsecuente</option><option value="procedimiento">Procedimientos</option><option value="farmacia">Farmacia</option></select>
         </div>
         <div class="kpi-cards">
@@ -1104,7 +1118,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.10 · 2026-10-08';
+  const APP_VERSION = 'v1.11 · 2026-10-14';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1164,6 +1178,26 @@
   function money(n){ return '$' + Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function moneyRound(n){ return '$' + Math.round(Number(n||0)).toLocaleString('es-MX'); }
   function isoLocal(d){ const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); return `${d.getFullYear()}-${mm}-${dd}`; }
+  // ---- Rango de fechas personalizado (Historial, Comisiones, Dashboard) ----
+  function onPeriodoChange(prefix, fn){
+    const custom = document.getElementById(prefix+'-periodo').value === 'custom';
+    ['-rango','-rango2'].forEach(suf => { const el = document.getElementById(prefix+suf); if(el) el.style.display = custom ? '' : 'none'; });
+    const dEl = document.getElementById(prefix+'-desde'), hEl = document.getElementById(prefix+'-hasta');
+    if(custom && dEl && hEl){
+      const hoy = new Date();
+      if(!hEl.value) hEl.value = isoLocal(hoy);
+      if(!dEl.value) dEl.value = isoLocal(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+    }
+    fn();
+  }
+  // Devuelve {desde, hasta} en ISO (yyyy-mm-dd) leyendo los dos date inputs; si están invertidos los voltea.
+  function rangoPersonalizado(prefix){
+    let d = document.getElementById(prefix+'-desde').value || null;
+    let h = document.getElementById(prefix+'-hasta').value || null;
+    if(d && h && d > h){ const t = d; d = h; h = t; }
+    return { desde: d, hasta: h };
+  }
+  function textoRango(r){ return (r.desde ? fechaCorta(r.desde) : '…') + ' → ' + (r.hasta ? fechaCorta(r.hasta) : '…'); }
   function fechaCorta(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
   function toast(msg){
     const t = document.getElementById('toast');
@@ -1423,8 +1457,10 @@
     if(error){ console.error('[Clinderm] Error cargando doctores:', error); return; }
     PERSONAL_CACHE = (data||[]).map(d=>({ id: d.id, nombre: d.nombre, comisionSoloPropios: !!d.solo_propios }));
     const opts = (data||[]).map(d=>`<option value="${d.id}">${esc(d.nombre)}</option>`).join('');
-    document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
-    document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todas las doctoras</option>' + opts;
+    document.getElementById('dash-doctor-filtro').innerHTML = '<option value="">Todos los prestadores</option>' + opts;
+    document.getElementById('cierre-doctor-filtro').innerHTML = '<option value="">Todos los prestadores</option>' + opts;
+    const hDoc = document.getElementById('h-doctor');
+    if(hDoc){ const prev = hDoc.value; hDoc.innerHTML = '<option value="">Todos</option>' + opts; hDoc.value = prev; }
     renderSelectorServicios(); // refresca los selects "Atendido por" de la selección por si ya había líneas
   }
 
@@ -1875,19 +1911,26 @@
     const tbody = document.getElementById('h-tbody');
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">Cargando…</td></tr>';
     const buscar = document.getElementById('h-buscar').value.trim().toLowerCase();
-    const dias = Number(document.getElementById('h-periodo').value);
+    const dias = Number(document.getElementById('h-periodo').value) || 0;
     const medioPago = document.getElementById('h-mediopago').value;
+    const doctorFiltro = document.getElementById('h-doctor').value;
+    const esCustom = document.getElementById('h-periodo').value === 'custom';
 
     let q = sb.from('consultas')
-      .select('id, fecha, tipo_consulta, monto, medio_pago, monto_2, medio_pago_2, factura, num_factura, numero_recibo, no_vino, notas, farmacia_generado_por, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)')
+      .select('id, fecha, tipo_consulta, monto, medio_pago, monto_2, medio_pago_2, factura, num_factura, numero_recibo, no_vino, notas, farmacia_generado_por, paciente_propio, doctor_id, pacientes(id, nombre, telefono), personal!consultas_doctor_id_fkey(nombre)')
       .eq('deleted', MOSTRANDO_PAPELERA)
       .order('fecha', {ascending:false})
-      .limit(300);
+      .limit(1000);
 
-    if(dias < 9999){
+    if(esCustom){
+      const rg = rangoPersonalizado('h');
+      if(rg.desde) q = q.gte('fecha', rg.desde);
+      if(rg.hasta) q = q.lte('fecha', rg.hasta);
+    } else if(dias < 9999){
       const desde = new Date(); desde.setDate(desde.getDate() - dias);
       q = q.gte('fecha', isoLocal(desde));
     }
+    if(doctorFiltro) q = q.eq('doctor_id', doctorFiltro);
     if(medioPago) q = q.or(`medio_pago.eq.${medioPago},medio_pago_2.eq.${medioPago}`);
 
     const { data, error } = await q;
@@ -1912,7 +1955,10 @@
     tbody.innerHTML = rows.map(r=>{
       const pacienteNombre = r.pacientes ? esc(r.pacientes.nombre) : '—';
       const noVinoBadge = r.no_vino ? ' <span class="badge badge-ghost">👻</span>' : '';
-      const doctorNombre = r.personal ? esc(r.personal.nombre) : '—';
+      const personaFila = r.doctor_id ? PERSONAL_CACHE.find(d => d.id === r.doctor_id) : null;
+      const etiquetaPropio = (personaFila && personaFila.comisionSoloPropios && !r.no_vino)
+        ? `<div style="font-size:10.5px; font-weight:600; margin-top:2px; color:${r.paciente_propio===true ? 'var(--teal)' : 'var(--muted)'};">${r.paciente_propio===true ? '⭐ Paciente propio' : '🏥 Paciente de la clínica'}</div>` : '';
+      const doctorNombre = (r.personal ? esc(r.personal.nombre) : '—') + etiquetaPropio;
       const montoTxt = r.no_vino ? '$0.00' : money(r.monto) + (r.monto_2 ? `<div style="color:var(--muted); font-size:10.5px; font-weight:400;">+ ${money(r.monto_2)}</div>` : '');
       const pagoTxt = r.no_vino ? '—' : pagoPill(r.medio_pago||'—') + (r.medio_pago_2 ? `<div style="margin-top:4px;">${pagoPill(r.medio_pago_2)}</div>` : '');
       const accion = MOSTRANDO_PAPELERA
@@ -1942,6 +1988,11 @@
     document.getElementById('ec-factura').value = r.num_factura || '';
     document.getElementById('ec-recibo').value = r.numero_recibo || '';
     document.getElementById('ec-notas').value = r.notas || '';
+    // "Paciente de": solo aplica a quien comisiona únicamente sobre sus pacientes (Dra. Laura Galván)
+    const persona = r.doctor_id ? PERSONAL_CACHE.find(d => d.id === r.doctor_id) : null;
+    const aplicaPropio = !!(persona && persona.comisionSoloPropios);
+    document.getElementById('ec-propio-wrap').style.display = aplicaPropio ? '' : 'none';
+    document.getElementById('ec-propio').value = r.paciente_propio === true ? 'propio' : 'clinica';
     document.getElementById('editConsultaModal').classList.add('show');
   }
   async function guardarEdicionConsulta(){
@@ -1959,6 +2010,9 @@
       edited_by: MI_PERFIL.id,
       edited_at: new Date().toISOString()
     };
+    if(document.getElementById('ec-propio-wrap').style.display !== 'none'){
+      payload.paciente_propio = (document.getElementById('ec-propio').value === 'propio');
+    }
     const { error } = await sb.from('consultas').update(payload).eq('id', id);
     if(error){ toast('⚠️ ' + error.message); return; }
     toast('✅ Cambios guardados');
@@ -2246,7 +2300,12 @@
   async function cargarComisiones(){
     const periodo = document.getElementById('com-periodo').value;
     const personaFiltro = document.getElementById('com-persona').value;
-    const { desde, hasta } = rangoComisiones(periodo);
+    let { desde, hasta } = rangoComisiones(periodo);
+    if(periodo === 'custom'){
+      const rg = rangoPersonalizado('com');
+      if(!rg.desde || !rg.hasta){ toast('⚠️ Elige fecha Desde y Hasta'); return; }
+      desde = rg.desde; hasta = rg.hasta;
+    }
 
     // fn_comisiones_admin() (RPC) en vez de leer "permisos" directo: esta función devuelve el detalle
     // solo si quien la llama es admin -- si alguien más la invoca (por ejemplo forzándolo desde la
@@ -2471,6 +2530,11 @@
     let desde, hasta;
     const hoy = new Date();
     if(periodo === 'mes'){ desde = isoLocal(new Date(hoy.getFullYear(), hoy.getMonth(), 1)); hasta = isoLocal(hoy); }
+    else if(periodo === 'custom'){
+      const rg = rangoPersonalizado('dash');
+      if(!rg.desde || !rg.hasta){ toast('⚠️ Elige fecha Desde y Hasta'); return; }
+      desde = rg.desde; hasta = rg.hasta;
+    }
     else { const d = new Date(); d.setDate(d.getDate() - Number(periodo)); desde = isoLocal(d); hasta = isoLocal(hoy); }
 
     let q = sb.from('consultas').select('fecha, monto, monto_2, medio_pago, medio_pago_2, tipo_consulta, paciente_id, farmacia_generado_por, personal!consultas_doctor_id_fkey(id, nombre)')
@@ -2590,7 +2654,9 @@
     if(doctorFiltro){ panel.style.display = 'none'; return; }
     panel.style.display = '';
 
-    const periodoTxt = document.getElementById('dash-periodo').selectedOptions[0]?.textContent || '';
+    const periodoTxt = document.getElementById('dash-periodo').value === 'custom'
+      ? textoRango(rangoPersonalizado('dash'))
+      : (document.getElementById('dash-periodo').selectedOptions[0]?.textContent || '');
     const elPeriodo = document.getElementById('dash-prod-periodo');
     const elPeriodo2 = document.getElementById('dash-cat-periodo');
     if(elPeriodo) elPeriodo.textContent = periodoTxt;
