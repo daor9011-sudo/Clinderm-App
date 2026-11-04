@@ -279,6 +279,75 @@
 
   /* ---- Dashboard: filtros compactos y tarjeta "cara a cara" estilo Skin Fabric ---- */
   .filter-bar{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+
+  /* ===== GASTOS (solo admin) ===== */
+  #screen-gastos .gasto-titulo{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:17px; color:var(--navy-900); margin:2px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  #screen-gastos .gasto-titulo small{font-family:Inter,system-ui,sans-serif; font-weight:600; font-size:12px; color:var(--muted);}
+  .gasto-top{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px;}
+  .gasto-top input:not([type=checkbox]):not([type=radio]),.gasto-top select{width:auto; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--navy-900); font-family:inherit; outline:none;}
+  .gasto-top .grow{flex:1 1 180px; min-width:140px;}
+  .gasto-top .sep{font-size:11px; color:var(--muted); font-weight:700;}
+  .g-pills{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .g-pill{font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:99px; border:1px solid var(--border); background:#fff; color:var(--muted); cursor:pointer; user-select:none;}
+  .g-pill.act{background:linear-gradient(135deg,var(--teal),#22a8a8); color:var(--navy-900); border-color:rgba(42,191,191,.5);}
+  .gasto-split{display:grid; grid-template-columns:280px minmax(0,1fr); gap:16px; align-items:start; margin-bottom:6px;}
+  .gasto-split>div{min-width:0;}
+  @media (max-width:860px){.gasto-split{grid-template-columns:1fr;}}
+  .gasto-form{background:var(--bg); border:1.5px solid var(--border); border-radius:12px; padding:16px; position:sticky; top:10px;}
+  .gasto-form h4{font-size:12.5px; font-weight:800; margin:0 0 12px; color:var(--navy-900);}
+  .gf{margin-bottom:12px;}
+  .gf>label{font-size:10px; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; font-weight:700; display:block; margin-bottom:5px;}
+  .gf input:not([type=radio]),.gf select,.gf textarea{width:100%; background:#fff; padding:9px 10px; font-size:12.5px; border:1px solid var(--border); border-radius:8px;}
+  .gf textarea{resize:vertical; min-height:56px;}
+  .cat-hint{font-size:10.5px; color:var(--muted); background:#fff; border-left:3px solid var(--teal); border-radius:6px; padding:7px 9px; margin-top:6px; line-height:1.4; display:none;}
+  .cat-hint.show{display:block;}
+  .fact-group{display:flex; flex-direction:column; gap:6px;}
+  .fact-chip{display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; border:1.5px solid var(--border); background:#fff; font-size:11.5px; font-weight:600; color:var(--muted); cursor:pointer; transition:.15s; position:relative;}
+  .fact-chip input{position:absolute; opacity:0; width:0; height:0; pointer-events:none;}
+  .fact-chip .rdot{display:inline-block; width:15px; height:15px; border-radius:50%; border:1.5px solid #b7c0d0; flex:none; position:relative; background:#fff;}
+  .fact-chip.on{background:#E6F7F7; border-color:rgba(42,191,191,.45); color:#0B6E6E;}
+  .fact-chip.on .rdot{border-color:var(--teal);}
+  .fact-chip.on .rdot::after{content:''; position:absolute; top:50%; left:50%; width:7px; height:7px; border-radius:50%; background:var(--teal); transform:translate(-50%,-50%);}
+  .gasto-kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:12px;}
+  .gasto-kpis .kpi-card{padding:11px 13px;}
+  .gasto-charts{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
+  @media (max-width:640px){.gasto-charts{grid-template-columns:1fr;}}
+  .gasto-chart-box{background:linear-gradient(135deg,var(--bg),#eef3fb); border:1px solid var(--border); border-radius:9px; padding:10px 12px; height:210px; display:flex; flex-direction:column; min-width:0;}
+  .gasto-chart-box .t{font-size:9.5px; color:var(--muted); letter-spacing:.6px; text-transform:uppercase; font-weight:700; margin-bottom:6px;}
+  .gasto-chart-box .cv{flex:1; position:relative; min-height:0; min-width:0;}
+  .gasto-donut{display:flex; align-items:center; gap:10px; flex:1; min-height:0;}
+  .gasto-donut .cv{flex:none; width:118px; height:118px;}
+  .gasto-legend{display:flex; flex-direction:column; gap:5px; flex:1; min-width:0; overflow-y:auto; max-height:100%;}
+  .gasto-legend .li{display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .gasto-legend .dot{width:9px; height:9px; border-radius:3px; flex:none;}
+  .sec-title{font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin:18px 0 10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  .cat-info-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:0 0 6px;}
+  @media (max-width:860px){.cat-info-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:480px){.cat-info-grid{grid-template-columns:1fr;}}
+  .cat-info-card{border-radius:10px; padding:11px 12px; border:1px solid var(--border);}
+  .cat-info-card .t{font-size:11px; font-weight:800; margin-bottom:3px;}
+  .cat-info-card .d{font-size:10px; color:var(--muted); line-height:1.45;}
+  .gbadge{display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:99px; font-size:10.5px; font-weight:700; white-space:nowrap;}
+  .gasto-tabla-wrap{overflow-x:auto;}
+  .gasto-tabla-wrap td.monto{text-align:right; font-weight:700; color:var(--navy-900); white-space:nowrap;}
+  .gasto-tabla-wrap td{vertical-align:top;}
+  .gasto-vacio{text-align:center; color:var(--muted); padding:22px; font-size:13px;}
+  /* Dashboard: ingreso / gasto / margen (admin) */
+  .fin-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:16px;}
+  @media (max-width:520px){.fin-grid{grid-template-columns:1fr;}}
+  .fin-grid .kpi-card.i{border-left:4px solid #3B5B94;}
+  .fin-grid .kpi-card.g{border-left:4px solid #E0703F;}
+  .fin-grid .kpi-card.m{border-left:4px solid var(--good);}
+  .fin-grid .kpi-card.m.neg{border-left-color:var(--bad);}
+  .fin-grid .kpi-card .ks{font-size:10.5px; color:var(--muted); margin-top:2px;}
+  .gx-sec{background:#fff; border:1.5px solid var(--border); border-radius:11px; padding:14px 16px; margin-bottom:14px;}
+  .gx-2col{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media (max-width:720px){.gx-2col{grid-template-columns:1fr;}}
+  .gx-row{margin-bottom:9px;}
+  .gx-row .top{display:flex; justify-content:space-between; gap:8px; font-size:11.5px; font-weight:600; color:var(--navy-900); margin-bottom:3px;}
+  .gx-row .top span:last-child{font-weight:800; white-space:nowrap;}
+  .gx-row .bar{height:8px; border-radius:5px; background:var(--bg); overflow:hidden;}
+  .gx-row .bar i{display:block; height:100%; border-radius:5px;}
   .rango-inline{display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;}
   .rango-inline label{font-size:11px; font-weight:700; color:var(--muted);}
   .rango-inline input[type=date], .filter-bar input[type=date]{width:auto; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--ink); font-family:inherit; outline:none;}
@@ -647,6 +716,7 @@
     <button onclick="showScreen('historial',this)">🗂️ Historial</button>
     <button onclick="showScreen('cierre',this)">🧾 Cierre</button>
     <button data-admin style="display:none;" onclick="showScreen('comisiones',this)">💰 Comisiones</button>
+    <button data-admin style="display:none;" onclick="showScreen('gastos',this)">💸 Gastos</button>
     <button data-doc style="display:none;" onclick="showScreen('dashboard',this)">📊 Dashboard</button>
     <button onclick="showScreen('crm',this)">💬 PRM/CRM</button>
   </nav>
@@ -844,6 +914,99 @@
       <div class="comisiones-grid" id="com-cards"><div class="empty-state">Cargando…</div></div>
     </section>
 
+    <!-- GASTOS (solo administradores) — mismo esquema que Skin Fabric: periodo, formulario, categorías, facturación,
+         gráficas, tabla editable, exportar y tiempo real. "Asociar a" = unidad (Clinderm, Mérida, farmacias). -->
+    <section class="screen" id="screen-gastos">
+      <div class="card">
+        <div class="gasto-titulo">💸 Gastos <small>Egresos · <b id="gasto-per-label">—</b></small></div>
+        <div class="gasto-top" id="gasto-per">
+          <button class="btn-sm act" id="gasto-modo-mes" type="button" onclick="gastoSetModo('mes')">📅 Mes</button>
+          <button class="btn-sm" id="gasto-modo-rango" type="button" onclick="gastoSetModo('rango')">↔ Rango</button>
+          <button class="btn-sm" id="gasto-modo-todo" type="button" onclick="gastoSetModo('todo')">∞ Todo</button>
+          <span id="gasto-grp-mes" style="display:inline-flex; gap:6px; align-items:center;">
+            <button class="btn-sm btn-outline" type="button" onclick="gastoMoverMes(-1)" aria-label="Mes anterior">‹</button>
+            <input type="month" id="gasto-mes" onchange="gastoCambioMes()" aria-label="Mes">
+            <button class="btn-sm btn-outline" type="button" onclick="gastoMoverMes(1)" aria-label="Mes siguiente">›</button>
+          </span>
+          <span id="gasto-grp-rango" style="display:none; gap:6px; align-items:center;">
+            <span class="sep">Desde</span><input type="date" id="gasto-desde" onchange="refrescarGastoVista()" aria-label="Desde">
+            <span class="sep">Hasta</span><input type="date" id="gasto-hasta" onchange="refrescarGastoVista()" aria-label="Hasta">
+          </span>
+        </div>
+        <div class="gasto-top">
+          <input type="text" id="gasto-buscar" class="grow" placeholder="Buscar en descripciones..." oninput="refrescarGastoVista()">
+          <select id="gasto-unidad-filtro" onchange="refrescarGastoVista()"><option value="">Todas las unidades</option></select>
+          <select id="gasto-fact-filtro" onchange="refrescarGastoVista()">
+            <option value="">Facturado y no facturado</option>
+            <option value="facturado_clinderm">Facturado a Clinderm</option>
+            <option value="facturado_doctora">Facturado a doctora</option>
+            <option value="no_facturado">No facturado</option>
+          </select>
+        </div>
+        <div class="g-pills" id="gasto-pills"></div>
+        <div class="gasto-split">
+          <div class="gasto-form">
+            <h4>➕ Registrar gasto</h4>
+            <div class="gf"><label>Asociar a</label><select id="gasto-unidad"><option value="">Seleccionar...</option></select></div>
+            <div class="gf"><label>Fecha del gasto</label><input type="date" id="gasto-fecha"></div>
+            <div class="gf"><label>Categoría</label><select id="gasto-categoria"><option value="">Seleccionar...</option></select><div id="gasto-hints"></div></div>
+            <div class="gf"><label>Monto ($)</label><input type="number" id="gasto-monto" min="0.01" step="0.01" placeholder="0.00"></div>
+            <div class="gf"><label>Descripción del gasto</label><textarea id="gasto-descripcion" rows="2" placeholder="¿En qué se gastó?"></textarea></div>
+            <div class="gf"><label>Facturación</label>
+              <div class="fact-group" id="gasto-fact-group">
+                <label class="fact-chip on"><input type="radio" name="gasto-facturacion" value="no_facturado" checked><span class="rdot"></span><span>No facturado</span></label>
+                <label class="fact-chip"><input type="radio" name="gasto-facturacion" value="facturado_clinderm"><span class="rdot"></span><span>Facturado a Clinderm</span></label>
+                <label class="fact-chip"><input type="radio" name="gasto-facturacion" value="facturado_doctora"><span class="rdot"></span><span>Facturado a doctora</span></label>
+              </div>
+            </div>
+            <button class="btn btn-teal" id="gasto-btn-guardar" type="button" style="width:100%;" onclick="guardarGasto()">✓ Guardar gasto</button>
+          </div>
+          <div>
+            <div class="gasto-kpis" id="gasto-kpis"></div>
+            <div class="gasto-charts">
+              <div class="gasto-chart-box"><div class="t">🍩 Por categoría</div><div class="gasto-donut"><div class="cv"><canvas id="chGastoCat"></canvas></div><div class="gasto-legend" id="gasto-legend-cat"></div></div></div>
+              <div class="gasto-chart-box"><div class="t">🏢 Por unidad</div><div class="cv"><canvas id="chGastoUni"></canvas></div></div>
+            </div>
+            <div class="sec-title">¿Qué incluye cada categoría?</div>
+            <div class="cat-info-grid" id="gasto-cat-info"></div>
+          </div>
+        </div>
+        <div class="sec-title">Todos los gastos <button class="btn btn-ghost" type="button" style="padding:5px 12px; font-size:11px;" onclick="exportarGastosCSV()">⬇️ Exportar</button></div>
+        <div class="gasto-tabla-wrap">
+          <table class="data-table">
+            <tr><th>Fecha</th><th>Categoría</th><th>Unidad</th><th style="text-align:right;">Monto</th><th>Facturación</th><th>Agregado por</th><th>Registrado el</th><th>Descripción</th><th style="width:64px;"></th></tr>
+            <tbody id="gasto-tbody"></tbody>
+          </table>
+        </div>
+        <div class="gasto-vacio" id="gasto-empty" style="display:none;">Sin gastos para este filtro.</div>
+      </div>
+    </section>
+
+    <!-- Modal editar gasto -->
+    <div class="modal-bg" id="editGastoModal">
+      <div class="modal-box" style="max-width:480px; text-align:left;">
+        <h3 style="margin-bottom:12px;">Editar gasto</h3>
+        <input type="hidden" id="editg-id">
+        <div class="field-wrap"><label>Asociar a</label><select id="editg-unidad"></select></div>
+        <div class="field-wrap"><label>Fecha del gasto</label><input type="date" id="editg-fecha"></div>
+        <div class="field-wrap"><label>Categoría</label><select id="editg-categoria"></select></div>
+        <div class="field-wrap"><label>Monto ($)</label><input type="number" id="editg-monto" min="0.01" step="0.01"></div>
+        <div class="field-wrap"><label>Descripción del gasto</label><textarea rows="2" id="editg-descripcion"></textarea></div>
+        <div class="field-wrap"><label>Facturación</label>
+          <div class="fact-group" id="editg-fact-group">
+            <label class="fact-chip on"><input type="radio" name="editg-facturacion" value="no_facturado" checked><span class="rdot"></span><span>No facturado</span></label>
+            <label class="fact-chip"><input type="radio" name="editg-facturacion" value="facturado_clinderm"><span class="rdot"></span><span>Facturado a Clinderm</span></label>
+            <label class="fact-chip"><input type="radio" name="editg-facturacion" value="facturado_doctora"><span class="rdot"></span><span>Facturado a doctora</span></label>
+          </div>
+        </div>
+        <div class="modal-actions" style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn btn-teal" id="editg-btn-guardar" onclick="guardarEdicionGasto()">Guardar cambios</button>
+          <button class="btn btn-ghost" onclick="cerrarEditarGasto()">Cancelar</button>
+          <button class="btn" style="background:#fde8e8; color:#a11d1d; margin-left:auto; display:none;" id="editg-btn-eliminar" onclick="eliminarGastoDesdeModal()">🗑️ Eliminar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- DASHBOARD -->
     <section class="screen" id="screen-dashboard">
       <div class="card">
@@ -858,6 +1021,10 @@
           <div class="kpi-card"><div class="ico">👥</div><div class="l">Pacientes</div><div class="v" id="dash-kpi-pac">0</div></div>
           <div class="kpi-card"><div class="ico">🎟️</div><div class="l">Ticket promedio</div><div class="v" id="dash-kpi-ticket">$0</div></div>
           <div class="kpi-card"><div class="ico">🏆</div><div class="l">Doctora top</div><div class="v" id="dash-kpi-top" style="font-size:14px;">—</div></div>
+        </div>
+        <div class="fin-grid" id="dash-fin" style="display:none;">
+          <div class="kpi-card g"><div class="l">Gasto total</div><div class="v" id="fin-gas-v">$0</div><div class="ks" id="fin-gas-s">—</div></div>
+          <div class="kpi-card m" id="fin-mar-card"><div class="l">Margen bruto</div><div class="v" id="fin-mar-v">$0</div><div class="ks" id="fin-mar-s">—</div></div>
         </div>
         <div id="dash-chart-warning" style="display:none; background:#FFF4E5; border:1px solid #F5A623; color:#8A5A00; border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:13px;">⚠️ No se pudieron cargar las gráficas — revisa tu conexión a internet y recarga la página. Los totales de arriba sí son correctos.</div>
         <div id="dash-productividad" style="display:none;">
@@ -896,6 +1063,18 @@
               <div id="chServicio-empty" class="chart-empty-msg" style="display:none;">Sin servicios registrados en este periodo.</div>
             </div>
           </div>
+        </div>
+        <div class="gx-sec" id="dash-gasto" style="display:none;">
+          <div class="prod-head"><div class="prod-title" style="font-size:13px;">💸 Gasto</div><div class="prod-period" id="dash-gasto-periodo"></div></div>
+          <div class="prod-sub">Egresos registrados en el periodo, por categoría y por unidad</div>
+          <div class="gx-2col"><div><div class="chart-title"><span>Por categoría</span></div><div id="dash-gasto-cat"></div></div><div><div class="chart-title"><span>Por unidad</span></div><div id="dash-gasto-uni"></div></div></div>
+        </div>
+        <div class="fac2" id="dash-ig-card" style="display:none; margin-bottom:14px;">
+          <div class="chart-title"><span>⚖️ Ingreso vs gasto</span>
+            <span class="chart-toggle"><button id="dash-ig-dia" class="on" type="button" onclick="cambiarIGModo('dia')">Día</button><button id="dash-ig-mes" class="off" type="button" onclick="cambiarIGModo('mes')">Mes</button></span>
+          </div>
+          <div style="height:220px;"><canvas id="chIngGas"></canvas></div>
+          <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:10px; color:var(--muted); margin-top:6px;"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#3B5B94;margin-right:4px"></i>Ingreso</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#E0703F;margin-right:4px"></i>Gasto</span><span><i style="display:inline-block;width:14px;height:0;border-top:2px solid #1FA971;margin-right:4px;vertical-align:middle"></i>Margen acumulado</span></div>
         </div>
         <div class="chart-grid wide">
           <div class="fac2">
@@ -1118,7 +1297,7 @@
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.11 · 2026-10-14';
+  const APP_VERSION = 'v1.12 · 2026-11-04';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1311,6 +1490,7 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'consultas' }, programarRefrescoRealtime)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, programarRefrescoRealtime)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'gestiones' }, programarRefrescoRealtime)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'gastos' }, programarRefrescoRealtime)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'catalogo_servicios' }, ()=>{ cargarCatalogoServicios(); programarRefrescoRealtime(); })
         .subscribe(status => { if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[Clinderm] Tiempo real:', status); });
     }catch(e){ console.error('[Clinderm] No se pudo iniciar el tiempo real:', e); }
@@ -1332,6 +1512,7 @@
       case 'screen-historial': cargarHistorial(); break;
       case 'screen-cierre': cargarCierre(); break;
       case 'screen-dashboard': cargarDashboard(); break;
+      case 'screen-gastos': cargarGastos(); break;
       case 'screen-comisiones':
         // si alguien está escribiendo un % en el editor, no se le borra lo que lleva escrito
         if(document.activeElement && document.activeElement.closest && document.activeElement.closest('#com-cards')) break;
@@ -1432,6 +1613,363 @@
     return !!(MI_PERFIL && (MI_PERFIL.rol === 'farmacia' || MI_PERFIL.rol === 'admin' || MI_PERFIL.rol === 'recepcion'));
   }
 
+
+  // ============================================================
+  // GASTOS (solo administradores) — mismo esquema que el módulo de Skin Fabric.
+  // "Asociar a" = unidad a la que pertenece el gasto (Clinderm, Mérida, Farmacia Mérida, Farmacia Polanco).
+  // ============================================================
+  const GASTO_CATEGORIAS = [
+    { id:'locativos', label:'🏢 Locativos', color:'#1B5C9E', bg:'#DCEAFB', desc:'Renta, agua, luz, internet, mantenimiento y limpieza del local.' },
+    { id:'nominas', label:'👥 Nóminas', color:'#6A3691', bg:'#EBE1F7', desc:'Sueldos, comisiones y prestaciones del personal.' },
+    { id:'insumos_medicos', label:'🧴 Insumos médicos', color:'#2E7D4F', bg:'#DFF3E5', desc:'Material clínico usado en procedimientos (guantes, agujas, ácido hialurónico, etc.).' },
+    { id:'farmacia', label:'💊 Farmacia', color:'#9A6010', bg:'#FDF0D2', desc:'Compra de medicamentos y productos para venta o entrega al paciente.' },
+    { id:'papeleria', label:'📎 Papelería', color:'#0E7C74', bg:'#D9F3F1', desc:'Papel, tóner, insumos de oficina y material impreso.' },
+    { id:'leasing_equipos', label:'🩻 Leasing equipos médicos', color:'#8B5E34', bg:'#F1E4D5', desc:'Arrendamiento o financiamiento de equipos médicos y tecnología.' },
+    { id:'otros', label:'📦 Otros', color:'#A3376B', bg:'#FBDDEA', desc:'Marketing, mensajería y gastos imprevistos.' },
+  ];
+  const GASTO_UNIDADES = [
+    { id:'clinderm', label:'Clinderm', color:'#1B3A6B' },
+    { id:'merida', label:'Mérida', color:'#2E7D4F' },
+    { id:'farmacia_merida', label:'Farmacia Mérida', color:'#9A6010' },
+    { id:'farmacia_polanco', label:'Farmacia Polanco', color:'#A3376B' },
+  ];
+  const GASTO_FACTURACION = [
+    { id:'facturado_clinderm', label:'Facturado a Clinderm', bg:'#E3F7EE', color:'#12805C' },
+    { id:'facturado_doctora', label:'Facturado a doctora', bg:'#E6ECFB', color:'#2B4C9E' },
+    { id:'no_facturado', label:'No facturado', bg:'#FBE7E7', color:'#B23B3B' },
+  ];
+  const gastoCatInfo = id => GASTO_CATEGORIAS.find(c=>c.id===id) || { id, label:id, color:'#64748b', bg:'#eef1f6', desc:'' };
+  const gastoUniInfo = id => GASTO_UNIDADES.find(u=>u.id===id) || { id, label:id||'—', color:'#64748b' };
+  const gastoFactInfo = id => GASTO_FACTURACION.find(f=>f.id===id) || GASTO_FACTURACION[2];
+  const MESES_LARGO = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  let GASTO_ROWS = [];
+  let GASTO_PILL = 'todos';
+  let GASTO_MODO = 'mes';
+  let GASTO_INIT = false;
+  let GASTO_REQ = 0;
+  let GASTO_EDIT_ID = null;
+
+  function mesActualISO(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+  function rangoDeMes(ym){
+    if(!ym) return { desde:null, hasta:null };
+    const [y,m] = ym.split('-').map(Number);
+    return { desde: isoLocal(new Date(y, m-1, 1)), hasta: isoLocal(new Date(y, m, 0)) };
+  }
+  function nombreMes(ym){ const [y,m] = ym.split('-').map(Number); return MESES_LARGO[m-1] + ' ' + y; }
+
+  function gastoInit(){
+    if(GASTO_INIT) return;
+    GASTO_INIT = true;
+    const optsUni = GASTO_UNIDADES.map(u=>`<option value="${u.id}">${esc(u.label)}</option>`).join('');
+    const optsCat = GASTO_CATEGORIAS.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+    document.getElementById('gasto-unidad').innerHTML = '<option value="">Seleccionar...</option>' + optsUni;
+    document.getElementById('gasto-unidad-filtro').innerHTML = '<option value="">Todas las unidades</option>' + optsUni;
+    document.getElementById('editg-unidad').innerHTML = optsUni;
+    document.getElementById('gasto-categoria').innerHTML = '<option value="">Seleccionar...</option>' + optsCat;
+    document.getElementById('editg-categoria').innerHTML = optsCat;
+    document.getElementById('gasto-hints').innerHTML = GASTO_CATEGORIAS.map(c=>`<div class="cat-hint" id="gasto-hint-${c.id}">${esc(c.desc)}</div>`).join('');
+    document.getElementById('gasto-cat-info').innerHTML = GASTO_CATEGORIAS.map(c=>`<div class="cat-info-card" style="background:${c.bg};"><div class="t" style="color:${c.color};">${c.label}</div><div class="d">${esc(c.desc)}</div></div>`).join('');
+    document.getElementById('gasto-categoria').addEventListener('change', function(){
+      document.querySelectorAll('#gasto-hints .cat-hint').forEach(h=>h.classList.remove('show'));
+      if(this.value){ const h = document.getElementById('gasto-hint-'+this.value); if(h) h.classList.add('show'); }
+    });
+    document.querySelectorAll('.fact-group').forEach(grupo=>{
+      grupo.addEventListener('change', ()=>{ grupo.querySelectorAll('.fact-chip').forEach(ch=> ch.classList.toggle('on', ch.querySelector('input').checked)); });
+    });
+    document.getElementById('gasto-fecha').value = isoLocal(new Date());
+    document.getElementById('gasto-mes').value = mesActualISO();   // siempre se parte del mes en curso
+    gastoSetModo('mes', true);
+  }
+
+  function gastoSetModo(m, sinRefrescar){
+    GASTO_MODO = m;
+    ['mes','rango','todo'].forEach(k=> document.getElementById('gasto-modo-'+k).classList.toggle('act', k===m));
+    document.getElementById('gasto-grp-mes').style.display = m==='mes' ? 'inline-flex' : 'none';
+    document.getElementById('gasto-grp-rango').style.display = m==='rango' ? 'inline-flex' : 'none';
+    if(m==='mes' && !document.getElementById('gasto-mes').value) document.getElementById('gasto-mes').value = mesActualISO();
+    if(m==='rango' && !document.getElementById('gasto-desde').value){
+      const r = rangoDeMes(document.getElementById('gasto-mes').value || mesActualISO());
+      document.getElementById('gasto-desde').value = r.desde; document.getElementById('gasto-hasta').value = r.hasta;
+    }
+    if(!sinRefrescar) refrescarGastoVista();
+  }
+  function gastoCambioMes(){ refrescarGastoVista(); }
+  function gastoMoverMes(d){
+    const el = document.getElementById('gasto-mes');
+    let [y,m] = (el.value || mesActualISO()).split('-').map(Number);
+    m += d; if(m > 12){ m = 1; y++; } if(m < 1){ m = 12; y--; }
+    el.value = y + '-' + String(m).padStart(2,'0');
+    refrescarGastoVista();
+  }
+  function gastoPeriodo(){
+    if(GASTO_MODO === 'mes') return rangoDeMes(document.getElementById('gasto-mes').value || mesActualISO());
+    if(GASTO_MODO === 'rango'){
+      let d = document.getElementById('gasto-desde').value || null, h = document.getElementById('gasto-hasta').value || null;
+      if(d && h && d > h){ const t = d; d = h; h = t; }   // fechas invertidas: se acomodan solas
+      return { desde:d, hasta:h };
+    }
+    return { desde:null, hasta:null };
+  }
+
+  async function cargarGastos(){
+    if(!MI_PERFIL || MI_PERFIL.rol !== 'admin') return;
+    gastoInit();
+    const req = ++GASTO_REQ;
+    const tbody = document.getElementById('gasto-tbody');
+    if(!GASTO_ROWS.length) tbody.innerHTML = '<tr><td colspan="9" class="gasto-vacio">Cargando…</td></tr>';
+    const { data, error } = await sb.from('gastos')
+      .select('id, fecha, categoria, monto, descripcion, facturacion, unidad, creado_por, created_at, edited_at, personal!gastos_creado_por_fkey(nombre)')
+      .order('fecha', {ascending:false}).order('created_at', {ascending:false}).limit(5000);
+    if(req !== GASTO_REQ) return;
+    if(error){ console.error('[Clinderm] Error cargando gastos:', error); tbody.innerHTML = '<tr><td colspan="9" class="gasto-vacio" style="color:#a11d1d;">No se pudieron cargar los gastos</td></tr>'; return; }
+    GASTO_ROWS = data || [];
+    refrescarGastoVista();
+  }
+
+  function gastoFilasFiltradas(){
+    const texto = normalizar(document.getElementById('gasto-buscar').value.trim());
+    const unidad = document.getElementById('gasto-unidad-filtro').value;
+    const fact = document.getElementById('gasto-fact-filtro').value;
+    const { desde, hasta } = gastoPeriodo();
+    return GASTO_ROWS.filter(g=>{
+      if(GASTO_PILL !== 'todos' && g.categoria !== GASTO_PILL) return false;
+      if(unidad && g.unidad !== unidad) return false;
+      if(fact && g.facturacion !== fact) return false;
+      if(desde && g.fecha < desde) return false;
+      if(hasta && g.fecha > hasta) return false;
+      if(texto && !normalizar(g.descripcion||'').includes(texto)) return false;
+      return true;
+    });
+  }
+
+  function refrescarGastoVista(){
+    if(!GASTO_INIT) return;
+    const { desde, hasta } = gastoPeriodo();
+    let t;
+    if(GASTO_MODO === 'mes') t = nombreMes(document.getElementById('gasto-mes').value || mesActualISO());
+    else if(GASTO_MODO === 'rango') t = (desde ? fechaCorta(desde) : 'inicio') + ' – ' + (hasta ? fechaCorta(hasta) : 'hoy');
+    else t = 'Todo el historial';
+    document.getElementById('gasto-per-label').textContent = t;
+    renderGastoPills();
+    const filas = gastoFilasFiltradas();
+    renderGastoKpis(filas);
+    renderGastoCharts(filas);
+    renderGastoTabla(filas);
+  }
+
+  function renderGastoPills(){
+    const cont = document.getElementById('gasto-pills');
+    cont.innerHTML = `<div class="g-pill ${GASTO_PILL==='todos'?'act':''}" data-cat="todos">Todas</div>` +
+      GASTO_CATEGORIAS.map(c=>`<div class="g-pill ${GASTO_PILL===c.id?'act':''}" data-cat="${c.id}">${c.label}</div>`).join('');
+    cont.querySelectorAll('.g-pill').forEach(p=> p.addEventListener('click', ()=>{ GASTO_PILL = p.dataset.cat; refrescarGastoVista(); }));
+  }
+
+  function renderGastoKpis(filas){
+    const total = filas.reduce((a,g)=> a + Number(g.monto||0), 0);
+    let html = `<div class="kpi-card"><div class="ico">💸</div><div class="l">Gasto total</div><div class="v">${money(total)}</div></div>`;
+    GASTO_UNIDADES.forEach(u=>{
+      const v = filas.filter(g=>g.unidad===u.id).reduce((a,g)=> a + Number(g.monto||0), 0);
+      html += `<div class="kpi-card" style="border-left:4px solid ${u.color};"><div class="ico">🏢</div><div class="l">${esc(u.label)}</div><div class="v">${money(v)}</div></div>`;
+    });
+    document.getElementById('gasto-kpis').innerHTML = html;
+  }
+
+  function renderGastoCharts(filas){
+    const cvCat = document.getElementById('chGastoCat'), cvUni = document.getElementById('chGastoUni');
+    const leg = document.getElementById('gasto-legend-cat');
+    const porCat = GASTO_CATEGORIAS.map(c=> filas.filter(g=>g.categoria===c.id).reduce((a,g)=> a + Number(g.monto||0), 0));
+    leg.innerHTML = GASTO_CATEGORIAS.map((c,i)=>`<div class="li"><span class="dot" style="background:${c.color}"></span>${c.label}${porCat[i] ? ' · ' + moneyRound(porCat[i]) : ''}</div>`).join('');
+    if(typeof Chart === 'undefined' || !cvCat || !cvUni) return;
+    const porUni = GASTO_UNIDADES.map(u=> filas.filter(g=>g.unidad===u.id).reduce((a,g)=> a + Number(g.monto||0), 0));
+    try{
+      if(CHARTS.gCat) CHARTS.gCat.destroy();
+      CHARTS.gCat = new Chart(cvCat, { type:'doughnut',
+        data:{ labels: GASTO_CATEGORIAS.map(c=>c.label), datasets:[{ data: porCat, backgroundColor: GASTO_CATEGORIAS.map(c=>c.color), borderWidth:2, borderColor:'#fff' }] },
+        options:{ maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:false},
+          datalabels:{ color:'#fff', font:{size:9, weight:'700'}, formatter:(v,ctx)=>{ const t = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); if(!t||!v) return ''; const pct = Math.round(v/t*100); return pct>=6 ? pct+'%' : ''; } } } } });
+      if(CHARTS.gUni) CHARTS.gUni.destroy();
+      CHARTS.gUni = new Chart(cvUni, { type:'bar',
+        data:{ labels: GASTO_UNIDADES.map(u=>u.label), datasets:[{ data: porUni, backgroundColor: GASTO_UNIDADES.map(u=>u.color), borderRadius:6, maxBarThickness:38 }] },
+        options:{ maintainAspectRatio:false, layout:{padding:{top:16}}, plugins:{ legend:{display:false},
+          datalabels:{ anchor:'end', align:'top', color:'#0B2A4D', font:{size:9, weight:'700'}, formatter: v => v ? moneyRound(v) : '' } },
+          scales:{ y:{ beginAtZero:true, grid:{display:false}, ticks:{font:{size:9}} }, x:{ ticks:{font:{size:10}} } } } });
+    }catch(e){ console.error('[Clinderm] Error dibujando gráficas de gastos:', e); }
+  }
+
+  function fmtFechaHora(iso){
+    if(!iso) return '—';
+    try{ return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }catch(e){ return '—'; }
+  }
+  function renderGastoTabla(filas){
+    const tbody = document.getElementById('gasto-tbody'), empty = document.getElementById('gasto-empty');
+    if(!filas.length){ tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = filas.map(g=>{
+      const c = gastoCatInfo(g.categoria), f = gastoFactInfo(g.facturacion), u = gastoUniInfo(g.unidad);
+      return `<tr>
+        <td style="color:var(--muted); white-space:nowrap;">${fechaCorta(g.fecha)}</td>
+        <td><span class="gbadge" style="background:${c.bg}; color:${c.color};">${c.label}</span></td>
+        <td style="font-weight:700; color:${u.color}; white-space:nowrap;">${esc(u.label)}</td>
+        <td class="monto">${money(g.monto)}</td>
+        <td><span class="gbadge" style="background:${f.bg}; color:${f.color};">${f.label}</span></td>
+        <td style="font-weight:700;">${esc(g.personal ? g.personal.nombre : '—')}</td>
+        <td style="color:var(--muted); white-space:nowrap; font-size:11.5px;">${fmtFechaHora(g.created_at)}</td>
+        <td>${esc(g.descripcion)}</td>
+        <td style="text-align:center;"><span style="cursor:pointer;" title="Editar" onclick="abrirEditarGasto('${g.id}')">✏️</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function guardarGasto(){
+    const unidad = document.getElementById('gasto-unidad').value;
+    const fecha = document.getElementById('gasto-fecha').value;
+    const categoria = document.getElementById('gasto-categoria').value;
+    const monto = Number(document.getElementById('gasto-monto').value || 0);
+    const descripcion = document.getElementById('gasto-descripcion').value.trim();
+    const facturacion = (document.querySelector('#gasto-fact-group input:checked') || {}).value || 'no_facturado';
+    if(!unidad){ toast('⚠️ Selecciona a qué unidad se asocia el gasto'); return; }
+    if(!fecha){ toast('⚠️ Selecciona la fecha del gasto'); return; }
+    if(!categoria){ toast('⚠️ Selecciona la categoría'); return; }
+    if(!(monto > 0)){ toast('⚠️ El monto debe ser mayor a $0'); return; }
+    if(!descripcion){ toast('⚠️ La descripción del gasto es obligatoria'); return; }
+    const btn = document.getElementById('gasto-btn-guardar');
+    btn.disabled = true; btn.textContent = 'Guardando…';
+    const { error } = await sb.from('gastos').insert({ fecha, categoria, monto, descripcion, facturacion, unidad, creado_por: MI_PERFIL.id });
+    btn.disabled = false; btn.textContent = '✓ Guardar gasto';
+    if(error){ console.error('[Clinderm] Error guardando gasto:', error); toast('⚠️ No se pudo guardar el gasto'); return; }
+    toast('✅ Gasto guardado');
+    document.getElementById('gasto-monto').value = '';
+    document.getElementById('gasto-descripcion').value = '';
+    document.getElementById('gasto-categoria').value = '';
+    document.querySelectorAll('#gasto-hints .cat-hint').forEach(h=>h.classList.remove('show'));
+    const r = document.querySelector('#gasto-fact-group input[value="no_facturado"]');
+    if(r){ r.checked = true; r.dispatchEvent(new Event('change', {bubbles:true})); }
+    // Si el gasto cae fuera del periodo que se está viendo, se avisa para que no parezca que no se guardó
+    const { desde, hasta } = gastoPeriodo();
+    if((desde && fecha < desde) || (hasta && fecha > hasta)) toast('✅ Guardado — su fecha queda fuera del periodo que estás viendo');
+    cargarGastos();
+  }
+
+  function abrirEditarGasto(id){
+    const g = GASTO_ROWS.find(x=>x.id===id); if(!g) return;
+    GASTO_EDIT_ID = id;
+    document.getElementById('editg-id').value = id;
+    document.getElementById('editg-unidad').value = g.unidad;
+    document.getElementById('editg-fecha').value = g.fecha;
+    document.getElementById('editg-categoria').value = g.categoria;
+    document.getElementById('editg-monto').value = g.monto;
+    document.getElementById('editg-descripcion').value = g.descripcion || '';
+    document.querySelectorAll('#editg-fact-group input').forEach(i=>{ i.checked = i.value === (g.facturacion || 'no_facturado'); i.closest('.fact-chip').classList.toggle('on', i.checked); });
+    // Borrar es permanente: solo quien tiene permiso de eliminar (mismo criterio que el resto de la app)
+    const puedeEliminar = !!(MI_PERFIL && MI_PERFIL.permisos && MI_PERFIL.permisos.puede_eliminar_papelera !== false);
+    document.getElementById('editg-btn-eliminar').style.display = puedeEliminar ? '' : 'none';
+    document.getElementById('editGastoModal').classList.add('show');
+  }
+  function cerrarEditarGasto(){ document.getElementById('editGastoModal').classList.remove('show'); GASTO_EDIT_ID = null; }
+  async function guardarEdicionGasto(){
+    const id = document.getElementById('editg-id').value; if(!id) return;
+    const payload = {
+      unidad: document.getElementById('editg-unidad').value,
+      fecha: document.getElementById('editg-fecha').value,
+      categoria: document.getElementById('editg-categoria').value,
+      monto: Number(document.getElementById('editg-monto').value || 0),
+      descripcion: document.getElementById('editg-descripcion').value.trim(),
+      facturacion: (document.querySelector('#editg-fact-group input:checked') || {}).value || 'no_facturado',
+      edited_by: MI_PERFIL.id, edited_at: new Date().toISOString()
+    };
+    if(!payload.fecha){ toast('⚠️ Selecciona la fecha del gasto'); return; }
+    if(!(payload.monto > 0)){ toast('⚠️ El monto debe ser mayor a $0'); return; }
+    if(!payload.descripcion){ toast('⚠️ La descripción del gasto es obligatoria'); return; }
+    const btn = document.getElementById('editg-btn-guardar'); btn.disabled = true;
+    const { error } = await sb.from('gastos').update(payload).eq('id', id);
+    btn.disabled = false;
+    if(error){ console.error('[Clinderm] Error editando gasto:', error); toast('⚠️ No se pudo guardar el cambio'); return; }
+    toast('✅ Gasto actualizado');
+    cerrarEditarGasto(); cargarGastos();
+  }
+  function eliminarGastoDesdeModal(){
+    const id = document.getElementById('editg-id').value; if(!id) return;
+    mostrarConfirm({ titulo:'¿Eliminar gasto?', mensaje:'Esta acción no se puede deshacer.', textoConfirmar:'Eliminar', icono:'🗑️' }, async ()=>{
+      const { error } = await sb.from('gastos').delete().eq('id', id);
+      if(error){ console.error('[Clinderm] Error eliminando gasto:', error); toast('⚠️ No se pudo eliminar'); return; }
+      toast('🗑️ Gasto eliminado');
+      cerrarEditarGasto(); cargarGastos();
+    });
+  }
+
+  function exportarGastosCSV(){
+    const filas = gastoFilasFiltradas();
+    if(!filas.length){ toast('⚠️ No hay gastos para exportar con este filtro'); return; }
+    const header = ['Fecha del gasto','Categoría','Unidad','Monto','Facturación','Agregado por','Registrado el','Descripción'];
+    const csv = [header].concat(filas.map(g=>[
+      fechaCorta(g.fecha), gastoCatInfo(g.categoria).label.replace(/^\S+\s/, ''), gastoUniInfo(g.unidad).label, Number(g.monto||0),
+      gastoFactInfo(g.facturacion).label, g.personal ? g.personal.nombre : '', fmtFechaHora(g.created_at), g.descripcion || ''
+    ])).map(r=> r.map(v=> '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8;' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'gastos_' + isoLocal(new Date()) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }
+
+  // ---- Dashboard: ingreso / gasto / margen (solo admin, y solo sin filtro de doctora/tipo, porque el gasto es de toda la clínica) ----
+  let DASH_IG_MODO = 'dia', DASH_FIN_REQ = 0, DASH_FIN_CACHE = null;
+  function ocultarFinanzasDash(){ ['dash-fin','dash-gasto','dash-ig-card'].forEach(id=>{ const el = document.getElementById(id); if(el) el.style.display = 'none'; }); DASH_FIN_CACHE = null; }
+  async function renderDashFinanzas(rows, desde, hasta, hayFiltro, periodoTxt){
+    if(!MI_PERFIL || MI_PERFIL.rol !== 'admin' || hayFiltro){ ocultarFinanzasDash(); return; }
+    const req = ++DASH_FIN_REQ;
+    const { data, error } = await sb.from('gastos').select('fecha, categoria, monto, unidad').gte('fecha', desde).lte('fecha', hasta).limit(5000);
+    if(req !== DASH_FIN_REQ) return;
+    if(error){ console.error('[Clinderm] Error cargando gastos del dashboard:', error); ocultarFinanzasDash(); return; }
+    const gas = data || [];
+    const ing = rows.reduce((a,r)=> a + Number(r.monto||0) + Number(r.monto_2||0), 0);
+    const gasto = gas.reduce((a,g)=> a + Number(g.monto||0), 0);
+    const margen = ing - gasto;
+    document.getElementById('fin-gas-v').textContent = moneyRound(gasto);
+    document.getElementById('fin-gas-s').textContent = gas.length + ' gastos' + (ing > 0 ? ' · ' + Math.round(gasto/ing*100) + '% del ingreso' : '');
+    document.getElementById('fin-mar-v').textContent = (margen < 0 ? '−' : '') + moneyRound(Math.abs(margen));
+    document.getElementById('fin-mar-s').textContent = ing > 0 ? 'Margen ' + Math.round(margen/ing*100) + '% sobre el ingreso' : '—';
+    document.getElementById('fin-mar-card').classList.toggle('neg', margen < 0);
+    document.getElementById('dash-fin').style.display = '';
+    // desglose del gasto
+    const barras = (items, total) => items.filter(i=>i.v>0).sort((a,b)=>b.v-a.v).map(i=>`<div class="gx-row"><div class="top"><span>${i.label}</span><span>${moneyRound(i.v)} · ${total ? Math.round(i.v/total*100) : 0}%</span></div><div class="bar"><i style="width:${total ? Math.max(2, i.v/total*100) : 0}%; background:${i.color};"></i></div></div>`).join('') || '<div style="font-size:12px; color:var(--muted);">Sin gastos en este periodo.</div>';
+    document.getElementById('dash-gasto-cat').innerHTML = barras(GASTO_CATEGORIAS.map(c=>({ label:c.label, color:c.color, v: gas.filter(g=>g.categoria===c.id).reduce((a,g)=>a+Number(g.monto||0),0) })), gasto);
+    document.getElementById('dash-gasto-uni').innerHTML = barras(GASTO_UNIDADES.map(u=>({ label:esc(u.label), color:u.color, v: gas.filter(g=>g.unidad===u.id).reduce((a,g)=>a+Number(g.monto||0),0) })), gasto);
+    document.getElementById('dash-gasto-periodo').textContent = periodoTxt || '';
+    document.getElementById('dash-gasto').style.display = '';
+    document.getElementById('dash-ig-card').style.display = '';
+    DASH_FIN_CACHE = { rows, gas };
+    renderChartIngGas();
+  }
+  function cambiarIGModo(modo){
+    DASH_IG_MODO = modo;
+    const d = document.getElementById('dash-ig-dia'), m = document.getElementById('dash-ig-mes');
+    d.classList.toggle('on', modo==='dia'); d.classList.toggle('off', modo!=='dia');
+    m.classList.toggle('on', modo==='mes'); m.classList.toggle('off', modo!=='mes');
+    renderChartIngGas();
+  }
+  function renderChartIngGas(){
+    const canvas = document.getElementById('chIngGas');
+    if(!canvas || typeof Chart === 'undefined' || !DASH_FIN_CACHE) return;
+    const key = f => DASH_IG_MODO === 'dia' ? f : f.slice(0,7);
+    const ing = {}, gas = {};
+    DASH_FIN_CACHE.rows.forEach(r=>{ const k = key(r.fecha); ing[k] = (ing[k]||0) + Number(r.monto||0) + Number(r.monto_2||0); });
+    DASH_FIN_CACHE.gas.forEach(g=>{ const k = key(g.fecha); gas[k] = (gas[k]||0) + Number(g.monto||0); });
+    const keys = Array.from(new Set(Object.keys(ing).concat(Object.keys(gas)))).sort();
+    const labels = keys.map(k => DASH_IG_MODO === 'dia' ? (()=>{ const [,m,d] = k.split('-'); return d+'/'+m; })() : mesLabel(k));
+    let acum = 0;
+    const margen = keys.map(k=>{ acum += (ing[k]||0) - (gas[k]||0); return acum; });
+    try{
+      if(CHARTS.ig) CHARTS.ig.destroy();
+      CHARTS.ig = new Chart(canvas, { data:{ labels: labels.length ? labels : ['—'], datasets:[
+        { type:'bar', label:'Ingreso', data: keys.map(k=>ing[k]||0), backgroundColor:'#3B5B94', borderRadius:4, maxBarThickness:22 },
+        { type:'bar', label:'Gasto', data: keys.map(k=>gas[k]||0), backgroundColor:'#E0703F', borderRadius:4, maxBarThickness:22 },
+        { type:'line', label:'Margen acumulado', data: margen, borderColor:'#1FA971', backgroundColor:'#1FA971', tension:.3, pointRadius:2, borderWidth:2 } ] },
+        options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false}, plugins:{ legend:{display:false}, datalabels:{display:false},
+          tooltip:{ callbacks:{ label: c => c.dataset.label + ': ' + moneyRound(c.parsed.y) } } },
+          scales:{ y:{ ticks:{ font:{size:9}, callback: v => moneyRound(v) } }, x:{ ticks:{ font:{size:9}, maxRotation:0, autoSkip:true } } } } });
+    }catch(e){ console.error('[Clinderm] Error dibujando ingreso vs gasto:', e); }
+  }
+
   // ---- Navegación de pantallas ----
   function showScreen(id, btn){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1441,6 +1979,7 @@
     if(id === 'historial') cargarHistorial();
     if(id === 'cierre') cargarCierre();
     if(id === 'comisiones') cargarComisiones();
+    if(id === 'gastos') cargarGastos();
     if(id === 'dashboard') cargarDashboard();
     if(id === 'crm') crmTab('inactivos');
     if(id === 'config'){ cargarConfigUsuarios(); cargarConfigCatalogo(); }
@@ -2548,6 +3087,8 @@
     let rows = data || [];
     if(tipoFiltro) rows = rows.filter(r => categoriaFilaDashboard(r) === tipoFiltro);
     DASH_ROWS = rows;
+    renderDashFinanzas(rows, desde, hasta, !!(doctorFiltro || tipoFiltro),
+      periodo === 'custom' ? textoRango({desde, hasta}) : (document.getElementById('dash-periodo').selectedOptions[0]?.textContent || ''));
 
     const total = rows.reduce((a,r)=>a+Number(r.monto||0)+Number(r.monto_2||0), 0);
     const pacientesUnicos = new Set(rows.map(r=>r.paciente_id)).size;
