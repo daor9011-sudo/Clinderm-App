@@ -288,6 +288,14 @@
   #fr-card .fr-tools{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
   #fr-card .fr-tools input:not([type=checkbox]):not([type=radio]){width:auto; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--navy-900); font-family:inherit; outline:none;}
   #fr-card .btn-pdf{background:linear-gradient(90deg,var(--teal-dark),var(--navy-600)); color:#fff; border:0;}
+  /* ===== Flash report de productividad (Comisiones, solo admin) ===== */
+  #fp-card .fp-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  #fp-card .fp-title{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:17px; color:var(--navy-900); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  #fp-card .fp-title small{font-family:Inter,system-ui,sans-serif; font-weight:600; font-size:12px; color:var(--muted);}
+  #fp-card .fp-tools{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  #fp-card .fp-tools input:not([type=checkbox]):not([type=radio]){width:auto; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--navy-900); font-family:inherit; outline:none;}
+  #fp-card .btn-pdf{background:linear-gradient(90deg,var(--teal-dark),var(--navy-600)); color:#fff; border:0;}
+  #fp-card .fp-nota{font-size:11.5px; color:var(--muted); margin-top:8px;}
   #fr-preview{margin-top:14px; display:none;}
   #fr-estado{font-size:12px; color:var(--muted); margin-bottom:8px;}
   #fr-wrap{background:#dfe5ee; border-radius:12px; padding:16px 8px; overflow:hidden;}
@@ -625,7 +633,7 @@
     /* Tablas anchas (Historial, Configuración): scroll horizontal en vez de comprimirse ilegibles.
        Las tablas angostas (ej. desglose de Comisiones) no llevan esta clase y se quedan responsive normales. */
     table.data-table{display:block; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch;}
-    table.data-table thead, table.data-table tbody, table.data-table tr{display:table; width:100%; table-layout:auto;}
+    /* Importante: las filas NO se vuelven display:table cada una (eso hacía que cada fila calculara sus propios anchos y las columnas quedaran desalineadas con el encabezado). Así, todas las filas comparten las mismas columnas. */
 
     .datefly{flex-wrap:wrap; row-gap:8px;}
     .datefly select{margin-left:0 !important;}
@@ -923,6 +931,22 @@
           <div class="fitem"><label>Prestador</label><select id="com-persona" onchange="cargarComisiones()"><option value="">Todas</option></select></div>
         </div>
       </div>
+      <div class="card" id="fp-card">
+        <div class="fp-head">
+          <div class="fp-title">📄 Flash report <small>Productividad · cierre del día o del mes (como en Skin Fabric)</small></div>
+          <div class="fp-tools">
+            <button class="btn-sm act" id="fp-modo-dia" type="button" onclick="fpSetModo('dia')">📋 Día</button>
+            <button class="btn-sm" id="fp-modo-mes" type="button" onclick="fpSetModo('mes')">📅 Mes</button>
+            <button class="btn-sm btn-outline" type="button" onclick="fpMover(-1)" aria-label="Anterior">‹</button>
+            <input type="date" id="fp-dia" aria-label="Día del reporte">
+            <input type="month" id="fp-mes" aria-label="Mes del reporte" style="display:none;">
+            <button class="btn-sm btn-outline" type="button" onclick="fpMover(1)" aria-label="Siguiente">›</button>
+            <button class="btn-sm btn-outline" type="button" onclick="fpHoy()">↻ Hoy</button>
+            <button class="btn-sm btn-pdf" id="fp-btn-pdf" type="button" onclick="fpExportar()">📄 Exportar PDF</button>
+          </div>
+        </div>
+        <div class="fp-nota" id="fp-nota"></div>
+      </div>
       <div class="kpi-cards" id="com-kpis"></div>
       <div class="comisiones-grid" id="com-cards"><div class="empty-state">Cargando…</div></div>
     </section>
@@ -987,7 +1011,7 @@
         <div class="sec-title">Todos los gastos <button class="btn btn-ghost" type="button" style="padding:5px 12px; font-size:11px;" onclick="exportarGastosCSV()">⬇️ Exportar</button></div>
         <div class="gasto-tabla-wrap">
           <table class="data-table">
-            <tr><th>Fecha</th><th>Categoría</th><th>Unidad</th><th style="text-align:right;">Monto</th><th>Facturación</th><th>Agregado por</th><th>Registrado el</th><th>Descripción</th><th style="width:64px;"></th></tr>
+            <thead><tr><th>Fecha</th><th>Categoría</th><th>Unidad</th><th style="text-align:right;">Monto</th><th>Facturación</th><th>Agregado por</th><th>Registrado el</th><th>Descripción</th><th style="width:64px;"></th></tr></thead>
             <tbody id="gasto-tbody"></tbody>
           </table>
         </div>
@@ -1399,7 +1423,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.13.3 · 2026-11-06';
+  const APP_VERSION = 'v1.14 · 2026-11-18';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -2151,6 +2175,12 @@ h2 small{font-family:'Instrument Sans',Arial,sans-serif;font-weight:600;color:va
 .gf-t{display:inline-block;font-size:8.5px;font-weight:700;border-radius:10px;padding:2px 8px;white-space:nowrap}
 .tot{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;border-radius:10px;padding:9px 16px;margin-top:6px;font-size:10px}.tot b{font-size:16px;font-family:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif}
 .ft{padding:10px 36px;border-top:1px solid var(--g2);display:flex;justify-content:space-between;font-size:8.5px;color:var(--g4)}
+.bh{display:flex;align-items:center;gap:10px;margin:11px 0 3px}.bh .bs{font-size:9px;color:var(--g6);font-weight:600}
+.pt{width:100%;border-collapse:collapse;font-size:9.5px;table-layout:fixed}
+.pt td{padding:4px 6px;border-bottom:1px solid var(--g2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.pt tr:nth-child(even) td{background:#FAFBFD}
+.pt .pa{font-weight:700}.pt .mo{text-align:right;font-family:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:11px}
+.pt .fp{display:inline-block;font-size:8px;font-weight:800;color:#B7791F;background:#FDF0D2;border-radius:8px;padding:1px 6px;margin-left:5px}
 `;
   const MESES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const FR_CATS = { locativos:{l:'🏢 Locativos',c:'#1B5C9E',bg:'#DCEAFB'}, nominas:{l:'👥 Nóminas',c:'#6A3691',bg:'#EBE1F7'}, insumos_medicos:{l:'🧴 Insumos médicos',c:'#2E7D4F',bg:'#DFF3E5'}, farmacia:{l:'💊 Farmacia',c:'#9A6010',bg:'#FDF0D2'}, papeleria:{l:'📎 Papelería',c:'#0E7C74',bg:'#D9F3F1'}, leasing_equipos:{l:'🩻 Leasing equipos',c:'#8B5E34',bg:'#F1E4D5'}, otros:{l:'📦 Otros',c:'#A3376B',bg:'#FBDDEA'} };
@@ -2490,6 +2520,25 @@ ${pie(2 + idx)}
     if(!FR_LISTO){ toast('⚠️ No se pudo generar el reporte'); return; }
     frImprimir();
   }
+  // Convierte las hojas (.page) de un documento HTML en un PDF tamaño carta y lo descarga. Devuelve el nombre del archivo.
+  async function frPdfDesdeDoc(doc, nombreArchivo){
+    if(doc.fonts && doc.fonts.ready) await Promise.race([doc.fonts.ready, new Promise(r => setTimeout(r, 2500))]);
+    const hojas = Array.from(doc.querySelectorAll('.page'));
+    if(!hojas.length) throw new Error('El reporte no tiene hojas');
+    const imgs = [];
+    for(const h of hojas){
+      const cv = await html2canvas(h, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+      imgs.push({ w: cv.width, h: cv.height, bytes: frJpegBytes(cv) });
+    }
+    const blob = frArmarPDF(imgs);
+    const nombre = (nombreArchivo || doc.title || 'Flash report Clinderm').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\\\/:*?"<>|]+/g, '-').replace(/\.pdf$/i, '') + '.pdf';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 8000);
+    return nombre;
+  }
   let FR_EXPORTANDO = false;
   async function frExportar(){
     if(FR_EXPORTANDO) return;
@@ -2504,21 +2553,7 @@ ${pie(2 + idx)}
     if(btn){ btn.disabled = true; btn.textContent = '⏳ Generando PDF…'; }
     try{
       const fr = document.getElementById('fr-frame'), doc = fr.contentDocument;
-      if(doc.fonts && doc.fonts.ready) await Promise.race([doc.fonts.ready, new Promise(r => setTimeout(r, 2500))]);
-      const hojas = Array.from(doc.querySelectorAll('.page'));
-      if(!hojas.length) throw new Error('El reporte no tiene hojas');
-      const imgs = [];
-      for(const h of hojas){
-        const cv = await html2canvas(h, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
-        imgs.push({ w: cv.width, h: cv.height, bytes: frJpegBytes(cv) });
-      }
-      const blob = frArmarPDF(imgs);
-      const nombre = (doc.title || 'Flash report Clinderm').replace(/[\\\/:*?"<>|]+/g, '-') + '.pdf';
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = nombre;
-      document.body.appendChild(a); a.click();
-      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 8000);
+      const nombre = await frPdfDesdeDoc(doc);
       toast('✅ PDF descargado: ' + nombre);
     }catch(e){
       console.error('[Clinderm] No se pudo generar el PDF directo:', e);
@@ -2529,6 +2564,299 @@ ${pie(2 + idx)}
       if(btn){ btn.disabled = false; btn.textContent = txt; }
     }
   }
+  // ============================================================
+  // FLASH REPORT DE PRODUCTIVIDAD (Comisiones, solo administradores) — igual al de Skin Fabric:
+  // "Cierre del día" (1 hoja + anexo con el detalle de pacientes por prestador) y "Cierre del mes".
+  // Se arma en una hoja oculta y se descarga directo como PDF.
+  // ============================================================
+  let FP_MODO = 'dia', FP_BUSY = false, FP_INIT = false;
+  const FP_UNIDADES_P = 40;   // "renglones" que caben en una hoja del anexo (un encabezado de prestador cuenta como 1.8)
+  function fpInit(){
+    if(FP_INIT) return;
+    FP_INIT = true;
+    document.getElementById('fp-dia').value = isoLocal(new Date());
+    document.getElementById('fp-mes').value = mesActualISO();
+    fpSetModo('dia');
+  }
+  function fpSetModo(m){
+    FP_MODO = m;
+    document.getElementById('fp-modo-dia').classList.toggle('act', m === 'dia');
+    document.getElementById('fp-modo-mes').classList.toggle('act', m === 'mes');
+    document.getElementById('fp-dia').style.display = m === 'dia' ? '' : 'none';
+    document.getElementById('fp-mes').style.display = m === 'mes' ? '' : 'none';
+    document.getElementById('fp-nota').textContent = m === 'dia'
+      ? 'Cierre del día: 1 hoja con la productividad + anexo con el detalle de pacientes por prestador.'
+      : 'Cierre del mes: 1 hoja con la productividad del mes (el reporte de resultados con gastos y margen sigue en el Dashboard).';
+  }
+  function fpMover(dir){
+    if(FP_MODO === 'dia'){
+      const el = document.getElementById('fp-dia');
+      const f = new Date((el.value || isoLocal(new Date())) + 'T12:00:00');
+      f.setDate(f.getDate() + dir);
+      el.value = isoLocal(f);
+    } else {
+      const el = document.getElementById('fp-mes');
+      let [y, m] = (el.value || mesActualISO()).split('-').map(Number);
+      m += dir; if(m < 1){ m = 12; y--; } if(m > 12){ m = 1; y++; }
+      el.value = y + '-' + frPad(m);
+    }
+  }
+  function fpHoy(){
+    document.getElementById('fp-dia').value = isoLocal(new Date());
+    document.getElementById('fp-mes').value = mesActualISO();
+  }
+
+  async function fpTotalRango(desde, hasta){
+    const rows = await frFetchTodo(() => sb.from('consultas').select('id, monto, monto_2').eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta).order('id'));
+    return rows.reduce((a, r) => a + Number(r.monto||0) + Number(r.monto_2||0), 0);
+  }
+
+  async function fpReunir(desde, hasta, esDia){
+    const rows = await frFetchTodo(() => sb.from('consultas')
+      .select('id, fecha, tipo_consulta, monto, monto_2, medio_pago, medio_pago_2, paciente_id, doctor_id, farmacia_generado_por, factura, num_factura, no_vino, pacientes(nombre), personal!consultas_doctor_id_fkey(nombre)')
+      .eq('deleted', false).gte('fecha', desde).lte('fecha', hasta).order('fecha').order('id'));
+    const vivas = rows.filter(r => !r.no_vino);
+    const tot = r => Number(r.monto||0) + Number(r.monto_2||0);
+    const esF = r => !!r.farmacia_generado_por;
+    const serv = vivas.filter(r => !esF(r)), farm = vivas.filter(esF);
+    const sum = arr => arr.reduce((a, r) => a + tot(r), 0);
+    const visitas = arr => new Set(arr.map(r => r.paciente_id + '|' + r.fecha)).size;
+
+    // por prestador
+    const mapPros = {};
+    vivas.forEach(r => {
+      const nom = r.personal ? r.personal.nombre : 'Sin asignar';
+      const k = r.doctor_id || nom;
+      const o = mapPros[k] || (mapPros[k] = { n:nom, serv:0, farm:0, vis:new Set() });
+      if(esF(r)) o.farm += tot(r); else { o.serv += tot(r); o.vis.add(r.paciente_id + '|' + r.fecha); }
+    });
+    const pros = Object.values(mapPros).map(o => {
+      const cosm = /^Cosm\./i.test(o.n);
+      return { n:o.n, tono: cosm ? 'cs' : (/tania/i.test(o.n) ? 'd1' : 'd2'), rol: cosm ? 'Cabina' : (/^Dra\./i.test(o.n) ? 'Doctora' : (/^Dr\./i.test(o.n) ? 'Doctor' : 'Equipo')), cons:o.vis.size, serv:o.serv, farm:o.farm };
+    }).sort((a, b) => (b.serv + b.farm) - (a.serv + a.farm));
+
+    // medios de pago (1er pago siempre; 2º solo si trae dinero)
+    const mm = {};
+    const abona = (medio, monto, f) => { if(!medio) return; const o = mm[medio] || (mm[medio] = { serv:0, farm:0 }); if(f) o.farm += monto; else o.serv += monto; };
+    vivas.forEach(r => { abona(r.medio_pago, Number(r.monto||0), esF(r)); if(r.medio_pago_2 && Number(r.monto_2||0) > 0) abona(r.medio_pago_2, Number(r.monto_2||0), esF(r)); });
+    const medios = Object.keys(mm).map(n => ({ n, i:(MEDIOS_INFO[n]||{}).icon || '💰', serv:mm[n].serv, farm:mm[n].farm })).filter(x => x.serv + x.farm > 0).sort((a, b) => (b.serv + b.farm) - (a.serv + a.farm));
+    const sincobro = vivas.filter(r => esMedioSinCobro(r.medio_pago)).length;
+
+    // lo más vendido
+    const agrupa = (arr, n) => {
+      const g = {};
+      arr.forEach(r => { const k = normalizar((r.tipo_consulta||'').trim()).replace(/\s+/g,' '); const o = g[k] || (g[k] = { n: frInitcap(r.tipo_consulta), c:0, m:0 }); o.c++; o.m += tot(r); });
+      return Object.values(g).sort((a, b) => b.m - a.m).slice(0, n);
+    };
+
+    // comparativo
+    const total = sum(vivas);
+    let comp = null;
+    try{
+      if(esDia){
+        const rp = await sb.from('consultas').select('fecha').eq('deleted', false).eq('no_vino', false).lt('fecha', desde).order('fecha', { ascending:false }).limit(1);
+        const prev = rp.data && rp.data[0] && rp.data[0].fecha;
+        if(prev){
+          const t = await fpTotalRango(prev, prev);
+          const ayer = new Date(desde + 'T12:00:00'); ayer.setDate(ayer.getDate() - 1);
+          if(t > 0) comp = { total:t, txt: prev === isoLocal(ayer) ? 'ayer' : fechaCorta(prev).slice(0,5) };
+        }
+      } else {
+        const ym = desde.slice(0,7), hoy = new Date(), esActual = ym === mesActualISO();
+        const prevYm = frMesAnterior(ym), prevRg = rangoDeMes(prevYm);
+        let prevHasta = prevRg.hasta;
+        if(esActual){ const dia = Math.min(hoy.getDate(), Number(prevRg.hasta.slice(8))); prevHasta = prevYm + '-' + frPad(dia); }
+        const t = await fpTotalRango(prevRg.desde, prevHasta);
+        const nomPrev = MESES_LARGO[Number(prevYm.slice(5)) - 1].toLowerCase();
+        if(t > 0) comp = { total:t, txt: esActual ? 'mismo periodo de ' + nomPrev : nomPrev };
+      }
+    }catch(e){ console.warn('[Clinderm] Flash productividad: no se pudo calcular el comparativo', e); }
+
+    // anexo: detalle por prestador y paciente (solo el reporte de un día)
+    const anexo = [];
+    if(esDia){
+      const porPro = new Map();
+      vivas.forEach(r => {
+        const nom = r.personal ? r.personal.nombre : 'Sin asignar', k = r.doctor_id || nom;
+        let b = porPro.get(k);
+        if(!b){
+          const cosm = /^Cosm\./i.test(nom);
+          b = { n:nom, tono: cosm ? 'cs' : (/tania/i.test(nom) ? 'd1' : 'd2'), rol: cosm ? 'Cabina' : (/^Dra\./i.test(nom) ? 'Doctora' : (/^Dr\./i.test(nom) ? 'Doctor' : 'Equipo')), pacs:new Map(), serv:0, farm:0 };
+          porPro.set(k, b);
+        }
+        const pk = r.paciente_id || ('x' + r.id);
+        let f = b.pacs.get(pk);
+        if(!f) b.pacs.set(pk, f = { pac: (r.pacientes && r.pacientes.nombre) || '—', svcs:[], farm:[], monto:0, meds:[], fact:false, cons:false });
+        const nombreItem = frInitcap(r.tipo_consulta);
+        if(esF(r)) f.farm.push(nombreItem); else { f.svcs.push(nombreItem); f.cons = true; }
+        f.monto += tot(r);
+        if(esF(r)) b.farm += tot(r); else b.serv += tot(r);
+        [r.medio_pago, (r.medio_pago_2 && Number(r.monto_2||0) > 0) ? r.medio_pago_2 : null].forEach(m => { if(m && !f.meds.includes(m)) f.meds.push(m); });
+        if(r.factura && !r.num_factura) f.fact = true;
+      });
+      porPro.forEach(b => {
+        const filas = Array.from(b.pacs.values());
+        anexo.push({ n:b.n, tono:b.tono, rol:b.rol, serv:b.serv, farm:b.farm, nCons:filas.filter(x => x.cons).length, total:b.serv + b.farm, filas });
+      });
+      anexo.sort((a, b) => b.total - a.total);
+    }
+
+    const [y, m, dd] = desde.split('-').map(Number);
+    const f = new Date(y, m - 1, dd, 12);
+    const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+    const titulo = esDia
+      ? cap(f.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).replace(',', ''))
+      : MESES_LARGO[m-1] + ' ' + y;
+    return {
+      esDia, desde, hasta, titulo, vacio: rows.length === 0,
+      total, serv: sum(serv), farm: sum(farm), consultas: visitas(serv), pacientes: new Set(vivas.map(r => r.paciente_id)).size,
+      primera: serv.filter(r => normalizar(r.tipo_consulta||'').includes('primera vez')).length,
+      sub_: serv.filter(r => normalizar(r.tipo_consulta||'').includes('subsecuente')).length,
+      ventasFarm: visitas(farm), prodFarm: farm.length,
+      comp, pros, medios, sincobro, mix: agrupa(serv, 6), topFarm: agrupa(farm, 3),
+      factPend: rows.filter(r => r.factura && !r.num_factura).length, noVino: rows.filter(r => r.no_vino).length, anexo
+    };
+  }
+
+  // Reparte el anexo (prestador → pacientes) en hojas, cortando entre renglones
+  function fpPaginarAnexo(anexo){
+    const paginas = [];
+    let pag = [], usado = 0;
+    const nueva = () => { if(pag.length) paginas.push(pag); pag = []; usado = 0; };
+    anexo.forEach(b => {
+      let i = 0, cont = false;
+      while(i < b.filas.length){
+        const cab = 1.8;
+        if(usado + cab + 2 > FP_UNIDADES_P) nueva();            // que el encabezado nunca quede solo al final de la hoja
+        const libre = Math.floor(FP_UNIDADES_P - usado - cab);
+        const n = Math.max(1, Math.min(libre, b.filas.length - i));
+        pag.push({ b, cont, filas: b.filas.slice(i, i + n), desde: i });
+        usado += cab + n; i += n; cont = true;
+        if(i < b.filas.length) nueva();
+      }
+    });
+    if(pag.length) paginas.push(pag);
+    return paginas;
+  }
+
+  function fpPagina1(d, nPag){
+    const total = d.total;
+    const comp = d.comp
+      ? (() => { const dl = (total - d.comp.total) / d.comp.total * 100; return `<span class="up ${dl < 0 ? 'dn' : ''}">${dl < 0 ? '▼' : '▲'} ${Math.abs(dl).toFixed(1)}%</span> vs. ${esc(d.comp.txt)} (${frM(d.comp.total)})`; })()
+      : (d.esDia ? 'Sin día anterior para comparar' : 'Sin mes anterior para comparar');
+    const maxT = Math.max(1, ...d.pros.map(p => p.serv + p.farm));
+    const tight = d.pros.length > 5 ? ' tight' : '';
+    const prow = d.pros.map(p => { const t = p.serv + p.farm;
+      return `<div class="pr${tight}"><div class="pn"><span class="np ${p.tono}">${esc(p.n)}</span><small>${p.rol} · ${p.cons} consulta${p.cons===1?'':'s'}</small></div>
+        <div class="pb"><div class="bar" style="width:${Math.max(t/maxT*100, t>0?4:0).toFixed(1)}%"><span class="spart" style="width:${t?(p.serv/t*100).toFixed(1):0}%"></span>${p.farm?`<span class="fpart" style="width:${(p.farm/t*100).toFixed(1)}%"></span>`:''}</div></div>
+        <div class="pv"><b>${frM(t)}</b><small>${frM(p.serv)} serv.${p.farm?' · '+frM(p.farm)+' farm.':''}</small></div><div class="pp">${total?Math.round(t/total*100):0}%</div></div>`; }).join('') || '<div class="sc">Sin movimientos.</div>';
+    const mx = Math.max(1, ...d.medios.map(x => x.serv + x.farm));
+    const mrow = d.medios.map(x => { const t = x.serv + x.farm;
+      return `<div class="mr"><span class="mn">${x.i} ${esc(x.n)}</span><div class="mb"><div class="bar" style="width:${(t/mx*100).toFixed(1)}%"><span class="spart" style="width:${t?(x.serv/t*100).toFixed(1):0}%"></span><span class="fpart" style="width:${t?(x.farm/t*100).toFixed(1):0}%"></span></div></div><b>${frM(t)}</b><span class="mp">${total ? Math.round(t/total*100) : 0}%</span></div>`; }).join('') || '<div class="sc">Sin cobros.</div>';
+    const mxX = Math.max(1, ...d.mix.map(x => x.m));
+    const xrow = d.mix.map(x => `<div class="xr"><span class="xn">${esc(x.n)}</span><span class="xk">×${x.c}</span><div class="xb"><div class="bar t" style="width:${(x.m/mxX*100).toFixed(1)}%"></div></div><b>${frM(x.m)}</b></div>`).join('') || '<div class="sc">—</div>';
+    const mxF = Math.max(1, ...d.topFarm.map(x => x.m));
+    const frow = d.topFarm.map(x => `<div class="xr"><span class="xn">${esc(x.n)}</span><span class="xk">${x.c} pz</span><div class="xb"><div class="bar f" style="width:${(x.m/mxF*100).toFixed(1)}%"></div></div><b>${frM(x.m)}</b></div>`).join('');
+    const efTr = d.medios.filter(x => /efectivo|transfer/i.test(x.n)).reduce((a, x) => a + x.serv + x.farm, 0);
+    const ahora = new Date().toLocaleString('es-MX', { timeZone:'America/Mexico_City', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true }).replace(',', ' ·');
+    const quien = (MI_PERFIL && MI_PERFIL.nombre) ? 'por ' + esc(MI_PERFIL.nombre) : '';
+    return `<div class="page">
+<div class="hd"><div><div class="br">Clinderm · Flash report</div><h1 class="d">${d.esDia ? 'Cierre del día' : 'Cierre del mes'} · <b>Productividad</b></h1></div>
+<div class="dt"><strong class="d">${esc(d.titulo)}</strong>Generado el ${esc(ahora)}<br>${quien}</div></div>
+<div class="wrap">
+<div class="hero4">
+ <div class="k main"><div class="l">${d.esDia ? 'Ingreso total del día' : 'Ingreso total del mes'}</div><div class="v d">${frM(total)}</div><div class="s">${comp}</div></div>
+ <div class="k"><div class="l">Servicios</div><div class="v t d">${frM(d.serv)}</div><div class="s">${d.consultas} consulta${d.consultas===1?'':'s'} · ticket ${frM(d.consultas ? d.serv/d.consultas : 0)}</div></div>
+ <div class="k"><div class="l">Farmacia</div><div class="v f d">${frM(d.farm)}</div><div class="s">${d.ventasFarm} venta${d.ventasFarm===1?'':'s'} · ${d.prodFarm} producto${d.prodFarm===1?'':'s'}</div></div>
+ <div class="k"><div class="l">Pacientes</div><div class="v d">${d.pacientes}</div><div class="s">${d.primera} primera vez · ${d.sub_} subsec.</div></div>
+</div>
+<h2 class="d">Productividad por prestador <small>servicios + farmacia</small><span class="lg"><span><i style="background:var(--teal)"></i>Servicios</span><span><i style="background:var(--purple)"></i>Farmacia</span></span></h2>
+${prow}
+<div class="two">
+ <div><h2 class="d">Cobrado por medio de pago</h2>${mrow}${d.sincobro ? `<div class="sc">${d.sincobro} servicio${d.sincobro===1?'':'s'} sin cobro (cortesía / procedimiento pagado) · no suman al cobrado</div>` : ''}</div>
+ <div><h2 class="d">Qué se vendió</h2><div class="sub" style="margin-top:0">Servicios · top ${d.mix.length}</div>${xrow}${d.topFarm.length ? `<div class="sub">Farmacia · top ${d.topFarm.length}</div>${frow}` : ''}</div>
+</div>
+<h2 class="d">Pendientes para cerrar bien</h2>
+<div class="al">
+ <div class="a ${d.factPend>0?'w':'o'}"><b>${d.factPend}</b><span>facturas solicitadas<br>sin N° de factura</span></div>
+ <div class="a ${d.noVino>0?'w':'o'}"><b>${d.noVino}</b><span>pacientes que<br>no vinieron</span></div>
+ <div class="a i"><b>${frM(efTr)}</b><span>en efectivo y transferencia<br>para conciliar en caja</span></div>
+</div>
+</div>
+<div class="ft"><span>Clinderm · Consultas · Cifras al momento de generar el reporte</span><span>Página 1 de ${nPag}</span></div>
+</div>`;
+  }
+
+  function fpPaginasAnexo(d, paginas, nPag){
+    const pie = n => `<div class="ft"><span>Clinderm · Consultas · Cifras al momento de generar el reporte</span><span>Página ${n} de ${nPag}</span></div>`;
+    return paginas.map((segs, idx) => {
+      const cuerpo = segs.map(sg => {
+        const b = sg.b;
+        const resumen = sg.cont ? '(continúa)' : `${b.nCons} consulta${b.nCons===1?'':'s'} · ${frM(b.serv)} serv.${b.farm ? ' · ' + frM(b.farm) + ' farm.' : ''}`;
+        const filas = sg.filas.map(f => `<tr>
+<td class="pa">${esc(f.pac)}${f.fact ? '<span class="fp">FACTURA PEND.</span>' : ''}</td>
+<td>${esc(f.svcs.join(' + ') || '—')}</td>
+<td>${f.farm.length ? '💊 ' + esc(f.farm.join(' + ')) : ''}</td>
+<td>${esc(f.meds.join(' + ') || '—')}</td>
+<td class="mo">${frM(f.monto)}</td></tr>`).join('');
+        return `<div class="bh"><span class="np ${b.tono}">${esc(b.n)}</span><span class="bs">${resumen}</span></div>
+<table class="pt"><colgroup><col style="width:190px"><col style="width:240px"><col style="width:130px"><col style="width:100px"><col style="width:84px"></colgroup>${filas}</table>`;
+      }).join('');
+      return `<div class="page">
+<div class="hd s"><div><div class="br">Clinderm · Flash report · Anexo</div><h1 class="d">Detalle de <b>pacientes</b>${idx ? ' · continúa' : ''}</h1></div><div class="dt"><strong class="d">${esc(d.titulo)}</strong>Ingreso del día ${frM(d.total)}</div></div>
+<div class="wrap">${cuerpo}</div>
+${pie(2 + idx)}
+</div>`;
+    });
+  }
+
+  function fpDocumento(d){
+    const paginasAnexo = d.esDia ? fpPaginarAnexo(d.anexo) : [];
+    const nPag = 1 + paginasAnexo.length;
+    const paginas = [fpPagina1(d, nPag)].concat(fpPaginasAnexo(d, paginasAnexo, nPag));
+    return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Flash report Clinderm - ' + (d.esDia ? 'Cierre del día ' + esc(d.desde) : 'Cierre del mes ' + esc(d.titulo)) + '</title>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+      '<style>' + FR_CSS + '</style></head><body><div class="paper">' + paginas.join('') + '</div></body></html>';
+  }
+
+  async function fpExportar(){
+    if(FP_BUSY) return;
+    if(typeof html2canvas !== 'function'){ toast('⚠️ No se pudo cargar el generador de PDF, recarga la página'); return; }
+    const esDia = FP_MODO === 'dia';
+    let desde, hasta;
+    if(esDia){
+      desde = hasta = document.getElementById('fp-dia').value;
+      if(!desde){ toast('⚠️ Elige el día del reporte'); return; }
+    } else {
+      const ym = document.getElementById('fp-mes').value;
+      if(!ym){ toast('⚠️ Elige el mes del reporte'); return; }
+      const rg = rangoDeMes(ym); desde = rg.desde; hasta = rg.hasta;
+    }
+    FP_BUSY = true;
+    const btn = document.getElementById('fp-btn-pdf'), txt = btn.textContent;
+    btn.disabled = true; btn.textContent = '⏳ Generando PDF…';
+    let ifr = null;
+    try{
+      const d = await fpReunir(desde, hasta, esDia);
+      if(d.vacio){ toast('No hay movimientos en este periodo para exportar.'); return; }
+      ifr = document.createElement('iframe');
+      ifr.setAttribute('aria-hidden', 'true');
+      ifr.style.cssText = 'position:fixed; left:-10000px; top:0; width:816px; height:1200px; border:0; pointer-events:none;';
+      document.body.appendChild(ifr);
+      await new Promise(res => { ifr.onload = res; ifr.srcdoc = fpDocumento(d); });
+      ifr.style.height = Math.max(1200, ifr.contentDocument.documentElement.scrollHeight + 20) + 'px';
+      const nombre = await frPdfDesdeDoc(ifr.contentDocument);
+      toast('✅ PDF descargado: ' + nombre);
+    }catch(e){
+      console.error('[Clinderm] No se pudo generar el Flash report de productividad:', e);
+      toast('⚠️ No se pudo generar el PDF. Revisa tu conexión e inténtalo de nuevo.');
+    }finally{
+      if(ifr) ifr.remove();
+      FP_BUSY = false;
+      btn.disabled = false; btn.textContent = txt;
+    }
+  }
+
   // Si el reporte está abierto y alguien registra/edita algo, se vuelve a calcular (mismo tiempo real del resto del Dashboard)
   let FR_TIMER = null;
   function frRefrescarSiAbierto(){
@@ -2545,7 +2873,7 @@ ${pie(2 + idx)}
     if(btn) btn.classList.add('active');
     if(id === 'historial') cargarHistorial();
     if(id === 'cierre') cargarCierre();
-    if(id === 'comisiones') cargarComisiones();
+    if(id === 'comisiones'){ fpInit(); cargarComisiones(); }
     if(id === 'gastos') cargarGastos();
     if(id === 'dashboard') cargarDashboard();
     if(id === 'crm') crmTab('inactivos');
