@@ -1089,14 +1089,13 @@
       </div>
       <div class="card" id="fr-card" style="display:none;">
         <div class="fr-head">
-          <div class="fr-title">📄 Flash report <small>Cierre del mes · para presentar a la Dra.</small></div>
           <div class="fr-tools">
             <button class="btn-sm btn-outline" type="button" onclick="frMoverMes(-1)" aria-label="Mes anterior">‹</button>
             <input type="month" id="fr-mes" onchange="frCambioMes()" aria-label="Mes del reporte">
             <button class="btn-sm btn-outline" type="button" onclick="frMoverMes(1)" aria-label="Mes siguiente">›</button>
-            <button class="btn-sm" id="fr-btn-ver" type="button" onclick="frVer()">👁 Ver reporte</button>
+            <button class="btn-sm" id="fr-btn-ver" type="button" onclick="frVer()" style="display:none">👁 Ver reporte</button>
             <button class="btn-sm btn-pdf" id="fr-btn-pdf" type="button" onclick="frExportar()">📄 Exportar PDF</button>
-            <button class="btn-sm" type="button" onclick="frImprimirManual()" title="Abrir el cuadro de impresión del navegador">🖨️ Imprimir</button>
+            <button class="btn-sm" type="button" style="display:none" onclick="frImprimirManual()" title="Abrir el cuadro de impresión del navegador">🖨️ Imprimir</button>
           </div>
         </div>
         <div id="fr-preview">
@@ -1472,7 +1471,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.15 · 2026-11-18';
+  const APP_VERSION = 'v1.15.1 · 2026-11-18';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
