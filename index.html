@@ -321,7 +321,7 @@
   .dash-per select,.dash-per input{width:auto; height:32px; padding:0 10px; border-radius:8px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.12); color:#fff; font:600 12.5px Inter,system-ui,sans-serif; color-scheme:dark;}
   .dash-per select option{color:#0B1628; background:#fff;}
   .dash-per .dp{display:none; align-items:center; gap:8px;}
-  .dash-per[data-modo=dia] .dp-dia,.dash-per[data-modo=mes] .dp-mes,.dash-per[data-modo=rango] .dp-rango{display:inline-flex;}
+  .dash-per[data-modo=mes] .dp-quin,.dash-per[data-modo=dia] .dp-dia,.dash-per[data-modo=mes] .dp-mes,.dash-per[data-modo=rango] .dp-rango{display:inline-flex;}
   .dash-per .dp-mes input,.dash-per .dp-dia input{width:150px; text-align:center;}
   .dash-per .dp-arr{width:32px; height:32px; padding:0; border:0; border-radius:8px; background:rgba(255,255,255,.14); color:#fff; font-size:18px; line-height:1; cursor:pointer;}
   .dash-per .dp-arr:hover{background:rgba(255,255,255,.26);}
@@ -330,6 +330,7 @@
     .dash-seg{display:grid; grid-template-columns:1fr 1fr 1.6fr; width:100%;}
     .dash-seg button{padding:0;}
     .dash-per .dp{width:100%;}
+    .dash-per .dp-quin select{width:100%;}
     .dash-per .dp-mes,.dash-per .dp-dia{display:none;}
     .dash-per[data-modo=mes] .dp-mes,.dash-per[data-modo=dia] .dp-dia{display:grid; grid-template-columns:36px 1fr 36px; width:100%;}
     .dash-per .dp-mes input,.dash-per .dp-dia input{width:100%;}
@@ -407,7 +408,8 @@
   .gx-2col{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
   @media (max-width:720px){.gx-2col{grid-template-columns:1fr;}}
   .gx-row{margin-bottom:9px;}
-  .gx-row .top{display:flex; justify-content:space-between; gap:8px; font-size:11.5px; font-weight:600; color:var(--navy-900); margin-bottom:3px;}
+  .gx-row .top{display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:11.5px; font-weight:600; color:var(--navy-900); margin-bottom:3px;}
+  .gx-row .top span:first-child{flex:1 1 auto; min-width:0; overflow-wrap:anywhere;}
   .gx-row .top span:last-child{font-weight:800; white-space:nowrap;}
   .gx-row .bar{height:8px; border-radius:5px; background:var(--bg); overflow:hidden;}
   .gx-row .bar i{display:block; height:100%; border-radius:5px;}
@@ -995,21 +997,18 @@
         <div class="mod-hero-ico">💰</div>
         <div class="mod-hero-txt"><h1>Comisiones</h1><p>Producción y reparto del equipo · <b id="com-hero-per">—</b></p></div>
         <div class="mod-hero-act"><button class="mod-hero-btn" id="fc-btn-pdf" type="button" onclick="fcExportar()">📄 Exportar PDF</button></div>
+        <div class="dash-per" id="com-per" data-modo="mes">
+          <div class="dash-seg" role="tablist" aria-label="Periodo">
+            <button type="button" data-m="dia" onclick="comSetModo('dia')">Hoy</button><button type="button" data-m="mes" class="on" onclick="comSetModo('mes')">Mes</button><button type="button" data-m="rango" onclick="comSetModo('rango')">Rango de fechas</button>
+          </div>
+          <span class="dp dp-dia"><button type="button" class="dp-arr" onclick="comMoverDia(-1)" aria-label="Día anterior">‹</button><input type="date" id="com-dia" onchange="comCambio()" aria-label="Día"><button type="button" class="dp-arr" onclick="comMoverDia(1)" aria-label="Día siguiente">›</button></span>
+          <span class="dp dp-mes"><button type="button" class="dp-arr" onclick="comMoverMes(-1)" aria-label="Mes anterior">‹</button><input type="month" id="com-mes" onchange="comCambio()" aria-label="Mes"><button type="button" class="dp-arr" onclick="comMoverMes(1)" aria-label="Mes siguiente">›</button></span>
+          <span class="dp dp-quin"><select id="com-quin" onchange="comCambio()" aria-label="Mes o quincena"><option value="">Mes completo</option><option value="q1">1ª quincena (día 1–15)</option><option value="q2">2ª quincena (día 16–fin)</option></select></span>
+          <span class="dp dp-rango"><input type="date" id="com-desde" onchange="comCambio()" aria-label="Desde"><span class="dp-sep">a</span><input type="date" id="com-hasta" onchange="comCambio()" aria-label="Hasta"></span>
+        </div>
       </div>
       <div class="card">
         <div class="filters">
-          <div class="fitem"><label>Período</label>
-            <select id="com-periodo" onchange="onPeriodoChange('com', cargarComisiones)">
-              <option value="mes">Este mes</option>
-              <option value="q1">Quincena 1 (día 1–15)</option>
-              <option value="q2">Quincena 2 (día 16–fin)</option>
-              <option value="30">Últimos 30 días</option>
-              <option value="90">Últimos 90 días</option>
-              <option value="custom">📅 Rango de fechas…</option>
-            </select>
-          </div>
-          <div class="fitem rango-item" id="com-rango" style="display:none;"><label>Desde</label><input type="date" id="com-desde" onchange="cargarComisiones()"></div>
-          <div class="fitem rango-item" id="com-rango2" style="display:none;"><label>Hasta</label><input type="date" id="com-hasta" onchange="cargarComisiones()"></div>
           <div class="fitem"><label>Prestador</label><select id="com-persona" onchange="cargarComisiones()"><option value="">Todas</option></select></div>
         </div>
       </div>
@@ -1506,7 +1505,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.16.1 · 2026-11-18';
+  const APP_VERSION = 'v1.17 · 2026-11-18';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1811,6 +1810,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     document.getElementById('r-fecha').value = isoLocal(new Date());
     if(!document.getElementById('dash-mes').value) document.getElementById('dash-mes').value = mesActualISO();
     if(!document.getElementById('dash-dia').value) document.getElementById('dash-dia').value = isoLocal(new Date());
+    if(!document.getElementById('com-mes').value) document.getElementById('com-mes').value = mesActualISO();
+    if(!document.getElementById('com-dia').value) document.getElementById('com-dia').value = isoLocal(new Date());
     dashActualizarEtiquetas();
     cargarDoctores();
     cargarCatalogoServicios();
@@ -2248,8 +2249,8 @@ h2 small{font-family:'Instrument Sans',Arial,sans-serif;font-weight:600;color:va
 .sleg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:9px;color:var(--g6);font-weight:600}
 .sleg span{display:inline-flex;align-items:center;gap:5px}.sleg i{display:inline-block;width:9px;height:9px;border-radius:3px}.sleg b{color:var(--navy)}
 .hd.s{padding:16px 36px 13px}.hd.s h1{font-size:19px;margin-top:3px}.hd.s .br{font-size:9px}.hd.s .dt{font-size:10px;line-height:1.45}.hd.s .dt strong{font-size:12px}
-.hero4{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr;gap:8px}
-.cr{display:grid;grid-template-columns:118px 1fr 62px 30px;gap:8px;align-items:center;padding:4px 0}
+.hero4{display:grid;grid-template-columns:1.15fr .85fr .95fr 1.6fr;gap:8px}
+.cr{display:grid;grid-template-columns:160px 1fr 62px 30px;gap:8px;align-items:center;padding:4px 0}
 .cr .cn{font-weight:600;font-size:10px;white-space:nowrap}.cr .cb{height:11px;background:var(--g1);border-radius:4px}.cr .cb i{display:block;height:100%;border-radius:4px}.cr b{text-align:right;font-size:10.5px}.cr .mp{text-align:right;color:var(--g4);font-size:9.5px;font-weight:700}
 .gt{width:100%;border-collapse:collapse;font-size:9.5px}
 .gt th{text-align:left;font-size:8px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--g4);padding:5px 6px 4px;border-bottom:2px solid var(--navy)}
@@ -2270,7 +2271,7 @@ h2 small{font-family:'Instrument Sans',Arial,sans-serif;font-weight:600;color:va
 .pt .fp{display:inline-block;font-size:8px;font-weight:800;color:#B7791F;background:#FDF0D2;border-radius:8px;padding:1px 6px;margin-left:5px}
 `;
   const MESES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const FR_CATS = { locativos:{l:'🏢 Locativos',c:'#1B5C9E',bg:'#DCEAFB'}, nominas:{l:'👥 Nóminas',c:'#6A3691',bg:'#EBE1F7'}, insumos_medicos:{l:'🧴 Insumos médicos',c:'#2E7D4F',bg:'#DFF3E5'}, farmacia:{l:'💊 Farmacia',c:'#9A6010',bg:'#FDF0D2'}, papeleria:{l:'📎 Papelería',c:'#0E7C74',bg:'#D9F3F1'}, leasing_equipos:{l:'🩻 Leasing equipos',c:'#8B5E34',bg:'#F1E4D5'}, otros:{l:'📦 Otros',c:'#A3376B',bg:'#FBDDEA'} };
+  const FR_CATS = { locativos:{l:'🏢 Locativos',c:'#1B5C9E',bg:'#DCEAFB'}, nominas:{l:'👥 Nóminas',c:'#6A3691',bg:'#EBE1F7'}, insumos_medicos:{l:'🧴 Insumos médicos',c:'#2E7D4F',bg:'#DFF3E5'}, farmacia:{l:'💊 Farmacia',c:'#9A6010',bg:'#FDF0D2'}, papeleria:{l:'📎 Papelería',c:'#0E7C74',bg:'#D9F3F1'}, leasing_equipos:{l:'🩻 Leasing equipos médicos',c:'#8B5E34',bg:'#F1E4D5'}, otros:{l:'📦 Otros',c:'#A3376B',bg:'#FBDDEA'} };
   const FR_UNIS = { clinderm:{l:'Clinderm',c:'#1B3A6B'}, merida:{l:'Mérida',c:'#2E7D4F'}, farmacia_merida:{l:'Farmacia Mérida',c:'#9A6010'}, farmacia_polanco:{l:'Farmacia Polanco',c:'#A3376B'} };
   const FR_FACTS = { facturado_clinderm:{l:'Facturado a Clinderm',bg:'#E3F7EE',c:'#12805C'}, facturado_doctora:{l:'Facturado a doctora',bg:'#E6ECFB',c:'#2B4C9E'}, no_facturado:{l:'No facturado',bg:'#FBE7E7',c:'#B23B3B'} };
   const FR_FILAS_P2 = 15, FR_FILAS_CONT = 34;   // filas de gastos que caben en la hoja 2 y en las hojas de continuación
@@ -2486,7 +2487,7 @@ ${nG ? `<div class="seg">${seg}</div><div class="sleg">${sleg}${catTot.length>4 
  <div class="k main"><div class="l">Gasto total del mes</div><div class="v d">${frM(g)}</div><div class="s">${gl.length} gasto${gl.length===1?'':'s'} registrado${gl.length===1?'':'s'}</div></div>
  <div class="k"><div class="l">% del ingreso</div><div class="v g d">${total ? Math.round(g/total*100) + '%' : '—'}</div><div class="s">de ${frM(total)} de ingreso</div></div>
  <div class="k"><div class="l">Margen bruto</div><div class="v m d ${margen<0?'neg':''}">${margen<0?'−':''}${frM(Math.abs(margen))}</div><div class="s">${total ? Math.round(margen/total*100) + '% del ingreso' : '—'}</div></div>
- <div class="k"><div class="l">Mayor categoría</div><div class="v d" style="font-size:15px;color:${mayor.c}">${mayor.l}</div><div class="s">${frM(mayor.t)} · ${Math.round(mayor.t/g*100)}% del gasto</div></div>
+ <div class="k"><div class="l">Mayor categoría</div><div class="v d" style="font-size:13.5px;white-space:nowrap;color:${mayor.c}">${mayor.l}</div><div class="s">${frM(mayor.t)} · ${Math.round(mayor.t/g*100)}% del gasto</div></div>
 </div>
 <div class="two">
  <div><h2 class="d">Por categoría</h2>${barras(catTot)}</div>
@@ -2896,22 +2897,62 @@ ${pie(2 + idx)}
   // ============================================================
   const FC_UNIDADES = 40;   // "renglones" que caben en una hoja de detalle (un encabezado cuenta como 1.8)
 
+  // ---- Periodo de Comisiones: Hoy / Mes (completo o quincena) / Rango de fechas, con flechas ‹ › ----
+  function comModo(){ return document.getElementById('com-per').dataset.modo || 'mes'; }
+  function comPeriodo(){
+    const modo = comModo(), hoy = new Date();
+    if(modo === 'dia'){
+      const dia = document.getElementById('com-dia').value || isoLocal(hoy);
+      return { modo, desde: dia, hasta: dia, titulo: (dia === isoLocal(hoy) ? 'Hoy · ' : '') + fechaCorta(dia), etq: 'Cierre del día' };
+    }
+    if(modo === 'rango'){
+      const rg = rangoPersonalizado('com');
+      return { modo, desde: rg.desde, hasta: rg.hasta, titulo: (rg.desde ? fechaCorta(rg.desde) : '…') + ' al ' + (rg.hasta ? fechaCorta(rg.hasta) : '…'), etq: 'Cierre del periodo' };
+    }
+    const ym = document.getElementById('com-mes').value || mesActualISO();
+    const rg = rangoDeMes(ym), q = document.getElementById('com-quin').value;
+    const [y, m] = ym.split('-').map(Number), mesTxt = MESES_LARGO[m-1].toLowerCase();
+    if(q === 'q1') return { modo, desde: ym + '-01', hasta: ym + '-15', titulo: '1ª quincena de ' + mesTxt + ' ' + y, etq: 'Cierre de quincena' };
+    if(q === 'q2') return { modo, desde: ym + '-16', hasta: rg.hasta, titulo: '2ª quincena de ' + mesTxt + ' ' + y, etq: 'Cierre de quincena' };
+    return { modo, desde: rg.desde, hasta: rg.hasta, titulo: MESES_LARGO[m-1] + ' ' + y, etq: 'Cierre del mes' };
+  }
+  function comSetModo(m){
+    const per = document.getElementById('com-per');
+    per.dataset.modo = m;
+    per.querySelectorAll('.dash-seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    const hoy = new Date();
+    if(m === 'dia') document.getElementById('com-dia').value = isoLocal(hoy); // "Hoy" siempre arranca en hoy
+    if(m === 'rango'){
+      const dEl = document.getElementById('com-desde'), hEl = document.getElementById('com-hasta');
+      if(!hEl.value) hEl.value = isoLocal(hoy);
+      if(!dEl.value) dEl.value = isoLocal(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+    }
+    comCambio();
+  }
+  function comMoverMes(d){
+    const el = document.getElementById('com-mes');
+    let [y, m] = (el.value || mesActualISO()).split('-').map(Number);
+    m += d; if(m > 12){ m = 1; y++; } if(m < 1){ m = 12; y--; }
+    el.value = y + '-' + String(m).padStart(2,'0');
+    comCambio();
+  }
+  function comMoverDia(d){
+    const el = document.getElementById('com-dia');
+    const f = new Date((el.value || isoLocal(new Date())) + 'T12:00:00');
+    f.setDate(f.getDate() + d);
+    el.value = isoLocal(f);
+    comCambio();
+  }
+  function comCambio(){ cargarComisiones(); }
+
   function fcPeriodoActual(){
-    const periodo = document.getElementById('com-periodo').value;
-    let { desde, hasta } = rangoComisiones(periodo);
-    if(periodo === 'custom'){ const rg = rangoPersonalizado('com'); desde = rg.desde; hasta = rg.hasta; }
-    return { periodo, desde, hasta };
+    const p = comPeriodo();
+    return { periodo: p.modo, desde: p.desde, hasta: p.hasta };
   }
   function fcTextosPeriodo(periodo, desde, hasta){
-    const hoy = new Date(), mes = MESES_LARGO[hoy.getMonth()].toLowerCase(), y = hoy.getFullYear();
+    const p = comPeriodo();
     const rangoTxt = (desde ? fechaCorta(desde) : '…') + ' al ' + (hasta ? fechaCorta(hasta) : '…');
-    let titulo, etq;
-    if(periodo === 'mes'){ titulo = MESES_LARGO[hoy.getMonth()] + ' ' + y; etq = 'Cierre del mes'; }
-    else if(periodo === 'q1'){ titulo = '1ª quincena de ' + mes + ' ' + y; etq = 'Cierre de quincena'; }
-    else if(periodo === 'q2'){ titulo = '2ª quincena de ' + mes + ' ' + y; etq = 'Cierre de quincena'; }
-    else if(periodo === 'custom'){ titulo = rangoTxt; etq = 'Cierre del periodo'; }
-    else { titulo = 'Últimos ' + (parseInt(periodo, 10) || 30) + ' días'; etq = 'Cierre del periodo'; }
-    return { titulo, etq, rangoTxt };
+    return { titulo: p.titulo, etq: p.etq, rangoTxt };
   }
   function fcActualizarNota(){
     const el = document.getElementById('com-hero-per'); if(!el) return;
@@ -2927,25 +2968,26 @@ ${pie(2 + idx)}
     const conCom = (personal || []).filter(p => !PERSONAL_SIN_COMISION.some(n => normalizar(p.nombre).includes(n)));
     const personas = conCom.filter(p => !personaFiltro || p.id === personaFiltro);
     const rows = await frFetchTodo(() => sb.from('consultas')
-      .select('id, fecha, tipo_consulta, monto, monto_2, doctor_id, paciente_propio, farmacia_generado_por, pacientes(nombre)')
-      .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta).order('fecha').order('id'));
+      .select('id, fecha, tipo_consulta, monto, monto_2, medio_pago, doctor_id, created_by, paciente_propio, farmacia_generado_por, pacientes(nombre)')
+      .eq('deleted', false).eq('no_vino', false).neq('sede', 'merida').gte('fecha', desde).lte('fecha', hasta).order('fecha').order('id'));
     const tot = r => Number(r.monto||0) + Number(r.monto_2||0);
 
     let kpiNeto = 0, kpiProd = 0, kpiFarm = 0, kpiServNeto = 0, pendientes = 0;
     const out = personas.map(p => {
-      const mis = rows.filter(r => r.doctor_id === p.id);
-      const soloPropios = !!(p.permisos && p.permisos.comision_solo_propios);
+      const porRegistro = !!(p.permisos && p.permisos.comision_por_registro);
+      const mis = porRegistro ? rows.filter(r => r.created_by === p.id && !esMedioSinCobro(r.medio_pago)) : rows.filter(r => r.doctor_id === p.id);
+      const soloPropios = !porRegistro && !!(p.permisos && p.permisos.comision_solo_propios);
       const totalGeneral = mis.reduce((a, r) => a + tot(r), 0);
       const totalPropios = mis.filter(r => r.paciente_propio === true).reduce((a, r) => a + tot(r), 0);
       const base = soloPropios ? totalPropios : totalGeneral;
       const pct = (p.permisos && p.permisos.comision_pct != null) ? Number(p.permisos.comision_pct) : null;
       const isrPct = (p.permisos && p.permisos.comision_isr_pct != null) ? Number(p.permisos.comision_isr_pct) : 0;
-      kpiProd += totalGeneral;
+      if(!porRegistro) kpiProd += totalGeneral;
       let bruta = null, isr = null, neto = null;
       if(pct === null) pendientes++;
       else { bruta = base * (pct/100); isr = bruta * (isrPct/100); neto = bruta - isr; }
 
-      const vf = rows.filter(r => r.farmacia_generado_por === p.id);
+      const vf = porRegistro ? [] : rows.filter(r => r.farmacia_generado_por === p.id);
       const totalFarm = vf.reduce((a, r) => a + tot(r), 0);
       const fpct = (p.permisos && p.permisos.comision_farmacia_pct != null) ? Number(p.permisos.comision_farmacia_pct) : null;
       let comFarm = null;
@@ -2963,7 +3005,7 @@ ${pie(2 + idx)}
       });
       const lineasFarm = vf.slice().sort((a, b) => a.fecha < b.fecha ? -1 : (a.fecha > b.fecha ? 1 : 0)).map(r => ({ fecha:r.fecha, pac:(r.pacientes && r.pacientes.nombre) || '—', serv:frInitcap(r.tipo_consulta), monto:tot(r), com: fpct !== null ? tot(r) * (fpct/100) : null }));
       const cosm = /^Cosm\./i.test(p.nombre);
-      return { id:p.id, n:p.nombre, tono: cosm ? 'cs' : (/tania/i.test(p.nombre) ? 'd1' : 'd2'), rol: cosm ? 'Cabina' : (/^Dra\./i.test(p.nombre) ? 'Doctora' : (/^Dr\./i.test(p.nombre) ? 'Doctor' : 'Equipo')),
+      return { id:p.id, n:p.nombre, porRegistro, tono: porRegistro ? 'mx' : (cosm ? 'cs' : (/tania/i.test(p.nombre) ? 'd1' : 'd2')), rol: porRegistro ? 'Recepción' : (cosm ? 'Cabina' : (/^Dra\./i.test(p.nombre) ? 'Doctora' : (/^Dr\./i.test(p.nombre) ? 'Doctor' : 'Equipo'))),
         soloPropios, totalGeneral, totalPropios, base, pct, isrPct, bruta, isr, neto, totalFarm, fpct, comFarm, netoFinal, lineasServ, lineasFarm };
     });
     const t = fcTextosPeriodo(fcPeriodoActual().periodo, desde, hasta);
@@ -2981,7 +3023,7 @@ ${pie(2 + idx)}
         });
         if(p.pct !== null) filas.push(`<tr class="tt"><td colspan="3">Total · base ${money(p.base)} × ${p.pct}%${p.isrPct > 0 ? ' − ISR ' + p.isrPct + '%' : ''}</td><td class="mo">${money(p.base)}</td><td class="mo">${money(p.neto)}</td></tr>`);
         bl.push({ p, tipo:'serv', filas, cab: cont => {
-          const resumen = cont ? '(continúa)' : `${p.lineasServ.length} servicio${p.lineasServ.length===1?'':'s'}${p.soloPropios ? ' · solo pacientes propios' : ''}${p.pct === null ? ' · esquema pendiente' : ' · ' + p.pct + '% comisión'}`;
+          const resumen = cont ? '(continúa)' : `${p.lineasServ.length} ${p.porRegistro ? 'venta' : 'servicio'}${p.lineasServ.length===1?'':'s'}${p.porRegistro ? ' registrada' + (p.lineasServ.length===1?'':'s') : ''}${p.soloPropios ? ' · solo pacientes propios' : ''}${p.pct === null ? ' · esquema pendiente' : ' · ' + p.pct + '% comisión'}`;
           return `<div class="bh"><span class="np ${p.tono}">${esc(p.n)}</span><span class="bs">${esc(resumen)}</span></div>`; } });
       }
       if(p.lineasFarm.length){
@@ -3018,10 +3060,10 @@ ${pie(2 + idx)}
     const ahora = new Date().toLocaleString('es-MX', { timeZone:'America/Mexico_City', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true }).replace(',', ' ·');
     const quien = (MI_PERFIL && MI_PERFIL.nombre) ? 'por ' + esc(MI_PERFIL.nombre) : '';
     const filas = d.personas.map(p => {
-      const esquema = p.pct === null ? '<span style="color:#B23B3B;font-weight:700">Pendiente</span>' : `${p.pct}%${p.isrPct > 0 ? ' · ISR ' + p.isrPct + '%' : ''}<small>${p.soloPropios ? 'solo pacientes propios' : 'productividad total'}</small>`;
+      const esquema = p.pct === null ? '<span style="color:#B23B3B;font-weight:700">Pendiente</span>' : `${p.pct}%${p.isrPct > 0 ? ' · ISR ' + p.isrPct + '%' : ''}<small>${p.porRegistro ? 'ventas que registra' : (p.soloPropios ? 'solo pacientes propios' : 'productividad total')}</small>`;
       const farm = (p.totalFarm > 0 || p.fpct !== null) ? (p.fpct === null ? `<span style="color:#B23B3B;font-weight:700">% pendiente</span><small>${money(p.totalFarm)} generada</small>` : `${money(p.comFarm)}<small>${money(p.totalFarm)} × ${p.fpct}%</small>`) : '—';
       return `<tr>
-<td><span class="np ${p.tono}">${esc(p.n)}</span><small>${p.rol} · ${p.lineasServ.length} servicio${p.lineasServ.length===1?'':'s'}</small></td>
+<td><span class="np ${p.tono}">${esc(p.n)}</span><small>${p.rol} · ${p.lineasServ.length} ${p.porRegistro ? 'venta' : 'servicio'}${p.lineasServ.length===1?'':'s'}</small></td>
 <td>${esquema}</td>
 <td class="r">${money(p.base)}${p.soloPropios ? '<small>de ' + money(p.totalGeneral) + ' totales</small>' : ''}</td>
 <td class="r">${p.bruta === null ? '—' : money(p.bruta)}</td>
@@ -3030,7 +3072,7 @@ ${pie(2 + idx)}
 <td class="r nn">${p.netoFinal === null ? '—' : money(p.netoFinal)}</td></tr>`;
     }).join('') || '<tr><td colspan="7" style="padding:14px;color:var(--g4)">No hay personas con comisión configurada.</td></tr>';
     const nTot = d.personas.filter(p => p.netoFinal !== null).length;
-    const COL = { cs:'#C8820A', d1:'#2F6FD0', d2:'#2ABFBF' };
+    const COL = { cs:'#C8820A', d1:'#2F6FD0', d2:'#2ABFBF', mx:'#7D3C98' };
     const conNeto = d.personas.filter(p => p.netoFinal !== null && p.netoFinal > 0).sort((a, b) => b.netoFinal - a.netoFinal);
     const mxN = Math.max(1, ...conNeto.map(p => p.netoFinal));
     const partic = conNeto.map(p => `<div class="cr"><span class="cn">${esc(p.n)}</span><div class="cb"><i style="width:${(p.netoFinal/mxN*100).toFixed(1)}%;background:${COL[p.tono] || '#2ABFBF'}"></i></div><b>${money(p.netoFinal)}</b><span class="mp">${d.kpiNeto ? Math.round(p.netoFinal/d.kpiNeto*100) : 0}%</span></div>`).join('');
@@ -3051,7 +3093,7 @@ ${filas}
 <tr class="sum"><td colspan="6">Neto total a pagar</td><td class="r nn">${money(d.kpiNeto)}</td></tr></table>
 ${partic ? `<h2 class="d">Participación en el neto a pagar</h2>${partic}` : ''}
 <h2 class="d">Cómo se calcula</h2>
-<div class="sc"><b>Servicios:</b> base × % de comisión, menos el ISR de cada persona. Para quien comisiona <i>solo pacientes propios</i>, la base son únicamente los servicios marcados como propios.<br><b>Farmacia:</b> ventas que generó la persona × su % de farmacia (sin ISR). <b>Neto a pagar</b> = servicios (neto de ISR) + farmacia.</div>
+<div class="sc"><b>Servicios:</b> base × % de comisión, menos el ISR de cada persona. Para quien comisiona <i>solo pacientes propios</i>, la base son únicamente los servicios marcados como propios.<br>${d.personas.some(p => p.porRegistro) ? '<b>Recepción:</b> % sobre todo lo que registra (sin cortesías ni procedimientos ya pagados); no resta nada a la comisión de quien atendió.<br>' : ''}<b>Farmacia:</b> ventas que generó la persona × su % de farmacia (sin ISR). <b>Neto a pagar</b> = servicios (neto de ISR) + farmacia.</div>
 ${pend ? `<div class="al" style="margin-top:10px"><div class="a w"><b>${pend}</b><span>esquema${pend===1?'':'s'} de comisión pendiente${pend===1?'':'s'} de definir<br>(no suman al neto a pagar)</span></div></div>` : ''}
 </div>
 <div class="ft"><span>Clinderm · Consultas · Cifras al momento de generar el reporte</span><span>Página 1 de ${nPag}</span></div>
@@ -4072,15 +4114,10 @@ ${pie(2 + idx)}
   }
 
   async function cargarComisiones(){
-    const periodo = document.getElementById('com-periodo').value;
     fcActualizarNota();
     const personaFiltro = document.getElementById('com-persona').value;
-    let { desde, hasta } = rangoComisiones(periodo);
-    if(periodo === 'custom'){
-      const rg = rangoPersonalizado('com');
-      if(!rg.desde || !rg.hasta){ toast('⚠️ Elige fecha Desde y Hasta'); return; }
-      desde = rg.desde; hasta = rg.hasta;
-    }
+    const { desde, hasta } = comPeriodo();
+    if(!desde || !hasta){ toast('⚠️ Elige fecha Desde y Hasta'); return; }
 
     // fn_comisiones_admin() (RPC) en vez de leer "permisos" directo: esta función devuelve el detalle
     // solo si quien la llama es admin -- si alguien más la invoca (por ejemplo forzándolo desde la
@@ -4099,14 +4136,14 @@ ${pie(2 + idx)}
     const personas = personalConComision.filter(p => !personaFiltro || p.id === personaFiltro);
 
     const { data: consultas, error: errConsultas } = await sb.from('consultas')
-      .select('doctor_id, monto, monto_2, paciente_propio')
-      .eq('deleted', false).eq('no_vino', false)
+      .select('doctor_id, created_by, medio_pago, monto, monto_2, paciente_propio')
+      .eq('deleted', false).eq('no_vino', false).neq('sede', 'merida')
       .gte('fecha', desde).lte('fecha', hasta);
     if(errConsultas){ console.error('[Clinderm] Error cargando consultas para comisiones:', errConsultas); return; }
 
     const { data: ventasFarmacia, error: errFarmacia } = await sb.from('consultas')
       .select('farmacia_generado_por, monto, monto_2')
-      .eq('deleted', false).eq('no_vino', false).not('farmacia_generado_por', 'is', null)
+      .eq('deleted', false).eq('no_vino', false).neq('sede', 'merida').not('farmacia_generado_por', 'is', null)
       .gte('fecha', desde).lte('fecha', hasta);
     if(errFarmacia){ console.error('[Clinderm] Error cargando ventas de farmacia para comisiones:', errFarmacia); }
 
@@ -4120,8 +4157,12 @@ ${pie(2 + idx)}
     const totalFarmaciaPeriodo = (ventasFarmacia||[]).reduce((a,v)=> a + Number(v.monto||0) + Number(v.monto_2||0), 0);
 
     cont.innerHTML = personas.map(p=>{
-      const misConsultas = (consultas||[]).filter(c => c.doctor_id === p.id);
-      const soloPropios = !!(p.permisos && p.permisos.comision_solo_propios);
+      // Recepción (Margarita): comisiona sobre TODO lo que registra (sin cortesías / procedimientos ya pagados), no sobre lo que atiende.
+      const porRegistro = !!(p.permisos && p.permisos.comision_por_registro);
+      const misConsultas = porRegistro
+        ? (consultas||[]).filter(c => c.created_by === p.id && !esMedioSinCobro(c.medio_pago))
+        : (consultas||[]).filter(c => c.doctor_id === p.id);
+      const soloPropios = !porRegistro && !!(p.permisos && p.permisos.comision_solo_propios);
       const totalGeneral = misConsultas.reduce((a,c)=> a + Number(c.monto||0) + Number(c.monto_2||0), 0);
       const totalPropios = misConsultas.filter(c=>c.paciente_propio===true).reduce((a,c)=> a + Number(c.monto||0) + Number(c.monto_2||0), 0);
       const totalClinica = totalGeneral - totalPropios;
@@ -4130,7 +4171,7 @@ ${pie(2 + idx)}
       const pct = (p.permisos && p.permisos.comision_pct != null) ? Number(p.permisos.comision_pct) : null;
       const isrPct = (p.permisos && p.permisos.comision_isr_pct != null) ? Number(p.permisos.comision_isr_pct) : 0;
 
-      kpiProductividad += totalGeneral;
+      if(!porRegistro) kpiProductividad += totalGeneral;
 
       let cuerpo;
       let netoClinica = null;
@@ -4141,7 +4182,7 @@ ${pie(2 + idx)}
           <div style="margin-top:10px; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
             <div class="field-wrap" style="margin:0;"><label>% Comisión</label><input type="number" id="com-pct-${p.id}" style="width:90px;" placeholder="Ej. 30"></div>
             <div class="field-wrap" style="margin:0;"><label>% ISR / descuento</label><input type="number" id="com-isr-${p.id}" style="width:90px;" value="0"></div>
-            <label style="display:flex; align-items:center; gap:6px; font-size:12.5px;"><input type="checkbox" id="com-propios-${p.id}"> Solo pacientes propios</label>
+            ${porRegistro ? '' : `<label style="display:flex; align-items:center; gap:6px; font-size:12.5px;"><input type="checkbox" id="com-propios-${p.id}"> Solo pacientes propios</label>`}
             <button class="btn btn-teal" style="width:auto; padding:8px 14px;" onclick="guardarConfigComision('${p.id}')">Guardar esquema</button>
           </div>`;
       } else {
@@ -4150,17 +4191,17 @@ ${pie(2 + idx)}
         const neto = comisionBruta - isr;
         netoClinica = neto;
         cuerpo = `
-          <div class="comision-row"><span>${soloPropios ? 'Base (propios)' : 'Base (productividad total)'}</span><b>${money(base)}</b></div>
+          ${porRegistro ? `<div class="comision-row"><span>Ventas registradas · ${misConsultas.length} ${misConsultas.length===1?'renglón':'renglones'}</span><b>${money(base)}</b></div>` : `<div class="comision-row"><span>${soloPropios ? 'Base (propios)' : 'Base (productividad total)'}</span><b>${money(base)}</b></div>`}
           <div class="comision-row"><span>Comisión (${pct}%)</span><span>${money(comisionBruta)}</span></div>
           ${isrPct > 0 ? `<div class="comision-row"><span>ISR (${isrPct}%)</span><span style="color:var(--muted);">− ${money(isr)}</span></div>` : ''}
-          <div class="comision-sub"><b>Subtotal productividad</b><b>${money(neto)}</b></div>
+          <div class="comision-sub"><b>${porRegistro ? 'Subtotal ventas' : 'Subtotal productividad'}</b><b>${money(neto)}</b></div>
           <div style="margin-top:6px; text-align:right;">
             <span class="toggle-link" style="font-size:11px; margin:0;" onclick="mostrarEditorComision('${p.id}')">Editar esquema</span>
           </div>
           <div id="com-editor-${p.id}" style="display:none; margin-top:8px; gap:8px; align-items:flex-end; flex-wrap:wrap;">
             <div class="field-wrap" style="margin:0;"><label>% Comisión</label><input type="number" id="com-pct-${p.id}" style="width:80px;" value="${pct}"></div>
             <div class="field-wrap" style="margin:0;"><label>% ISR</label><input type="number" id="com-isr-${p.id}" style="width:70px;" value="${isrPct}"></div>
-            <label style="display:flex; align-items:center; gap:5px; font-size:11.5px;"><input type="checkbox" id="com-propios-${p.id}" ${soloPropios?'checked':''}> Solo propios</label>
+            ${porRegistro ? '' : `<label style="display:flex; align-items:center; gap:5px; font-size:11.5px;"><input type="checkbox" id="com-propios-${p.id}" ${soloPropios?'checked':''}> Solo propios</label>`}
             <button class="btn btn-teal" style="width:auto; padding:7px 12px; font-size:12px;" onclick="guardarConfigComision('${p.id}')">Guardar</button>
           </div>`;
       }
@@ -4215,7 +4256,7 @@ ${pie(2 + idx)}
           </div>`;
       }
 
-      const metaTxt = pct === null ? 'Esquema pendiente' : (soloPropios ? `Solo propios · ${pct}% comisión` : `Productividad total · ${pct}% comisión`);
+      const metaTxt = pct === null ? 'Esquema pendiente' : (porRegistro ? `Ventas que registra · ${pct}% comisión` : soloPropios ? `Solo propios · ${pct}% comisión` : `Productividad total · ${pct}% comisión`);
       return `<div class="comision-card">
         <div class="comision-head">
           <div class="comision-avatar">${esc(inicialesPersona(p.nombre))}</div>
@@ -4251,7 +4292,8 @@ ${pie(2 + idx)}
     const pct = parseFloat(pctInput.value);
     if(isNaN(pct)){ toast('⚠️ Ingresa el % de comisión'); return; }
     const isrPct = parseFloat(isrInput.value) || 0;
-    const soloPropios = propiosInput.checked;
+    const actualP = PERSONAL_COMISIONES_CACHE.find(p => p.id === id);
+    const soloPropios = propiosInput ? propiosInput.checked : !!(actualP && actualP.permisos && actualP.permisos.comision_solo_propios);
 
     // El detalle de permisos ya está en memoria (vino de fn_comisiones_admin, que solo devuelve datos
     // si quien entró es admin) -- no hace falta un select aparte, que además ya no se puede hacer
