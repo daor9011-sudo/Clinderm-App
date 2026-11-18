@@ -321,19 +321,18 @@
   .dash-per select,.dash-per input{width:auto; height:32px; padding:0 10px; border-radius:8px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.12); color:#fff; font:600 12.5px Inter,system-ui,sans-serif; color-scheme:dark;}
   .dash-per select option{color:#0B1628; background:#fff;}
   .dash-per .dp{display:none; align-items:center; gap:8px;}
-  .dash-per[data-modo=rec] .dp-rec,.dash-per[data-modo=mes] .dp-mes,.dash-per[data-modo=rango] .dp-rango,.dash-per[data-modo=todo] .dp-todo{display:inline-flex;}
-  .dash-per .dp-mes input{width:150px; text-align:center;}
+  .dash-per[data-modo=dia] .dp-dia,.dash-per[data-modo=mes] .dp-mes,.dash-per[data-modo=rango] .dp-rango{display:inline-flex;}
+  .dash-per .dp-mes input,.dash-per .dp-dia input{width:150px; text-align:center;}
   .dash-per .dp-arr{width:32px; height:32px; padding:0; border:0; border-radius:8px; background:rgba(255,255,255,.14); color:#fff; font-size:18px; line-height:1; cursor:pointer;}
   .dash-per .dp-arr:hover{background:rgba(255,255,255,.26);}
-  .dash-per .dp-sep,.dash-per .dp-todo{font-size:12px; color:rgba(255,255,255,.75);}
+  .dash-per .dp-sep{font-size:12px; color:rgba(255,255,255,.75);}
   @media (max-width:860px){
-    .dash-seg{display:grid; grid-template-columns:repeat(4,1fr); width:100%;}
+    .dash-seg{display:grid; grid-template-columns:1fr 1fr 1.6fr; width:100%;}
     .dash-seg button{padding:0;}
     .dash-per .dp{width:100%;}
-    .dash-per .dp-rec select{width:100%;}
-    .dash-per .dp-mes{display:none;}
-    .dash-per[data-modo=mes] .dp-mes{display:grid; grid-template-columns:36px 1fr 36px; width:100%;}
-    .dash-per .dp-mes input{width:100%;}
+    .dash-per .dp-mes,.dash-per .dp-dia{display:none;}
+    .dash-per[data-modo=mes] .dp-mes,.dash-per[data-modo=dia] .dp-dia{display:grid; grid-template-columns:36px 1fr 36px; width:100%;}
+    .dash-per .dp-mes input,.dash-per .dp-dia input{width:100%;}
     .dash-per[data-modo=rango] .dp-rango{display:grid; grid-template-columns:1fr 1fr; width:100%;}
     .dash-per .dp-rango .dp-sep{display:none;}
     .dash-per .dp-rango input{width:100%;}
@@ -1122,12 +1121,11 @@
         <div class="mod-hero-act" data-admin style="display:none;"><button class="mod-hero-btn" id="fr-btn-pdf" type="button" onclick="frExportar()" title="Descarga el Flash report del mes seleccionado">📄 Exportar PDF</button></div>
         <div class="dash-per" id="dash-per" data-modo="mes">
           <div class="dash-seg" role="tablist" aria-label="Periodo">
-            <button type="button" data-m="rec" onclick="dashSetModo('rec')">Recientes</button><button type="button" data-m="mes" class="on" onclick="dashSetModo('mes')">Mes</button><button type="button" data-m="rango" onclick="dashSetModo('rango')">Rango</button><button type="button" data-m="todo" onclick="dashSetModo('todo')">Todo</button>
+            <button type="button" data-m="dia" onclick="dashSetModo('dia')">Hoy</button><button type="button" data-m="mes" class="on" onclick="dashSetModo('mes')">Mes</button><button type="button" data-m="rango" onclick="dashSetModo('rango')">Rango de fechas</button>
           </div>
-          <span class="dp dp-rec"><select id="dash-rec" aria-label="Periodo reciente" onchange="dashCambio()"><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option><option value="anio">Este año</option></select></span>
+          <span class="dp dp-dia"><button type="button" class="dp-arr" onclick="dashMoverDia(-1)" aria-label="Día anterior">‹</button><input type="date" id="dash-dia" onchange="dashCambio()" aria-label="Día"><button type="button" class="dp-arr" onclick="dashMoverDia(1)" aria-label="Día siguiente">›</button></span>
           <span class="dp dp-mes"><button type="button" class="dp-arr" onclick="dashMoverMes(-1)" aria-label="Mes anterior">‹</button><input type="month" id="dash-mes" onchange="dashCambio()" aria-label="Mes"><button type="button" class="dp-arr" onclick="dashMoverMes(1)" aria-label="Mes siguiente">›</button></span>
           <span class="dp dp-rango"><input type="date" id="dash-desde" onchange="dashCambio()" aria-label="Desde"><span class="dp-sep">a</span><input type="date" id="dash-hasta" onchange="dashCambio()" aria-label="Hasta"></span>
-          <span class="dp dp-todo">Todo el historial · sin filtro de fechas</span>
         </div>
       </div>
       <div class="card" id="fr-card" aria-hidden="true">
@@ -1508,7 +1506,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.16 · 2026-11-18';
+  const APP_VERSION = 'v1.16.1 · 2026-11-18';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -1812,6 +1810,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     document.querySelectorAll('[data-doc]').forEach(el=> el.style.display = perfil.rol !== 'recepcion' ? 'inline-flex' : 'none');
     document.getElementById('r-fecha').value = isoLocal(new Date());
     if(!document.getElementById('dash-mes').value) document.getElementById('dash-mes').value = mesActualISO();
+    if(!document.getElementById('dash-dia').value) document.getElementById('dash-dia').value = isoLocal(new Date());
     dashActualizarEtiquetas();
     cargarDoctores();
     cargarCatalogoServicios();
@@ -4312,17 +4311,14 @@ ${pie(2 + idx)}
       const rg = rangoPersonalizado('dash');
       return { modo, desde: rg.desde, hasta: rg.hasta, texto: textoRango(rg) };
     }
-    if(modo === 'todo') return { modo, desde: '2000-01-01', hasta: isoLocal(hoy), texto: 'Todo el historial' };
-    const v = document.getElementById('dash-rec').value;
-    if(v === 'anio') return { modo, desde: isoLocal(new Date(hoy.getFullYear(), 0, 1)), hasta: isoLocal(hoy), texto: 'Este año' };
-    const d = new Date(); d.setDate(d.getDate() - Number(v));
-    return { modo, desde: isoLocal(d), hasta: isoLocal(hoy), texto: 'Últimos ' + v + ' días' };
+    const dia = document.getElementById('dash-dia').value || isoLocal(hoy);
+    return { modo: 'dia', desde: dia, hasta: dia, texto: (dia === isoLocal(hoy) ? 'Hoy · ' : '') + fechaCorta(dia) };
   }
   // Mes que se descarga en el Flash report: el mes elegido; si el periodo no es un mes, el mes donde termina.
   function dashMesFlash(){
     const p = dashPeriodo();
     if(p.modo === 'mes') return p.ym;
-    return (p.hasta && p.modo !== 'rec') ? p.hasta.slice(0,7) : mesActualISO();
+    return p.hasta ? p.hasta.slice(0,7) : mesActualISO();
   }
   function dashActualizarEtiquetas(){
     const el = document.getElementById('dash-hero-per'); if(!el) return;
@@ -4337,8 +4333,10 @@ ${pie(2 + idx)}
     const per = document.getElementById('dash-per');
     per.dataset.modo = m;
     per.querySelectorAll('.dash-seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    const hoy = new Date();
+    if(m === 'dia') document.getElementById('dash-dia').value = isoLocal(hoy); // "Hoy" siempre arranca en hoy
     if(m === 'rango'){
-      const dEl = document.getElementById('dash-desde'), hEl = document.getElementById('dash-hasta'), hoy = new Date();
+      const dEl = document.getElementById('dash-desde'), hEl = document.getElementById('dash-hasta');
       if(!hEl.value) hEl.value = isoLocal(hoy);
       if(!dEl.value) dEl.value = isoLocal(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
     }
@@ -4350,6 +4348,13 @@ ${pie(2 + idx)}
     let [y, m] = (el.value || mesActualISO()).split('-').map(Number);
     m += d; if(m > 12){ m = 1; y++; } if(m < 1){ m = 12; y--; }
     el.value = y + '-' + String(m).padStart(2,'0');
+    dashCambio();
+  }
+  function dashMoverDia(d){
+    const el = document.getElementById('dash-dia');
+    const f = new Date((el.value || isoLocal(new Date())) + 'T12:00:00');
+    f.setDate(f.getDate() + d);
+    el.value = isoLocal(f);
     dashCambio();
   }
   function dashCambio(){ dashActualizarEtiquetas(); cargarDashboard(); }
