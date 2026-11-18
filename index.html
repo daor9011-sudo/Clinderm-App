@@ -288,14 +288,13 @@
   #fr-card .fr-tools{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
   #fr-card .fr-tools input:not([type=checkbox]):not([type=radio]){width:auto; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--navy-900); font-family:inherit; outline:none;}
   #fr-card .btn-pdf{background:linear-gradient(90deg,var(--teal-dark),var(--navy-600)); color:#fff; border:0;}
-  /* ===== Flash report de productividad (Comisiones, solo admin) ===== */
-  #fp-card .fp-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  #fp-card .fp-title{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:17px; color:var(--navy-900); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-  #fp-card .fp-title small{font-family:Inter,system-ui,sans-serif; font-weight:600; font-size:12px; color:var(--muted);}
-  #fp-card .fp-tools{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
-  #fp-card .fp-tools input:not([type=checkbox]):not([type=radio]){width:auto; padding:7px 10px; font-size:12px; border:1px solid var(--border); border-radius:7px; background:#fff; color:var(--navy-900); font-family:inherit; outline:none;}
-  #fp-card .btn-pdf{background:linear-gradient(90deg,var(--teal-dark),var(--navy-600)); color:#fff; border:0;}
-  #fp-card .fp-nota{font-size:11.5px; color:var(--muted); margin-top:8px;}
+  /* ===== Flash report de comisiones (Comisiones, solo admin) ===== */
+  #fc-card .fc-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  #fc-card .fc-title{font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:17px; color:var(--navy-900); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  #fc-card .fc-title small{font-family:Inter,system-ui,sans-serif; font-weight:600; font-size:12px; color:var(--muted);}
+  #fc-card .fc-tools{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  #fc-card .btn-pdf{background:linear-gradient(90deg,var(--teal-dark),var(--navy-600)); color:#fff; border:0;}
+  #fc-card .fc-nota{font-size:11.5px; color:var(--muted); margin-top:8px;}
   #fr-preview{margin-top:14px; display:none;}
   #fr-estado{font-size:12px; color:var(--muted); margin-bottom:8px;}
   #fr-wrap{background:#dfe5ee; border-radius:12px; padding:16px 8px; overflow:hidden;}
@@ -931,21 +930,12 @@
           <div class="fitem"><label>Prestador</label><select id="com-persona" onchange="cargarComisiones()"><option value="">Todas</option></select></div>
         </div>
       </div>
-      <div class="card" id="fp-card">
-        <div class="fp-head">
-          <div class="fp-title">📄 Flash report <small>Productividad · cierre del día o del mes (como en Skin Fabric)</small></div>
-          <div class="fp-tools">
-            <button class="btn-sm act" id="fp-modo-dia" type="button" onclick="fpSetModo('dia')">📋 Día</button>
-            <button class="btn-sm" id="fp-modo-mes" type="button" onclick="fpSetModo('mes')">📅 Mes</button>
-            <button class="btn-sm btn-outline" type="button" onclick="fpMover(-1)" aria-label="Anterior">‹</button>
-            <input type="date" id="fp-dia" aria-label="Día del reporte">
-            <input type="month" id="fp-mes" aria-label="Mes del reporte" style="display:none;">
-            <button class="btn-sm btn-outline" type="button" onclick="fpMover(1)" aria-label="Siguiente">›</button>
-            <button class="btn-sm btn-outline" type="button" onclick="fpHoy()">↻ Hoy</button>
-            <button class="btn-sm btn-pdf" id="fp-btn-pdf" type="button" onclick="fpExportar()">📄 Exportar PDF</button>
-          </div>
+      <div class="card" id="fc-card">
+        <div class="fc-head">
+          <div class="fc-title">📄 Flash report <small>Comisiones · lo que comisionó cada persona, con su detalle</small></div>
+          <div class="fc-tools"><button class="btn-sm btn-pdf" id="fc-btn-pdf" type="button" onclick="fcExportar()">📄 Exportar PDF</button></div>
         </div>
-        <div class="fp-nota" id="fp-nota"></div>
+        <div class="fc-nota" id="fc-nota"></div>
       </div>
       <div class="kpi-cards" id="com-kpis"></div>
       <div class="comisiones-grid" id="com-cards"><div class="empty-state">Cargando…</div></div>
@@ -1423,7 +1413,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   // ============================================================
   // Marca de versión visible en la esquina inferior derecha (muy discreta) — se actualiza en cada
   // entrega para poder confirmar de un vistazo si el navegador ya tiene el archivo más reciente.
-  const APP_VERSION = 'v1.14 · 2026-11-18';
+  const APP_VERSION = 'v1.14.1 · 2026-11-18';
   document.addEventListener('DOMContentLoaded', () => {
     const badge = document.getElementById('app-version-badge');
     if(badge) badge.textContent = APP_VERSION;
@@ -2175,6 +2165,8 @@ h2 small{font-family:'Instrument Sans',Arial,sans-serif;font-weight:600;color:va
 .gf-t{display:inline-block;font-size:8.5px;font-weight:700;border-radius:10px;padding:2px 8px;white-space:nowrap}
 .tot{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;border-radius:10px;padding:9px 16px;margin-top:6px;font-size:10px}.tot b{font-size:16px;font-family:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif}
 .ft{padding:10px 36px;border-top:1px solid var(--g2);display:flex;justify-content:space-between;font-size:8.5px;color:var(--g4)}
+.pt tr.tt td{font-weight:800;background:#EEF2F8 !important;border-top:2px solid var(--navy);border-bottom:0}.pt td.gr{color:var(--g4)}.pt .tg{display:inline-block;font-size:7.5px;font-weight:800;border-radius:8px;padding:1px 6px;margin-left:5px;vertical-align:1px}.pt .tg.p{background:#E3F7EE;color:#12805C}.pt .tg.c{background:#EEF1F6;color:#5B6B84}
+.cm{width:100%;border-collapse:collapse;font-size:9.5px}.cm th{text-align:left;font-size:8px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--g4);padding:5px 6px 4px;border-bottom:2px solid var(--navy)}.cm th.r,.cm td.r{text-align:right}.cm td{padding:7px 6px;border-bottom:1px solid var(--g2);vertical-align:middle}.cm .nn{font-family:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;font-weight:800;font-size:12px}.cm tr.sum td{border-top:2px solid var(--navy);border-bottom:0;font-weight:800;background:#EEF2F8}.cm small{display:block;color:var(--g4);font-size:8.5px;margin-top:1px}
 .bh{display:flex;align-items:center;gap:10px;margin:11px 0 3px}.bh .bs{font-size:9px;color:var(--g6);font-weight:600}
 .pt{width:100%;border-collapse:collapse;font-size:9.5px;table-layout:fixed}
 .pt td{padding:4px 6px;border-bottom:1px solid var(--g2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
@@ -2539,6 +2531,18 @@ ${pie(2 + idx)}
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 8000);
     return nombre;
   }
+  // Monta un documento HTML (con hojas .page) en un iframe oculto, lo convierte a PDF y lo descarga. Devuelve el nombre del archivo.
+  async function frPdfDesdeHtml(html, nombreArchivo){
+    const ifr = document.createElement('iframe');
+    ifr.setAttribute('aria-hidden', 'true');
+    ifr.style.cssText = 'position:fixed; left:-10000px; top:0; width:816px; height:1200px; border:0; pointer-events:none;';
+    document.body.appendChild(ifr);
+    try{
+      await new Promise(res => { ifr.onload = res; ifr.srcdoc = html; });
+      ifr.style.height = Math.max(1200, ifr.contentDocument.documentElement.scrollHeight + 20) + 'px';
+      return await frPdfDesdeDoc(ifr.contentDocument, nombreArchivo);
+    } finally { ifr.remove(); }
+  }
   let FR_EXPORTANDO = false;
   async function frExportar(){
     if(FR_EXPORTANDO) return;
@@ -2569,43 +2573,6 @@ ${pie(2 + idx)}
   // "Cierre del día" (1 hoja + anexo con el detalle de pacientes por prestador) y "Cierre del mes".
   // Se arma en una hoja oculta y se descarga directo como PDF.
   // ============================================================
-  let FP_MODO = 'dia', FP_BUSY = false, FP_INIT = false;
-  const FP_UNIDADES_P = 40;   // "renglones" que caben en una hoja del anexo (un encabezado de prestador cuenta como 1.8)
-  function fpInit(){
-    if(FP_INIT) return;
-    FP_INIT = true;
-    document.getElementById('fp-dia').value = isoLocal(new Date());
-    document.getElementById('fp-mes').value = mesActualISO();
-    fpSetModo('dia');
-  }
-  function fpSetModo(m){
-    FP_MODO = m;
-    document.getElementById('fp-modo-dia').classList.toggle('act', m === 'dia');
-    document.getElementById('fp-modo-mes').classList.toggle('act', m === 'mes');
-    document.getElementById('fp-dia').style.display = m === 'dia' ? '' : 'none';
-    document.getElementById('fp-mes').style.display = m === 'mes' ? '' : 'none';
-    document.getElementById('fp-nota').textContent = m === 'dia'
-      ? 'Cierre del día: 1 hoja con la productividad + anexo con el detalle de pacientes por prestador.'
-      : 'Cierre del mes: 1 hoja con la productividad del mes (el reporte de resultados con gastos y margen sigue en el Dashboard).';
-  }
-  function fpMover(dir){
-    if(FP_MODO === 'dia'){
-      const el = document.getElementById('fp-dia');
-      const f = new Date((el.value || isoLocal(new Date())) + 'T12:00:00');
-      f.setDate(f.getDate() + dir);
-      el.value = isoLocal(f);
-    } else {
-      const el = document.getElementById('fp-mes');
-      let [y, m] = (el.value || mesActualISO()).split('-').map(Number);
-      m += dir; if(m < 1){ m = 12; y--; } if(m > 12){ m = 1; y++; }
-      el.value = y + '-' + frPad(m);
-    }
-  }
-  function fpHoy(){
-    document.getElementById('fp-dia').value = isoLocal(new Date());
-    document.getElementById('fp-mes').value = mesActualISO();
-  }
-
   async function fpTotalRango(desde, hasta){
     const rows = await frFetchTodo(() => sb.from('consultas').select('id, monto, monto_2').eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta).order('id'));
     return rows.reduce((a, r) => a + Number(r.monto||0) + Number(r.monto_2||0), 0);
@@ -2819,40 +2786,216 @@ ${pie(2 + idx)}
       '<style>' + FR_CSS + '</style></head><body><div class="paper">' + paginas.join('') + '</div></body></html>';
   }
 
-  async function fpExportar(){
-    if(FP_BUSY) return;
+  // ============================================================
+  // FLASH REPORT DE COMISIONES (pestaña Comisiones, solo administradores)
+  // Lo que comisionó cada persona en el período seleccionado, con su detalle servicio por servicio.
+  // Usa las mismas reglas que las tarjetas de la pestaña (base, %, ISR, solo propios, farmacia).
+  // ============================================================
+  const FC_UNIDADES = 40;   // "renglones" que caben en una hoja de detalle (un encabezado cuenta como 1.8)
+
+  function fcPeriodoActual(){
+    const periodo = document.getElementById('com-periodo').value;
+    let { desde, hasta } = rangoComisiones(periodo);
+    if(periodo === 'custom'){ const rg = rangoPersonalizado('com'); desde = rg.desde; hasta = rg.hasta; }
+    return { periodo, desde, hasta };
+  }
+  function fcTextosPeriodo(periodo, desde, hasta){
+    const hoy = new Date(), mes = MESES_LARGO[hoy.getMonth()].toLowerCase(), y = hoy.getFullYear();
+    const rangoTxt = (desde ? fechaCorta(desde) : '…') + ' al ' + (hasta ? fechaCorta(hasta) : '…');
+    let titulo, etq;
+    if(periodo === 'mes'){ titulo = MESES_LARGO[hoy.getMonth()] + ' ' + y; etq = 'Cierre del mes'; }
+    else if(periodo === 'q1'){ titulo = '1ª quincena de ' + mes + ' ' + y; etq = 'Cierre de quincena'; }
+    else if(periodo === 'q2'){ titulo = '2ª quincena de ' + mes + ' ' + y; etq = 'Cierre de quincena'; }
+    else if(periodo === 'custom'){ titulo = rangoTxt; etq = 'Cierre del periodo'; }
+    else { titulo = 'Últimos ' + (parseInt(periodo, 10) || 30) + ' días'; etq = 'Cierre del periodo'; }
+    return { titulo, etq, rangoTxt };
+  }
+  function fcActualizarNota(){
+    const el = document.getElementById('fc-nota'); if(!el) return;
+    const sel = document.getElementById('com-persona'), per = document.getElementById('com-periodo');
+    const p = fcPeriodoActual(), t = fcTextosPeriodo(p.periodo, p.desde, p.hasta);
+    const quien = sel.value ? (sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : '') : 'todas las personas';
+    el.innerHTML = 'Se genera con lo que tienes seleccionado arriba: <b>' + esc(t.titulo) + '</b> (' + esc(t.rangoTxt) + ') · <b>' + esc(quien) + '</b>. Incluye el resumen y el detalle de cada servicio.';
+  }
+
+  async function fcReunir(desde, hasta, personaFiltro){
+    const { data: personal, error } = await sb.rpc('fn_comisiones_admin');
+    if(error) throw error;
+    const conCom = (personal || []).filter(p => !PERSONAL_SIN_COMISION.some(n => normalizar(p.nombre).includes(n)));
+    const personas = conCom.filter(p => !personaFiltro || p.id === personaFiltro);
+    const rows = await frFetchTodo(() => sb.from('consultas')
+      .select('id, fecha, tipo_consulta, monto, monto_2, doctor_id, paciente_propio, farmacia_generado_por, pacientes(nombre)')
+      .eq('deleted', false).eq('no_vino', false).gte('fecha', desde).lte('fecha', hasta).order('fecha').order('id'));
+    const tot = r => Number(r.monto||0) + Number(r.monto_2||0);
+
+    let kpiNeto = 0, kpiProd = 0, kpiFarm = 0, kpiServNeto = 0, pendientes = 0;
+    const out = personas.map(p => {
+      const mis = rows.filter(r => r.doctor_id === p.id);
+      const soloPropios = !!(p.permisos && p.permisos.comision_solo_propios);
+      const totalGeneral = mis.reduce((a, r) => a + tot(r), 0);
+      const totalPropios = mis.filter(r => r.paciente_propio === true).reduce((a, r) => a + tot(r), 0);
+      const base = soloPropios ? totalPropios : totalGeneral;
+      const pct = (p.permisos && p.permisos.comision_pct != null) ? Number(p.permisos.comision_pct) : null;
+      const isrPct = (p.permisos && p.permisos.comision_isr_pct != null) ? Number(p.permisos.comision_isr_pct) : 0;
+      kpiProd += totalGeneral;
+      let bruta = null, isr = null, neto = null;
+      if(pct === null) pendientes++;
+      else { bruta = base * (pct/100); isr = bruta * (isrPct/100); neto = bruta - isr; }
+
+      const vf = rows.filter(r => r.farmacia_generado_por === p.id);
+      const totalFarm = vf.reduce((a, r) => a + tot(r), 0);
+      const fpct = (p.permisos && p.permisos.comision_farmacia_pct != null) ? Number(p.permisos.comision_farmacia_pct) : null;
+      let comFarm = null;
+      if(totalFarm > 0 || fpct !== null){
+        if(fpct === null) pendientes++;
+        else { comFarm = totalFarm * (fpct/100); kpiFarm += comFarm; }
+      }
+      let netoFinal = null;
+      if(neto !== null){ netoFinal = neto + (comFarm || 0); kpiNeto += netoFinal; kpiServNeto += neto; }
+
+      const lineasServ = mis.slice().sort((a, b) => a.fecha < b.fecha ? -1 : (a.fecha > b.fecha ? 1 : 0)).map(r => {
+        const cuenta = soloPropios ? r.paciente_propio === true : true;
+        return { fecha:r.fecha, pac:(r.pacientes && r.pacientes.nombre) || '—', serv:frInitcap(r.tipo_consulta), farm:!!r.farmacia_generado_por,
+                 monto:tot(r), cuenta, propio:r.paciente_propio === true, com:(cuenta && pct !== null) ? tot(r) * (pct/100) : null };
+      });
+      const lineasFarm = vf.slice().sort((a, b) => a.fecha < b.fecha ? -1 : (a.fecha > b.fecha ? 1 : 0)).map(r => ({ fecha:r.fecha, pac:(r.pacientes && r.pacientes.nombre) || '—', serv:frInitcap(r.tipo_consulta), monto:tot(r), com: fpct !== null ? tot(r) * (fpct/100) : null }));
+      const cosm = /^Cosm\./i.test(p.nombre);
+      return { id:p.id, n:p.nombre, tono: cosm ? 'cs' : (/tania/i.test(p.nombre) ? 'd1' : 'd2'), rol: cosm ? 'Cabina' : (/^Dra\./i.test(p.nombre) ? 'Doctora' : (/^Dr\./i.test(p.nombre) ? 'Doctor' : 'Equipo')),
+        soloPropios, totalGeneral, totalPropios, base, pct, isrPct, bruta, isr, neto, totalFarm, fpct, comFarm, netoFinal, lineasServ, lineasFarm };
+    });
+    const t = fcTextosPeriodo(fcPeriodoActual().periodo, desde, hasta);
+    return { desde, hasta, titulo:t.titulo, etq:t.etq, rangoTxt:t.rangoTxt, personas: out, kpiNeto, kpiProd, kpiFarm, kpiServNeto, pendientes, hayDatos: rows.length > 0 };
+  }
+
+  // Bloques de detalle (uno por persona para servicios y otro para su farmacia), repartidos en hojas cortando entre renglones
+  function fcBloques(d){
+    const bl = [];
+    d.personas.forEach(p => {
+      if(p.lineasServ.length){
+        const filas = p.lineasServ.map(l => {
+          const tag = p.soloPropios ? `<span class="tg ${l.propio ? 'p' : 'c'}">${l.propio ? 'PROPIO' : 'CLÍNICA'}</span>` : '';
+          return `<tr><td class="${l.cuenta ? '' : 'gr'}">${esc(fechaCorta(l.fecha).slice(0,5))}</td><td class="pa ${l.cuenta ? '' : 'gr'}">${esc(l.pac)}</td><td class="${l.cuenta ? '' : 'gr'}">${l.farm ? '💊 ' : ''}${esc(l.serv)}${tag}</td><td class="mo ${l.cuenta ? '' : 'gr'}">${money(l.monto)}</td><td class="mo ${l.cuenta ? '' : 'gr'}">${l.com === null ? '—' : money(l.com)}</td></tr>`;
+        });
+        if(p.pct !== null) filas.push(`<tr class="tt"><td colspan="3">Total · base ${money(p.base)} × ${p.pct}%${p.isrPct > 0 ? ' − ISR ' + p.isrPct + '%' : ''}</td><td class="mo">${money(p.base)}</td><td class="mo">${money(p.neto)}</td></tr>`);
+        bl.push({ p, tipo:'serv', filas, cab: cont => {
+          const resumen = cont ? '(continúa)' : `${p.lineasServ.length} servicio${p.lineasServ.length===1?'':'s'}${p.soloPropios ? ' · solo pacientes propios' : ''}${p.pct === null ? ' · esquema pendiente' : ' · ' + p.pct + '% comisión'}`;
+          return `<div class="bh"><span class="np ${p.tono}">${esc(p.n)}</span><span class="bs">${esc(resumen)}</span></div>`; } });
+      }
+      if(p.lineasFarm.length){
+        const filas = p.lineasFarm.map(l => `<tr><td>${esc(fechaCorta(l.fecha).slice(0,5))}</td><td class="pa">${esc(l.pac)}</td><td>💊 ${esc(l.serv)}</td><td class="mo">${money(l.monto)}</td><td class="mo">${l.com === null ? '—' : money(l.com)}</td></tr>`);
+        if(p.fpct !== null) filas.push(`<tr class="tt"><td colspan="3">Total farmacia · ${money(p.totalFarm)} × ${p.fpct}% (sin ISR)</td><td class="mo">${money(p.totalFarm)}</td><td class="mo">${money(p.comFarm)}</td></tr>`);
+        bl.push({ p, tipo:'farm', filas, cab: cont => {
+          const resumen = cont ? '(continúa)' : `💊 Farmacia generada · ${p.lineasFarm.length} pieza${p.lineasFarm.length===1?'':'s'}${p.fpct === null ? ' · % de farmacia pendiente' : ' · ' + p.fpct + '% comisión'}`;
+          return `<div class="bh"><span class="np ${p.tono}">${esc(p.n)}</span><span class="bs">${esc(resumen)}</span></div>`; } });
+      }
+    });
+    return bl;
+  }
+  function fcPaginar(bloques){
+    const paginas = [];
+    let pag = [], usado = 0;
+    const nueva = () => { if(pag.length) paginas.push(pag); pag = []; usado = 0; };
+    bloques.forEach(b => {
+      let i = 0, cont = false;
+      while(i < b.filas.length){
+        const cab = 1.8;
+        if(usado + cab + 2 > FC_UNIDADES) nueva();
+        const libre = Math.floor(FC_UNIDADES - usado - cab);
+        const n = Math.max(1, Math.min(libre, b.filas.length - i));
+        pag.push({ b, cont, filas: b.filas.slice(i, i + n) });
+        usado += cab + n; i += n; cont = true;
+        if(i < b.filas.length) nueva();
+      }
+    });
+    if(pag.length) paginas.push(pag);
+    return paginas;
+  }
+
+  function fcPagina1(d, nPag){
+    const ahora = new Date().toLocaleString('es-MX', { timeZone:'America/Mexico_City', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true }).replace(',', ' ·');
+    const quien = (MI_PERFIL && MI_PERFIL.nombre) ? 'por ' + esc(MI_PERFIL.nombre) : '';
+    const filas = d.personas.map(p => {
+      const esquema = p.pct === null ? '<span style="color:#B23B3B;font-weight:700">Pendiente</span>' : `${p.pct}%${p.isrPct > 0 ? ' · ISR ' + p.isrPct + '%' : ''}<small>${p.soloPropios ? 'solo pacientes propios' : 'productividad total'}</small>`;
+      const farm = (p.totalFarm > 0 || p.fpct !== null) ? (p.fpct === null ? `<span style="color:#B23B3B;font-weight:700">% pendiente</span><small>${money(p.totalFarm)} generada</small>` : `${money(p.comFarm)}<small>${money(p.totalFarm)} × ${p.fpct}%</small>`) : '—';
+      return `<tr>
+<td><span class="np ${p.tono}">${esc(p.n)}</span><small>${p.rol} · ${p.lineasServ.length} servicio${p.lineasServ.length===1?'':'s'}</small></td>
+<td>${esquema}</td>
+<td class="r">${money(p.base)}${p.soloPropios ? '<small>de ' + money(p.totalGeneral) + ' totales</small>' : ''}</td>
+<td class="r">${p.bruta === null ? '—' : money(p.bruta)}</td>
+<td class="r">${p.isr === null || !p.isr ? '—' : '− ' + money(p.isr)}</td>
+<td class="r">${farm}</td>
+<td class="r nn">${p.netoFinal === null ? '—' : money(p.netoFinal)}</td></tr>`;
+    }).join('') || '<tr><td colspan="7" style="padding:14px;color:var(--g4)">No hay personas con comisión configurada.</td></tr>';
+    const nTot = d.personas.filter(p => p.netoFinal !== null).length;
+    const COL = { cs:'#C8820A', d1:'#2F6FD0', d2:'#2ABFBF' };
+    const conNeto = d.personas.filter(p => p.netoFinal !== null && p.netoFinal > 0).sort((a, b) => b.netoFinal - a.netoFinal);
+    const mxN = Math.max(1, ...conNeto.map(p => p.netoFinal));
+    const partic = conNeto.map(p => `<div class="cr"><span class="cn">${esc(p.n)}</span><div class="cb"><i style="width:${(p.netoFinal/mxN*100).toFixed(1)}%;background:${COL[p.tono] || '#2ABFBF'}"></i></div><b>${money(p.netoFinal)}</b><span class="mp">${d.kpiNeto ? Math.round(p.netoFinal/d.kpiNeto*100) : 0}%</span></div>`).join('');
+    const pend = d.pendientes;
+    return `<div class="page">
+<div class="hd"><div><div class="br">Clinderm · Flash report</div><h1 class="d">${esc(d.etq)} · <b>Comisiones</b></h1></div>
+<div class="dt"><strong class="d">${esc(d.titulo)}</strong>${esc(d.rangoTxt)}<br>Generado el ${esc(ahora)} ${quien}</div></div>
+<div class="wrap">
+<div class="hero4">
+ <div class="k main"><div class="l">Neto total a pagar</div><div class="v d">${money(d.kpiNeto)}</div><div class="s">${nTot} persona${nTot===1?'':'s'} con comisión · incluye farmacia</div></div>
+ <div class="k"><div class="l">Productividad del período</div><div class="v t d">${frM(d.kpiProd)}</div><div class="s">lo producido por el equipo</div></div>
+ <div class="k"><div class="l">Comisión de servicios</div><div class="v d">${money(d.kpiServNeto)}</div><div class="s">neta de ISR</div></div>
+ <div class="k"><div class="l">Comisión de farmacia</div><div class="v f d">${money(d.kpiFarm)}</div><div class="s">sin ISR</div></div>
+</div>
+<h2 class="d">Comisión por persona <small>resumen del período</small></h2>
+<table class="cm"><tr><th>Persona</th><th>Esquema</th><th class="r">Base</th><th class="r">Comisión</th><th class="r">ISR</th><th class="r">Farmacia</th><th class="r">Neto a pagar</th></tr>
+${filas}
+<tr class="sum"><td colspan="6">Neto total a pagar</td><td class="r nn">${money(d.kpiNeto)}</td></tr></table>
+${partic ? `<h2 class="d">Participación en el neto a pagar</h2>${partic}` : ''}
+<h2 class="d">Cómo se calcula</h2>
+<div class="sc"><b>Servicios:</b> base × % de comisión, menos el ISR de cada persona. Para quien comisiona <i>solo pacientes propios</i>, la base son únicamente los servicios marcados como propios.<br><b>Farmacia:</b> ventas que generó la persona × su % de farmacia (sin ISR). <b>Neto a pagar</b> = servicios (neto de ISR) + farmacia.</div>
+${pend ? `<div class="al" style="margin-top:10px"><div class="a w"><b>${pend}</b><span>esquema${pend===1?'':'s'} de comisión pendiente${pend===1?'':'s'} de definir<br>(no suman al neto a pagar)</span></div></div>` : ''}
+</div>
+<div class="ft"><span>Clinderm · Consultas · Cifras al momento de generar el reporte</span><span>Página 1 de ${nPag}</span></div>
+</div>`;
+  }
+
+  function fcPaginasDetalle(d, paginas, nPag){
+    const pie = n => `<div class="ft"><span>Clinderm · Consultas · Cifras al momento de generar el reporte</span><span>Página ${n} de ${nPag}</span></div>`;
+    return paginas.map((segs, idx) => {
+      const cuerpo = segs.map(sg => `${sg.b.cab(sg.cont)}<table class="pt"><colgroup><col style="width:56px"><col style="width:210px"><col style="width:262px"><col style="width:108px"><col style="width:108px"></colgroup>${sg.filas.join('')}</table>`).join('');
+      return `<div class="page">
+<div class="hd s"><div><div class="br">Clinderm · Flash report · Comisiones</div><h1 class="d">Detalle de <b>comisiones</b>${idx ? ' · continúa' : ''}</h1></div><div class="dt"><strong class="d">${esc(d.titulo)}</strong>Neto total a pagar ${money(d.kpiNeto)}</div></div>
+<div class="wrap">${cuerpo}</div>
+${pie(2 + idx)}
+</div>`;
+    });
+  }
+
+  function fcDocumento(d){
+    const paginasDet = fcPaginar(fcBloques(d));
+    const nPag = 1 + paginasDet.length;
+    const paginas = [fcPagina1(d, nPag)].concat(fcPaginasDetalle(d, paginasDet, nPag));
+    return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Flash report Clinderm - Comisiones ' + esc(d.titulo) + '</title>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+      '<style>' + FR_CSS + '</style></head><body><div class="paper">' + paginas.join('') + '</div></body></html>';
+  }
+
+  let FC_BUSY = false;
+  async function fcExportar(){
+    if(FC_BUSY) return;
     if(typeof html2canvas !== 'function'){ toast('⚠️ No se pudo cargar el generador de PDF, recarga la página'); return; }
-    const esDia = FP_MODO === 'dia';
-    let desde, hasta;
-    if(esDia){
-      desde = hasta = document.getElementById('fp-dia').value;
-      if(!desde){ toast('⚠️ Elige el día del reporte'); return; }
-    } else {
-      const ym = document.getElementById('fp-mes').value;
-      if(!ym){ toast('⚠️ Elige el mes del reporte'); return; }
-      const rg = rangoDeMes(ym); desde = rg.desde; hasta = rg.hasta;
-    }
-    FP_BUSY = true;
-    const btn = document.getElementById('fp-btn-pdf'), txt = btn.textContent;
+    const { periodo, desde, hasta } = fcPeriodoActual();
+    if(!desde || !hasta){ toast('⚠️ Elige fecha Desde y Hasta'); return; }
+    FC_BUSY = true;
+    const btn = document.getElementById('fc-btn-pdf'), txt = btn.textContent;
     btn.disabled = true; btn.textContent = '⏳ Generando PDF…';
-    let ifr = null;
     try{
-      const d = await fpReunir(desde, hasta, esDia);
-      if(d.vacio){ toast('No hay movimientos en este periodo para exportar.'); return; }
-      ifr = document.createElement('iframe');
-      ifr.setAttribute('aria-hidden', 'true');
-      ifr.style.cssText = 'position:fixed; left:-10000px; top:0; width:816px; height:1200px; border:0; pointer-events:none;';
-      document.body.appendChild(ifr);
-      await new Promise(res => { ifr.onload = res; ifr.srcdoc = fpDocumento(d); });
-      ifr.style.height = Math.max(1200, ifr.contentDocument.documentElement.scrollHeight + 20) + 'px';
-      const nombre = await frPdfDesdeDoc(ifr.contentDocument);
+      const d = await fcReunir(desde, hasta, document.getElementById('com-persona').value);
+      if(!d.personas.length){ toast('No hay personas con comisión para este reporte.'); return; }
+      if(!d.hayDatos){ toast('No hay movimientos en este periodo para exportar.'); return; }
+      const nombre = await frPdfDesdeHtml(fcDocumento(d));
       toast('✅ PDF descargado: ' + nombre);
     }catch(e){
-      console.error('[Clinderm] No se pudo generar el Flash report de productividad:', e);
+      console.error('[Clinderm] No se pudo generar el Flash report de comisiones:', e);
       toast('⚠️ No se pudo generar el PDF. Revisa tu conexión e inténtalo de nuevo.');
     }finally{
-      if(ifr) ifr.remove();
-      FP_BUSY = false;
+      FC_BUSY = false;
       btn.disabled = false; btn.textContent = txt;
     }
   }
@@ -2873,7 +3016,7 @@ ${pie(2 + idx)}
     if(btn) btn.classList.add('active');
     if(id === 'historial') cargarHistorial();
     if(id === 'cierre') cargarCierre();
-    if(id === 'comisiones'){ fpInit(); cargarComisiones(); }
+    if(id === 'comisiones') cargarComisiones();
     if(id === 'gastos') cargarGastos();
     if(id === 'dashboard') cargarDashboard();
     if(id === 'crm') crmTab('inactivos');
@@ -3733,6 +3876,7 @@ ${pie(2 + idx)}
 
   async function cargarComisiones(){
     const periodo = document.getElementById('com-periodo').value;
+    fcActualizarNota();
     const personaFiltro = document.getElementById('com-persona').value;
     let { desde, hasta } = rangoComisiones(periodo);
     if(periodo === 'custom'){
